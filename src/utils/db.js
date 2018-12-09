@@ -1,0 +1,83 @@
+const _ = require('lodash')
+const config = require('config')
+const mongoose = require('mongoose')
+const jp = require('../jadepool')
+const consts = require('../consts')
+
+const logger = require('@jadepool/logger').of('MongoDB Connector')
+
+// mongoose Promise setup
+mongoose.Promise = global.Promise
+
+// 通用Mongo连接配置
+const mongoOptions = {
+  reconnectTries: Number.MAX_VALUE,
+  reconnectInterval: 10 * 1000,
+  autoReconnect: true,
+  useNewUrlParser: true
+}
+const connMap = new Map()
+
+const getUri = (dbKey = consts.DEFAULT_KEY) => {
+  let mongoUrl
+  // 从config配置中读取mongo
+  if (config.mongo) {
+    if (_.isString(config.mongo)) {
+      mongoUrl = config.mongo
+    } else if (_.isObject(config.mongo)) {
+      mongoUrl = config.mongo[dbKey] || config.mongo[consts.DEFAULT_KEY]
+    }
+  }
+  // dev环境中，若无法获得地址则使用默认数据
+  const nodeEnv = process.env.NODE_ENV
+  if (!mongoUrl && nodeEnv !== 'production') {
+    mongoUrl = `mongodb://${jp.env.defaultMongo}/jadepool-${nodeEnv}`
+  }
+  // 报错
+  if (!mongoUrl) {
+    const err = new Error()
+    logger.error(`Missing mongo url for ${dbKey}`, err)
+    throw err
+  }
+  return mongoUrl
+}
+
+/**
+ * 初始化默认数据库连接
+ * @param {String} dbKey 数据库关键字
+ */
+const initialize = async () => {
+  // 连接默认配置
+  try {
+    await mongoose.connect(getUri(consts.DEFAULT_KEY), mongoOptions)
+    logger.log(`connected`)
+  } catch (err) {
+    logger.error(null, err, ['Initialization-failed'])
+  }
+}
+
+/**
+ * 获取数据库连接
+ * @param {String} dbKey
+ * @param {Function} callback
+ * @returns {mongoose.Connection && {then:Function, catch:Function}}
+ */
+const fetchConnection = (dbKey = consts.DEFAULT_KEY) => {
+  if (dbKey === consts.DEFAULT_KEY) {
+    return mongoose
+  }
+  let conn = connMap.get(dbKey)
+  if (!conn) {
+    // 新建连接
+    conn = mongoose.createConnection(getUri(dbKey), mongoOptions)
+    connMap.set(dbKey, conn)
+  }
+  return conn
+}
+
+// 导出方法
+module.exports = {
+  initialize,
+  getUri,
+  fetchConnection
+}
