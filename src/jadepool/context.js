@@ -102,6 +102,12 @@ class JadePoolContext {
   }
 
   // Hook方法
+  /**
+   * Jadepool初始化
+   */
+  async hookInitialize (jadepool) {
+    // NOTHING
+  }
   hookPluginMounted (jadepool, plugin) {
     if (plugin && plugin.name) {
       if (this._invokeMethodFunc && typeof this._invokeMethodFunc === 'function') {

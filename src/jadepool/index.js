@@ -13,8 +13,10 @@ class JadePool {
    * 初始化Jadepool
    * @param {Context} ctx
    */
-  initialize (ctx) {
+  async initialize (ctx) {
     this.ctx = ctx
+    await this.ctx.hookInitialize(this)
+    logger.log(`Context initialized`)
   }
   /**
    * 判断是否完成初始化
