@@ -1,5 +1,6 @@
 module.exports = {
-  jadepool: require('./jadepool'),
   consts: require('./consts'),
-  utils: require('./utils')
+  utils: require('./utils'),
+  jadepool: require('./jadepool'),
+  Task: require('./services/agenda.task')
 }

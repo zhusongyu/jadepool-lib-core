@@ -15,9 +15,6 @@ class JadePool {
    */
   initialize (ctx) {
     this.ctx = ctx
-    // ServiceLib
-    this.services = new ServiceLib()
-    ServiceLib.lastRegisterTime = Date.now()
   }
   /**
    * 判断是否完成初始化
@@ -32,7 +29,9 @@ class JadePool {
    */
   get models () {
     return {
-      ConfigDat: require('../models/configdat')
+      ConfigDat: require('../models/configdat'),
+      TaskConfig: require('../models/taskConfig'),
+      Warning: require('../models/warning')
     }
   }
   /**
@@ -42,13 +41,7 @@ class JadePool {
    * @returns {BaseService}
    */
   async registerService (serviceClass, opts) {
-    let ServiceClass
-    if (typeof serviceClass === 'string') {
-      // ServiceClass
-    } else {
-      ServiceClass = serviceClass
-    }
-    return this.services.register(ServiceClass, opts)
+    return this.ctx.registerService(serviceClass, opts)
   }
   /**
    * 获取服务
@@ -56,8 +49,16 @@ class JadePool {
    * @returns {BaseService}
    */
   getService (name) {
-    return this.services.get(name)
+    return this.ctx.getService(name)
   }
+
+  /**
+   * 方法调用
+   */
+  async invokeMethod () {
+    return this.ctx.invokeMethod.apply(this.ctx, arguments)
+  }
+
   /**
    * 加载全部插件
    */
@@ -154,7 +155,7 @@ const graceful = (SigStr) => {
     }
     try {
       logger.diff('Services Exit').log(`Begin`)
-      await Promise.all(_.map(jadepool.services, async ins => {
+      await Promise.all(_.map(jadepool.ctx.services, async ins => {
         if (typeof ins.onDestroy === 'function') {
           await ins.onDestroy()
         }

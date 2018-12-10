@@ -118,6 +118,11 @@ const cryptoUtils = {
    * 内部签名检查函数
    * @param {String|Object} data
    * @param {Number} timestamp
+   * @param {Object?} opts
+   * @param {string} opts.hash msg签名Hash规则(md5|sha3|sha256)
+   * @param {string} opts.encode 签名返回结果encode(base64|hex)
+   * @param {string} opts.accept 签名返回结果(string|object)
+   * @param {boolean} [opts.withoutTimestamp=false] 是否需要添加时间戳
    */
   async signInternal (data, timestamp = undefined, opts = {}) {
     let priKey = await cryptoUtils.getPriKey()
@@ -137,7 +142,7 @@ const cryptoUtils = {
    * @param {String|Object} data
    * @param {Number} timestamp
    * @param {String} sig
-   * @returns {Boolean} 是否认证通过
+   * @returns {Promise<boolean>} 是否认证通过
    */
   async verifyInternal (data, timestamp, sig) {
     let pubKey = await cryptoUtils.fetchSelfPubKey()

@@ -1,5 +1,7 @@
 const _ = require('lodash')
+const consts = require('../consts')
 const buildEnvObject = require('./env')
+const ServiceLib = require('./serviceLib')
 const Logger = require('@jadepool/logger')
 const logger = Logger.of('JadePool')
 
@@ -11,6 +13,9 @@ class JadePoolContext {
      * @type {Map<string, WeakMap<JadepoolPlugin, object>>}
      */
     this._methodHooks = new Map()
+    // ServiceLib
+    this.services = new ServiceLib()
+    ServiceLib.lastRegisterTime = Date.now()
   }
 
   /**
@@ -21,6 +26,64 @@ class JadePoolContext {
       Object.defineProperty(this, '_plugins', { value: new Map() })
     }
     return this._plugins
+  }
+
+  /**
+   * 调用方法
+   * @type {(methodName: string, namespace: string, args: any[], ...others) => any}
+   */
+  get invokeMethodFunc () { return this._invokeMethodFunc }
+
+  /**
+   * 注册服务
+   * @param {typeof BaseService|string} serviceClass
+   * @param {Object} opts 传入的初始化参数
+   * @returns {BaseService}
+   */
+  async registerService (serviceClass, opts) {
+    let ClassToRegister
+    if (typeof serviceClass === 'string') {
+      switch (serviceClass) {
+        case consts.SERVICE_NAMES.APP:
+          ClassToRegister = require('../services/app.service')
+          break
+        case consts.SERVICE_NAMES.ERROR_CODE:
+          ClassToRegister = require('../services/error.code.service')
+          break
+        case consts.SERVICE_NAMES.SCRIPT:
+          ClassToRegister = require('../services/script.service')
+          break
+        case consts.SERVICE_NAMES.JSONRPC:
+          ClassToRegister = require('../services/rpcclient.service')
+          break
+        case consts.SERVICE_NAMES.JSONRPC_SERVER:
+          ClassToRegister = require('../services/jsonrpc.service')
+          break
+        case consts.SERVICE_NAMES.SIO_WORKER:
+          ClassToRegister = require('../services/sioworker.service')
+          break
+        case consts.SERVICE_NAMES.SOCKET_IO:
+          ClassToRegister = require('../services/socketio.service')
+          break
+        case consts.SERVICE_NAMES.AGENDA:
+          ClassToRegister = require('../services/agenda.service')
+          break
+        default:
+          logger.warn(`failed to registerService: ${serviceClass}`)
+          return
+      }
+    } else {
+      ClassToRegister = serviceClass
+    }
+    return this.services.register(ClassToRegister, opts)
+  }
+  /**
+   * 获取服务
+   * @param {String} name
+   * @returns {BaseService}
+   */
+  getService (name) {
+    return this.services.get(name)
   }
 
   // Hook方法

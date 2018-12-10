@@ -27,6 +27,7 @@ const SERVICE_NAMES = {
   APP: 'express', // HTTP/HTTPS服务
   SCRIPT: 'script', // 根据生命周期运行脚本的服务
   JSONRPC: 'jsonrpc', // 基于ws的通用jsonrpc发送和接收服务
+  JSONRPC_SERVER: 'jsonrpc.server', // 基于ws的通用jsonrpc服务端
   SOCKET_IO: 'socket.io', // Socket.io服务
   SIO_WORKER: 'sio.woker' // Socket.io的worker服务中心
 }
@@ -87,6 +88,15 @@ const BATCH_STATE = {
   DONE: 'done', // 批处理交易全部正确结束
   FAILED: 'failed' // 批处理交易全部结束，其中有failed的交易
 }
+const ISSUE_TYPES = {
+  ORDER_HOLDING: 'orderHolding'
+}
+const ISSUE_STATE = {
+  OPENED: 'opened',
+  PROCESSING: 'processing',
+  VALIDATING: 'validating',
+  RESOLVED: 'resolved'
+}
 const WARN_LEVEL = {
   CRITICAL: 'CRITICAL', // 致命错误
   MAJOR: 'MAJOR', // 主要错误
@@ -124,5 +134,7 @@ module.exports = {
   ORDER_BIZTYPES_IN,
   ORDER_BIZTYPES_OUT,
   BATCH_STATE,
+  ISSUE_TYPES,
+  ISSUE_STATE,
   WARN_LEVEL
 }
