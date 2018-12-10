@@ -9,7 +9,7 @@ const bodyParser = require('body-parser')
 
 const jp = require('../jadepool')
 const consts = require('../consts')
-const NBError = require('../utils/NBError')
+const NBError = require('../NBError')
 const cfgLoader = require('../utils/config/loader')
 const logger = require('@jadepool/logger').of('Service', 'Express')
 

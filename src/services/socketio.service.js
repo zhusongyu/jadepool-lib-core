@@ -2,7 +2,7 @@ const _ = require('lodash')
 const socketio = require('socket.io')
 const jp = require('../jadepool')
 const consts = require('../consts')
-const NBError = require('../utils/NBError')
+const NBError = require('../NBError')
 const cryptoUtils = require('../utils/crypto')
 const logger = require('@jadepool/logger').of('Service', 'SocketIO')
 

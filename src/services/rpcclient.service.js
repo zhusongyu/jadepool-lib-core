@@ -4,7 +4,7 @@ const WebSocket = require('ws')
 const EventEmitter = require('events').EventEmitter
 const jp = require('../jadepool')
 const consts = require('../consts')
-const NBError = require('../utils/NBError')
+const NBError = require('../NBError')
 const cryptoUtils = require('../utils/crypto')
 
 const logger = require('@jadepool/logger').of('Service', 'RPC Client')

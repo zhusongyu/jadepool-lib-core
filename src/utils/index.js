@@ -5,6 +5,5 @@ module.exports = {
   crypto: require('./crypto'),
   db: require('./db'),
   redis: require('./redis'),
-  NBError: require('./NBError'),
   ProcessRunner: require('./processRunner')
 }

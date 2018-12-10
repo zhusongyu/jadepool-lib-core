@@ -1,7 +1,7 @@
 const io = require('socket.io-client')
 const jp = require('../jadepool')
 const consts = require('../consts')
-const NBError = require('../utils/NBError')
+const NBError = require('../NBError')
 const cryptoUtils = require('../utils/crypto')
 const cfgLoader = require('../utils/config/loader')
 

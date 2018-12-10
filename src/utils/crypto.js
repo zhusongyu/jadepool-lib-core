@@ -1,6 +1,6 @@
 const _ = require('lodash')
 const { ecc } = require('@jadepool/crypto')
-const NBError = require('./NBError')
+const NBError = require('../NBError')
 const configLoader = require('./config/loader')
 
 const THIS_APP_ID = 'self'
