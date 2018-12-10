@@ -137,8 +137,7 @@ class AgendaService extends jp.BaseService {
     if (!this._inited) {
       await this._agenda._ready
     }
-    const result = await this._agenda._collection.update(query, update, { multi: true })
-    return result
+    return this._agenda._collection.updateMany(query, update)
   }
 
   async every (interval, name, data, options) {

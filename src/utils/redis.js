@@ -1,5 +1,4 @@
 const _ = require('lodash')
-const config = require('config')
 const redis = require('redis')
 const jp = require('../jadepool')
 const consts = require('../consts')
@@ -46,10 +45,10 @@ const redisLib = {
    */
   getOpts (name = consts.DEFAULT_KEY) {
     let opts = {}
-    if (_.isString(config.redis)) {
-      opts.url = config.redis
-    } else if (_.isObject(config.redis)) {
-      const cfg = (config.redis[name] || config.redis[consts.DEFAULT_KEY]) || config.redis
+    if (_.isString(jp.config.redis)) {
+      opts.url = jp.config.redis
+    } else if (_.isObject(jp.config.redis)) {
+      const cfg = (jp.config.redis[name] || jp.config.redis[consts.DEFAULT_KEY]) || jp.config.redis
       opts = _.clone(cfg)
     }
     // dev环境中，若无法获得地址则使用默认数据

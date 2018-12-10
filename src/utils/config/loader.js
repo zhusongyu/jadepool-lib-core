@@ -2,8 +2,9 @@ const _ = require('lodash')
 const fs = require('fs')
 const path = require('path')
 const semver = require('semver')
-const config = require('config')
 const jp = require('../../jadepool')
+
+const logger = require('@jadepool/logger').of('Configure')
 
 // 环境配置
 let enableAutoSaveWhenLoad = false
@@ -57,7 +58,12 @@ const loadConfig = async (cfgPath, key = '', parent = null, forceSelf = false) =
         }
       }
     } else {
-      const cfgJson = config.util.loadFileConfigs(cfgFilePath)
+      let cfgJson
+      try {
+        cfgJson = jp.config.util.loadFileConfigs(cfgFilePath)
+      } catch (err) {
+        logger.warn(`failed to load: ${cfgFilePath}. Error=${err && err.message}`)
+      }
       if (!cfgDat && (!cfgJson || _.isEmpty(cfgJson))) return null
       // 设置新配置
       if (!cfgDat) {
@@ -96,8 +102,7 @@ const loadConfigKeys = async (cfgPath, parent = null) => {
   if (parent) { query.parent = parent }
 
   // Config in DB
-  const ConfigDat = jp.models.ConfigDat
-  const cfgs = (await ConfigDat.find(query).exec()) || []
+  const cfgs = (await jp.models.ConfigDat.find(query).exec()) || []
   let namesInDBs = _.map(cfgs, 'key')
   // Config in Files
   const cwdPath = process.cwd()

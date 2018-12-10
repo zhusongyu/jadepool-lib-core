@@ -1,5 +1,5 @@
-const config = require('config')
 const path = require('path')
+const jp = require('../jadepool')
 const BaseService = require('./core')
 const consts = require('../consts')
 // const logger = require('@jadepool/logger').of('Service', 'ErrorCode')
@@ -16,7 +16,7 @@ class ErrorCodeService extends BaseService {
     this._errMap = new Map()
 
     const cwdPath = process.cwd()
-    const pt = path.resolve(cwdPath, config.errorCodePath)
+    const pt = path.resolve(cwdPath, jp.config.errorCodePath)
     const lineReader = require('readline').createInterface({ input: require('fs').createReadStream(pt) })
 
     lineReader.on('line', (line) => {

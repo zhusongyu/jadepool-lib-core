@@ -1,5 +1,4 @@
 const _ = require('lodash')
-const config = require('config')
 const mongoose = require('mongoose')
 const jp = require('../jadepool')
 const consts = require('../consts')
@@ -21,11 +20,11 @@ const connMap = new Map()
 const getUri = (dbKey = consts.DEFAULT_KEY) => {
   let mongoUrl
   // 从config配置中读取mongo
-  if (config.mongo) {
-    if (_.isString(config.mongo)) {
-      mongoUrl = config.mongo
-    } else if (_.isObject(config.mongo)) {
-      mongoUrl = config.mongo[dbKey] || config.mongo[consts.DEFAULT_KEY]
+  if (jp.config.mongo) {
+    if (_.isString(jp.config.mongo)) {
+      mongoUrl = jp.config.mongo
+    } else if (_.isObject(jp.config.mongo)) {
+      mongoUrl = jp.config.mongo[dbKey] || jp.config.mongo[consts.DEFAULT_KEY]
     }
   }
   // dev环境中，若无法获得地址则使用默认数据

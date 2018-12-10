@@ -22,7 +22,9 @@ class AppService extends jp.BaseService {
   }
 
   /**
-   * @param {{ listenManually: Boolean }} opts
+   * @param {object} opts
+   * @param {boolean} opts.listenManually
+   * @param {(app: Express) => void} opts.routes
    */
   async initialize (opts) {
     const app = express()
@@ -42,7 +44,9 @@ class AppService extends jp.BaseService {
     app.use(cors())
 
     // Routes
-    require('../routes')(app)
+    if (typeof opts.routes === 'function') {
+      opts.routes(app)
+    }
 
     // Catch 404 Errors and forward them to error handler
     app.use((req, res, next) => {

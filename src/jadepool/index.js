@@ -25,6 +25,11 @@ class JadePool {
    */
   get env () { return this.ctx.env }
   /**
+   * 全局配置
+   * @type {object}
+   */
+  get config () { return this.ctx.config }
+  /**
    * Models
    */
   get models () {
@@ -34,6 +39,11 @@ class JadePool {
       Warning: require('../models/warning')
     }
   }
+  /**
+   * 插件目录
+   * @type {string}
+   */
+  get pluginDir () { return this._pluginDir }
   /**
    * 注册服务
    * @param {typeof BaseService|string} serviceClass
@@ -69,11 +79,12 @@ class JadePool {
 
     const pluginsCfg = pluginsDat.toMerged()
     const cwdPath = process.cwd()
-    this._pluginDir = path.resolve(cwdPath, `../${pluginsCfg.root || 'plugins'}`)
+    const pluginDir = path.resolve(cwdPath, `../${pluginsCfg.root || 'plugins'}`)
 
     let nameInFolders = []
-    if (fs.existsSync(this._pluginDir)) {
-      nameInFolders = fs.readdirSync(this._pluginDir).filter(fileName => fileName.indexOf('.') === -1)
+    if (fs.existsSync(pluginDir)) {
+      nameInFolders = fs.readdirSync(pluginDir).filter(fileName => fileName.indexOf('.') === -1)
+      Object.defineProperty(this, '_pluginDir', pluginDir)
     }
     let enabledPlugins = _.intersection(pluginsCfg.enabled || [], nameInFolders)
     for (let i = 0; i < enabledPlugins.length; i++) {
@@ -85,11 +96,11 @@ class JadePool {
    * @param {string} name 插件名称
    */
   async loadPlugin (name) {
-    if (!this._pluginDir) return
+    if (!this.pluginDir) return
 
     let pluginInfo
     try {
-      const pluginPath = path.resolve(this._pluginDir, name)
+      const pluginPath = path.resolve(this.pluginDir, name)
       if (process.env.BUNDLE_MODE !== '1') {
         pluginInfo = require(pluginPath)
       } else {

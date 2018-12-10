@@ -1,5 +1,4 @@
 const _ = require('lodash')
-const config = require('config')
 const {
   loadConfig,
   loadConfigKeys,
@@ -40,20 +39,20 @@ const addToken = async (parentDat, chainCfg, tokenCfg, folderName, baseKey) => {
   // 恢复旧版本的config.coin和config.jadepool
   if (!tokenCfg.build.extends || baseKey) {
     if (coinCfg.coin) {
-      config.coin[coinName] = config.coin[coinName] || {}
-      _.assign(config.coin[coinName], basicCfg)
+      jp.config.coin[coinName] = jp.config.coin[coinName] || {}
+      _.assign(jp.config.coin[coinName], basicCfg)
     }
     if (coinCfg.jadepool) {
-      config.jadepool[coinName] = config.jadepool[coinName] || {}
-      _.assign(config.jadepool[coinName], jpCfg)
+      jp.config.jadepool[coinName] = jp.config.jadepool[coinName] || {}
+      _.assign(jp.config.jadepool[coinName], jpCfg)
     }
     coinPath = `coin.${coinName}`
     jpPath = `jadepool.${coinName}`
   } else {
     const basicKey = tokenCfg.build.extends.coin
     const walletKey = tokenCfg.build.extends.jadepool
-    let coinArr = config.coin[basicKey] || []
-    let jpArr = config.jadepool[walletKey] || []
+    let coinArr = jp.config.coin[basicKey] || []
+    let jpArr = jp.config.jadepool[walletKey] || []
     if (coinCfg.coin) {
       let coinIdx = _.findIndex(coinArr, { name: coinCfg.name })
       if (coinIdx === -1) {
@@ -74,8 +73,8 @@ const addToken = async (parentDat, chainCfg, tokenCfg, folderName, baseKey) => {
       }
       jpPath = `jadepool.${walletKey}[${coinIdx}]`
     }
-    config.coin[basicKey] = coinArr
-    config.jadepool[walletKey] = jpArr
+    jp.config.coin[basicKey] = coinArr
+    jp.config.jadepool[walletKey] = jpArr
   }
 
   // 当设置tokenCfg.enabled时，即baseKey添加到可用coins
@@ -95,7 +94,7 @@ const addToken = async (parentDat, chainCfg, tokenCfg, folderName, baseKey) => {
     if (jpPath && jpPath !== baseJpPath) {
       parsedCfg.jpCfgPath.push(jpPath)
     }
-    config.coins.push(parsedCfg)
+    jp.config.coins.push(parsedCfg)
   }
   return coinCfg
 }
@@ -114,30 +113,30 @@ const configSetupDefault = async (moduleName, needSetConfig = true) => {
       return null
     }
     if (needSetConfig) {
-      config[moduleName] = {}
+      jp.config[moduleName] = {}
     }
     for (let i = 0; i < fileKeys.length; i++) {
       const key = fileKeys[i]
       let subCfgDat = await loadConfig(moduleName, key)
       if (!subCfgDat) continue
       if (needSetConfig) {
-        config[moduleName][key] = subCfgDat.toMerged()
+        jp.config[moduleName][key] = subCfgDat.toMerged()
       }
     }
   } else if (needSetConfig) {
-    config[moduleName] = cfgDat.toMerged()
+    jp.config[moduleName] = cfgDat.toMerged()
   }
 }
 
 const configSetupMethods = {
   'chain': async () => {
     // Step.1 一些准备配置，和旧版本配置将不再兼容
-    config.chain = {}
-    config.coins = []
-    config.coin = {}
-    config.jadepool = {}
-    config.node = {}
-    config.closer = {}
+    jp.config.chain = {}
+    jp.config.coins = []
+    jp.config.coin = {}
+    jp.config.jadepool = {}
+    jp.config.node = {}
+    jp.config.closer = {}
     // 设置默认配置
     const taskCfg = (await loadConfig('task')).toMerged()
     const configWatchers = _.values((await loadConfig('configWatchers')).toMerged())
@@ -157,16 +156,16 @@ const configSetupMethods = {
       // 设置节点数据
       const nodes = _.isArray(chainCfg.node) ? chainCfg.node : [ chainCfg.node ]
       _.forEach(nodes, nodeCfg => {
-        config.node[nodeCfg.name] = nodeCfg
+        jp.config.node[nodeCfg.name] = nodeCfg
       })
       // 设置closer数据
-      config.closer[key] = chainCfg.closer
+      jp.config.closer[key] = chainCfg.closer
       // 设置task数据
       if (!chainCfg.agenda || _.isEmpty(chainCfg.agenda)) {
         // 若cfg.agenda不存在，则赋予默认值
         chainCfg.agenda = taskCfg.chainsDefault
       }
-      _.set(config, `task.chains.${key}`, chainCfg.agenda)
+      _.set(jp.config, `task.chains.${key}`, chainCfg.agenda)
       // 设置tokenWatchers
       chainCfg.tokenWatchers = _.concat(chainCfg.tokenWatchers || [], configWatchers)
 
@@ -185,41 +184,41 @@ const configSetupMethods = {
         await addToken(chainCfgDat, chainCfg, tokenCfg, allTokens[i])
       }
       // 设置到config
-      config.chain[key] = chainCfg
+      jp.config.chain[key] = chainCfg
     }
   },
   'callback': async () => {
     await configSetupDefault('callback')
     // 设置debugCallback打补丁
-    config.debugCallback = _.get(config, `callback.debug`)
+    jp.config.debugCallback = _.get(jp.config, `callback.debug`)
   },
   'configMods': async () => {
     await configSetupDefault('configMods')
     // 补充设置
     let coinNames = fetchAllCoinNames()
-    const ERC20N = config.coin.ERC20 ? _.range(config.coin.ERC20.length) : []
-    _.forEach(config.configMods, (val, key) => {
+    const ERC20N = jp.config.coin.ERC20 ? _.range(jp.config.coin.ERC20.length) : []
+    _.forEach(jp.config.configMods, (val, key) => {
       if (!_.isArray(val)) return
       val = replaceStrings(val, '{cointype}', coinNames)
       if (ERC20N.length > 0) val = replaceStrings(val, '{erc20n}', ERC20N)
-      config.configMods[key] = val
+      jp.config.configMods[key] = val
     })
   },
   'mods': async () => {
     // 直接加载mods修改
     const modsDat = await loadConfig('mods')
     if (modsDat) {
-      jp.models.ConfigDat.mergeConfigObj(config, modsDat.toMerged(), undefined, true)
+      jp.models.ConfigDat.mergeConfigObj(jp.config, modsDat.toMerged(), undefined, true)
       logger.tag('Dynamic Mods').log('applied')
     }
     // 根据watchers的条件修改config
-    _.forIn(config.chain, chainCfg => {
+    _.forIn(jp.config.chain, chainCfg => {
       const chainTokenWatchers = chainCfg.tokenWatchers || []
       const tokenCfg = chainCfg.tokens
       // 按币种检测
       _.forEach(chainTokenWatchers, watcherCfg => {
         if (['coin', 'jadepool'].indexOf(watcherCfg.path) === -1) return
-        const rootCfg = config[watcherCfg.path]
+        const rootCfg = jp.config[watcherCfg.path]
         // 列举全部的代币
         let targets
         if (tokenCfg.build.extends) {
@@ -298,25 +297,25 @@ const setupConfig = async (name, enableAutoSave = false) => {
  * 加载全部配置
  */
 const setupAll = async () => {
-  if (!config.cfgLoads || !_.isArray(config.cfgLoads)) return
+  if (!jp.config.cfgLoads || !_.isArray(jp.config.cfgLoads)) return
   // 常量设置
-  config.isTestNet = (process.env.NODE_ENV !== 'production')
+  jp.config.isTestNet = (process.env.NODE_ENV !== 'production')
 
-  logger.diff('SetupAll').tag('Start').log(`cfgs=${config.cfgLoads.length}`)
+  logger.diff('SetupAll').tag('Start').log(`cfgs=${jp.config.cfgLoads.length}`)
   // 仅读取以保证数据库写入
-  if (config.cfgInits && config.cfgInits.length > 0) {
+  if (jp.config.cfgInits && jp.config.cfgInits.length > 0) {
     setAutoSaveWhenLoad(true)
-    for (let i = 0; i < config.cfgInits.length; i++) {
-      const name = config.cfgInits[i]
+    for (let i = 0; i < jp.config.cfgInits.length; i++) {
+      const name = jp.config.cfgInits[i]
       await configSetupDefault(name, false)
       logger.tag('Loaded').log(`name=${name}`)
     }
     setAutoSaveWhenLoad(false)
   }
   // 读取并配置config
-  if (config.cfgLoads && config.cfgLoads.length > 0) {
-    for (let i = 0; i < config.cfgLoads.length; i++) {
-      await setupConfig(config.cfgLoads[i], true)
+  if (jp.config.cfgLoads && jp.config.cfgLoads.length > 0) {
+    for (let i = 0; i < jp.config.cfgLoads.length; i++) {
+      await setupConfig(jp.config.cfgLoads[i], true)
     }
   }
   logger.diff('SetupAll').tag('End').log('OK')

@@ -6,7 +6,7 @@ const Logger = require('@jadepool/logger')
 const logger = Logger.of('JadePool')
 
 class JadePoolContext {
-  constructor (serverType, version, invokeMethodFunc) {
+  constructor (serverType, version, invokeMethodFunc, configObj = undefined) {
     this.env = buildEnvObject(serverType, version)
     this._invokeMethodFunc = invokeMethodFunc
     /**
@@ -16,6 +16,15 @@ class JadePoolContext {
     // ServiceLib
     this.services = new ServiceLib()
     ServiceLib.lastRegisterTime = Date.now()
+    // ConfigObject
+    if (!configObj) {
+      try {
+        configObj = require('config')
+      } catch (err) {
+        configObj = {}
+      }
+    }
+    Object.defineProperty(this, '_config', { value: configObj })
   }
 
   /**
@@ -33,6 +42,12 @@ class JadePoolContext {
    * @type {(methodName: string, namespace: string, args: any[], ...others) => any}
    */
   get invokeMethodFunc () { return this._invokeMethodFunc }
+
+  /**
+   * 配置对象
+   * @type {Object}
+   */
+  get config () { return this._config }
 
   /**
    * 注册服务
