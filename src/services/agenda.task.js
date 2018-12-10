@@ -19,12 +19,10 @@ const sTaskConfig = Symbol('taskConfig')
 class Task {
   /**
    * @param {String} taskName
-   * @param {AgendaService} agenda
    */
-  constructor (taskName, agenda) {
+  constructor (taskName) {
     Object.defineProperties(this, {
-      'name': { value: taskName },
-      '_agenda': { value: agenda }
+      'name': { value: taskName }
     })
     this._i = 0 // 部分task使用
     // 默认情况任务并发数为1
@@ -42,7 +40,7 @@ class Task {
   /**
    * Accessor
    */
-  get agenda () { return this._agenda }
+  get agenda () { return jp.getService(consts.SERVICE_NAMES.AGENDA) }
   get isWorking () { return !this[sDestroying] }
   get round () { return this[sRunAmt] }
   get handlingAmt () { return this[sHandlingAmt] }
