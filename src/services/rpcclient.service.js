@@ -1,6 +1,8 @@
 const _ = require('lodash')
 const uuid = require('uuid')
+const { URL } = require('url')
 const WebSocket = require('ws')
+const axios = require('axios')
 const EventEmitter = require('events').EventEmitter
 const jp = require('../jadepool')
 const consts = require('../consts')
@@ -60,6 +62,10 @@ class Service extends jp.BaseService {
    * @param {String} url rpc连接地址
    */
   async joinRPCServer (url) {
+    const urlObj = new URL(url)
+    if (urlObj.protocol !== 'ws' && urlObj.protocol !== 'wss') {
+      throw new NBError(10001, `joinRPCServer should be ws url instead of ${url}`)
+    }
     let ws = this.clients.get(url)
     if (ws) {
       switch (ws.readyState) {
@@ -137,9 +143,15 @@ class Service extends jp.BaseService {
    * @param {Array} args 参数数组
    */
   async requestJSONRPC (url, methodName, args) {
-    const ws = this.clients.get(url)
-    if (!ws || ws.readyState !== ws.OPEN) {
-      throw new NBError(21004, `method=${methodName}`)
+    const urlObj = new URL(url)
+    let requestFunc
+    if (urlObj.protocol === 'ws:' || urlObj.protocol === 'wss:') {
+      requestFunc = this._requestWsRPC
+    } else if (urlObj.protocol === 'http:' || urlObj.protocol === 'https:') {
+      requestFunc = this._requestHttpRPC
+    }
+    if (!requestFunc) {
+      throw new NBError(10001, `requestJSONRPC should be ws or http url instead of ${url}`)
     }
     const reqData = {
       id: uuid.v1(),
@@ -148,6 +160,59 @@ class Service extends jp.BaseService {
       jsonrpc: '2.0'
     }
     logger.tag(`Request:${methodName}`).log(`id=${reqData.id}`)
+    return requestFunc.call(this, url, methodName, reqData)
+  }
+
+  /**
+   * 请求http的RPC调用
+   * @param {String} url RPC的url
+   * @param {String} methodName 方法名
+   * @param {object} reqData
+   * @param {string} reqData.id
+   */
+  async _requestHttpRPC (url, methodName, reqData) {
+    const sig = await cryptoUtils.signInternal(reqData, undefined, { hash: 'sha3', encode: 'hex', withoutTimestamp: true })
+    let resdata
+    try {
+      const res = await axios({
+        method: 'POST',
+        url: url,
+        data: Object.assign(reqData, {
+          extra: {
+            sig: sig.signature,
+            appid: 'jadepool',
+            lang: 'zh-cn'
+          }
+        }),
+        proxy: false
+      })
+      resdata = res.data
+    } catch (err) {
+      throw new NBError(err.code || 21004, err.message)
+    }
+    if (resdata.jsonrpc !== '2.0') {
+      throw new NBError(21010, `response jsonrpc should be 2.0`)
+    }
+    if (resdata.id !== reqData.id) {
+      throw new NBError(21011, `response id miss-match. (required:${reqData.id} not ${resdata.id})`)
+    }
+    if (resdata.error) {
+      throw new NBError(resdata.error.code, resdata.error.message)
+    }
+    return resdata.result
+  }
+  /**
+   * 请求Ws的RPC调用
+   * @param {String} url RPC的url
+   * @param {String} methodName 方法名
+   * @param {object} reqData
+   * @param {string} reqData.id
+   */
+  async _requestWsRPC (url, methodName, reqData) {
+    const ws = this.clients.get(url)
+    if (!ws || ws.readyState !== ws.OPEN) {
+      throw new NBError(21004, `method=${methodName}`)
+    }
     const emitter = new EventEmitter()
     this.requests.set(reqData.id, emitter)
     const cleanup = () => {
