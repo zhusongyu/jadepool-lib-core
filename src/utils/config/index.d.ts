@@ -23,6 +23,7 @@ interface ChainConfig {
   },
   tokenExtendsEnabled: boolean,
   addressMode: string,
+  addressOnline: boolean,
   // 细节参数
   tokens: object,
   node: object,

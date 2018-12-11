@@ -78,5 +78,6 @@ const fetchConnection = (dbKey = consts.DEFAULT_KEY) => {
 module.exports = {
   initialize,
   getUri,
+  mongoose,
   fetchConnection
 }
