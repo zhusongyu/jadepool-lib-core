@@ -64,6 +64,12 @@ const ADDRESS_STATE = {
   USED: 'used', // 已分配使用
   BLOCKED: 'blocked' // TODO 被屏蔽
 }
+const ADDRESS_TYPE = {
+  HOT_WALLET: 0, // 热主
+  COLD_WALLET: 1, // 冷钱包
+  DEPOSIT: 2, // 充值地址
+  EXTERNAL: 3 // 外部地址
+}
 const ORDER_STATE = {
   INIT: 'init', // 订单初始化
   HOLDING: 'holding', // 1. init与online之间的一个过渡状态，只有发送tx上链出错时，订单会永久保持该holding状态，需要人工介入；否则，该状态会在很短时间就变为online
@@ -128,6 +134,7 @@ module.exports = {
   ADDRESS_MODES,
   SERVER_TYPES,
   JOB_TYPES,
+  ADDRESS_TYPE,
   ADDRESS_STATE,
   ORDER_STATE,
   ORDER_BIZTYPES,
