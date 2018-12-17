@@ -63,7 +63,7 @@ class Service extends jp.BaseService {
    */
   async joinRPCServer (url) {
     const urlObj = new URL(url)
-    if (urlObj.protocol !== 'ws' && urlObj.protocol !== 'wss') {
+    if (urlObj.protocol !== 'ws:' && urlObj.protocol !== 'wss:') {
       throw new NBError(10001, `joinRPCServer should be ws url instead of ${url}`)
     }
     let ws = this.clients.get(url)
