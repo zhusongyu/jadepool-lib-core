@@ -119,6 +119,7 @@ const cryptoUtils = {
    * @param {String|Object} data
    * @param {Number} timestamp
    * @param {object} opts
+   * @param {string?} [opts.sort='key-alphabet'] 签名返回结果(key-alphabet|key|kvpair|value)
    * @param {string?} [opts.hash='sha3'] msg签名Hash规则(md5|sha3|sha256)
    * @param {string?} [opts.encode='base64'] 签名返回结果encode(base64|hex)
    * @param {string?} [opts.accept='string'] 签名返回结果(string|object)
@@ -143,6 +144,7 @@ const cryptoUtils = {
    * @param {Number} timestamp
    * @param {String} sig
    * @param {object} opts
+   * @param {string?} [opts.sort='key-alphabet'] 签名返回结果(key-alphabet|key|kvpair|value)
    * @param {string?} [opts.hash='sha3'] msg签名Hash规则(md5|sha3|sha256)
    * @param {string?} [opts.encode='base64'] 签名返回结果encode(base64|hex)
    * @param {string?} [opts.accept='string'] 签名返回结果(string|object)
