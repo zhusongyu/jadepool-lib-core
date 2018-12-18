@@ -81,12 +81,12 @@ class JadePool {
 
     const pluginsCfg = pluginsDat.toMerged()
     const cwdPath = process.cwd()
-    const pluginDir = path.resolve(cwdPath, `../${pluginsCfg.root || 'plugins'}`)
+    const pluginDir = path.resolve(cwdPath, pluginsCfg.root || 'plugins')
 
     let nameInFolders = []
     if (fs.existsSync(pluginDir)) {
       nameInFolders = fs.readdirSync(pluginDir).filter(fileName => fileName.indexOf('.') === -1)
-      Object.defineProperty(this, '_pluginDir', pluginDir)
+      Object.defineProperty(this, '_pluginDir', { value: pluginDir })
     }
     let enabledPlugins = _.intersection(pluginsCfg.enabled || [], nameInFolders)
     for (let i = 0; i < enabledPlugins.length; i++) {
