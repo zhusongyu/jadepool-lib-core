@@ -142,14 +142,20 @@ const cryptoUtils = {
    * @param {String|Object} data
    * @param {Number} timestamp
    * @param {String} sig
+   * @param {object} opts
+   * @param {string?} [opts.hash='sha3'] msg签名Hash规则(md5|sha3|sha256)
+   * @param {string?} [opts.encode='base64'] 签名返回结果encode(base64|hex)
+   * @param {string?} [opts.accept='string'] 签名返回结果(string|object)
+   * @param {boolean?} [opts.withoutTimestamp=false] 是否需要添加时间戳
    * @returns {Promise<boolean>} 是否认证通过
    */
-  async verifyInternal (data, timestamp, sig) {
+  async verifyInternal (data, timestamp = undefined, sig, opts = {}) {
     let pubKey = await cryptoUtils.fetchSelfPubKey()
     if (_.isString(data)) {
-      return ecc.verifyString(data, timestamp, sig, pubKey)
+      return ecc.verifyString(data, timestamp, sig, pubKey, opts)
     } else if (_.isObject(data)) {
-      return ecc.verify(_.assign({ timestamp }, data), sig, pubKey)
+      if (timestamp !== undefined) data.timestamp = timestamp
+      return ecc.verify(data, sig, pubKey, opts)
     } else {
       return false
     }

@@ -141,8 +141,9 @@ class Service extends jp.BaseService {
    * @param {String} url RPC的url
    * @param {String} methodName 方法名
    * @param {Array} args 参数数组
+   * @param {object?} opts 请求参数
    */
-  async requestJSONRPC (url, methodName, args) {
+  async requestJSONRPC (url, methodName, args, opts = {}) {
     const urlObj = new URL(url)
     let requestFunc
     if (urlObj.protocol === 'ws:' || urlObj.protocol === 'wss:') {
@@ -160,7 +161,7 @@ class Service extends jp.BaseService {
       jsonrpc: '2.0'
     }
     logger.tag(`Request:${methodName}`).log(`id=${reqData.id}`)
-    return requestFunc.call(this, url, methodName, reqData)
+    return requestFunc.call(this, url, methodName, reqData, opts)
   }
 
   /**
@@ -169,21 +170,27 @@ class Service extends jp.BaseService {
    * @param {String} methodName 方法名
    * @param {object} reqData
    * @param {string} reqData.id
+   * @param {object?} opts 请求参数
    */
-  async _requestHttpRPC (url, methodName, reqData) {
-    const sig = await cryptoUtils.signInternal(reqData, undefined, { hash: 'sha3', encode: 'hex', withoutTimestamp: true })
+  async _requestHttpRPC (url, methodName, reqData, opts) {
+    opts = _.defaults(opts, {
+      appid: 'jadepool',
+      lang: 'zh-cn',
+      hash: 'sha256',
+      encode: 'hex',
+      withoutTimestamp: true
+    })
+    const sig = await cryptoUtils.signInternal(reqData, undefined, opts)
     let resdata
     try {
       const res = await axios({
         method: 'POST',
         url: url,
-        data: Object.assign(reqData, {
-          extra: {
-            sig: sig.signature,
-            appid: 'jadepool',
-            lang: 'zh-cn'
-          }
-        }),
+        data: Object.assign({
+          extra: Object.assign({
+            sig: sig.signature
+          }, opts)
+        }, reqData),
         proxy: false
       })
       resdata = res.data
@@ -207,8 +214,9 @@ class Service extends jp.BaseService {
    * @param {String} methodName 方法名
    * @param {object} reqData
    * @param {string} reqData.id
+   * @param {object} opts 请求参数
    */
-  async _requestWsRPC (url, methodName, reqData) {
+  async _requestWsRPC (url, methodName, reqData, opts) {
     const ws = this.clients.get(url)
     if (!ws || ws.readyState !== ws.OPEN) {
       throw new NBError(21004, `method=${methodName}`)
@@ -271,12 +279,12 @@ class Service extends jp.BaseService {
       let result = { jsonrpc: '2.0' }
       // 验证签名
       let isValid = false
-      if (jsonData.sig) {
-        const sigData = jsonData.sig
+      if (jsonData.sig || jsonData.extra) {
+        const sigData = jsonData.sig || jsonData.extra
         delete jsonData.sig
         const pubKey = await cryptoUtils.fetchPubKey('ecc', sigData.appid || 'app', false)
         if (pubKey) {
-          isValid = cryptoUtils.verify(jsonData, sigData.signature, pubKey)
+          isValid = cryptoUtils.verify(jsonData, sigData.signature, pubKey, sigData)
         }
       }
       if (!isValid) {
