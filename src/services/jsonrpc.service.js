@@ -114,9 +114,10 @@ class JSONRPCService extends jp.BaseService {
     logger.tag(`Request:${methodName}`).log(`id=${reqData.id}`)
     const emitter = new EventEmitter()
     this.requests.set(reqData.id, emitter)
-    const sigData = await cryptoUtils.signInternal(reqData)
+    const sigOpts = { hash: 'sha256', encode: 'base64', withoutTimestamp: true}
+    const sigData = await cryptoUtils.signInternal(reqData, undefined, sigOpts)
     const objToSend = Object.assign({
-      sig: { appid: cryptoUtils.THIS_APP_ID, signature: sigData.signature }
+      sig: Object.assign({ appid: cryptoUtils.THIS_APP_ID, signature: sigData.signature }, sigOpts)
     }, reqData)
     // 发起并等待请求
     const result = await new Promise((resolve, reject) => {

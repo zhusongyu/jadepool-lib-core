@@ -1,7 +1,7 @@
 const assert = require('chai').assert
 const express = require('express')
 const bodyParser = require('body-parser')
-const { jadepool, consts } = require('../../')
+const { jadepool, consts, utils } = require('../../')
 
 const config = {
   mongo: {
@@ -28,7 +28,7 @@ describe('Services: rpcclient', () => {
     before(() => {
       http = express()
       http.use(bodyParser.json())
-      http.post('/', (req, res) => {
+      http.post('/', async (req, res) => {
         let resdata = {
           jsonrpc: '2.0',
           id: req.body.id
@@ -36,6 +36,13 @@ describe('Services: rpcclient', () => {
         switch (req.body.method) {
           case 'same':
             resdata.result = req.body
+            break
+          case 'sig':
+            let body = req.body
+            let extra = body.extra
+            delete body.extra
+            let valid = await utils.crypto.verifyInternal(body, undefined, extra.sig, extra)
+            resdata.result = { valid }
             break
           case 'test1':
             resdata.result = { foo: 1 }
@@ -64,6 +71,11 @@ describe('Services: rpcclient', () => {
       assert(result.params.foo === 'bar', `params should be exist`)
       assert(result.method === 'same', `method should be exist`)
       assert(result.extra && typeof result.extra.sig === 'string', `extra should be exist`)
+    })
+
+    it('can send rpc method with validated extra', async () => {
+      const result = await srv.requestJSONRPC(URL, 'sig', { foo: 'bar' })
+      assert(result.valid, `extra should be validated`)
     })
 
     it('can send rpc method with error', async () => {
