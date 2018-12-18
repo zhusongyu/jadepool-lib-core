@@ -177,6 +177,7 @@ class Service extends jp.BaseService {
       appid: 'jadepool',
       lang: 'zh-cn',
       hash: 'sha256',
+      sort: 'key',
       encode: 'hex',
       withoutTimestamp: true
     })
