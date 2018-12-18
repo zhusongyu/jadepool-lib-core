@@ -1,6 +1,6 @@
 {
   "name": "@jadepool/lib-core",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Jadepool core library",
   "main": "index.js",
   "scripts": {
@@ -22,7 +22,7 @@
     "mocha": "^5.2.0"
   },
   "dependencies": {
-    "@jadepool/crypto": "^0.1.0",
+    "@jadepool/crypto": "^0.1.1",
     "@jadepool/logger": "^1.0.0",
     "agenda": "^2.0.2",
     "axios": "^0.18.0",
