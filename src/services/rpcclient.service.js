@@ -7,7 +7,6 @@ const EventEmitter = require('events').EventEmitter
 const jp = require('../jadepool')
 const consts = require('../consts')
 const NBError = require('../NBError')
-const cryptoUtils = require('../utils/crypto')
 
 const logger = require('@jadepool/logger').of('Service', 'RPC Client')
 
@@ -60,8 +59,10 @@ class Service extends jp.BaseService {
   /**
    * 创建JSONRpc服务
    * @param {String} url rpc连接地址
+   * @param {object} opts 参数
+   * @param {boolean} [opts.noAuth=false] 是否需要验证
    */
-  async joinRPCServer (url) {
+  async joinRPCServer (url, opts = {}) {
     const urlObj = new URL(url)
     if (urlObj.protocol !== 'ws:' && urlObj.protocol !== 'wss:') {
       throw new NBError(10001, `joinRPCServer should be ws url instead of ${url}`)
@@ -80,20 +81,23 @@ class Service extends jp.BaseService {
     }
 
     // Step 1. 构建认证query的签名
-    const timestamp = Date.now()
-    const processKey = consts.PROCESS.TYPES.ROUTER + '-' + jp.env.server
-    const key = encodeURI(`${processKey}_${Math.floor(Math.random() * 1e8)}_${timestamp}`)
-    let sig
-    try {
-      sig = await cryptoUtils.signInternal(key, timestamp)
-    } catch (err) {
-      throw new NBError(10001, `failed to sign internal`)
+    let headers = {}
+    if (!opts.noAuth) {
+      const timestamp = Date.now()
+      const processKey = consts.PROCESS.TYPES.ROUTER + '-' + jp.env.server
+      const key = encodeURI(`${processKey}_${Math.floor(Math.random() * 1e8)}_${timestamp}`)
+      let sig
+      try {
+        const cryptoUtils = require('../utils/crypto')
+        sig = await cryptoUtils.signInternal(key, timestamp)
+      } catch (err) {
+        throw new NBError(10001, `failed to sign internal`)
+      }
+      headers['Authorization'] = [key, sig.timestamp, sig.signature].join(',')
     }
 
     // Step.1 创建WebSocket
-    ws = new WebSocket(url, {
-      headers: { 'Authorization': [key, sig.timestamp, sig.signature].join(',') }
-    })
+    ws = new WebSocket(url, { headers })
     this.clients.set(url, ws)
     logger.tag('Create RPC').log(`url=${url}`)
 
@@ -170,9 +174,10 @@ class Service extends jp.BaseService {
    * @param {String} methodName 方法名
    * @param {object} reqData
    * @param {string} reqData.id
-   * @param {object?} opts 请求参数
+   * @param {object} opts 请求参数
+   * @param {boolean} [opts.noAuth=false] 是否需要验证
    */
-  async _requestHttpRPC (url, methodName, reqData, opts) {
+  async _requestHttpRPC (url, methodName, reqData, opts = {}) {
     opts = _.defaults(opts, {
       appid: 'jadepool',
       lang: 'zh-cn',
@@ -181,17 +186,23 @@ class Service extends jp.BaseService {
       encode: 'hex',
       withoutTimestamp: true
     })
-    const sig = await cryptoUtils.signInternal(reqData, undefined, opts)
+    let data = Object.assign({}, reqData)
+    if (!opts.noAuth) {
+      let sig
+      try {
+        const cryptoUtils = require('../utils/crypto')
+        sig = await cryptoUtils.signInternal(reqData, undefined, opts)
+      } catch (err) {
+        throw new NBError(10001, `failed to sign internal`)
+      }
+      data.extra = Object.assign({ sig: sig.signature }, opts)
+    }
     let resdata
     try {
       const res = await axios({
         method: 'POST',
         url: url,
-        data: Object.assign({
-          extra: Object.assign({
-            sig: sig.signature
-          }, opts)
-        }, reqData),
+        data,
         proxy: false
       })
       resdata = res.data
@@ -279,17 +290,23 @@ class Service extends jp.BaseService {
       // 判断是否为方法调用或通知，将进行本地调用
       let result = { jsonrpc: '2.0' }
       // 验证签名
-      let isValid = false
       if (jsonData.sig || jsonData.extra) {
+        let isValid = false
         const sigData = jsonData.sig || jsonData.extra
         delete jsonData.sig
-        const pubKey = await cryptoUtils.fetchPubKey('ecc', sigData.appid || 'app', false)
-        if (pubKey) {
-          isValid = cryptoUtils.verify(jsonData, sigData.signature, pubKey, sigData)
+        try {
+          const cryptoUtils = require('../utils/crypto')
+          const pubKey = await cryptoUtils.fetchPubKey('ecc', sigData.appid || 'app', false)
+          if (pubKey) {
+            isValid = cryptoUtils.verify(jsonData, sigData.signature, pubKey, sigData)
+          }
+        } catch (err) {
+          logger.error(`failed to verify sig`, err)
+          isValid = false
         }
-      }
-      if (!isValid) {
-        result.error = { code: 401, message: 'Request is not authorized.' }
+        if (!isValid) {
+          result.error = { code: 401, message: 'Request is not authorized.' }
+        }
       }
       // 检测方法名是否可用
       let methodName = _.kebabCase(jsonData.method)
