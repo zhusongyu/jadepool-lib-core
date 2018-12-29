@@ -44,7 +44,7 @@ const cryptoUtils = {
    * 重置本系统的 Private Key
    */
   async refreshPriKey () {
-    const keypair = cryptoUtils.generateKeyPair()
+    const keypair = ecc.generateKeyPair()
     const jsonToSave = _.set({}, PRIV_ID, keypair.priKey)
     // 保存jsoncfg的配置
     await configLoader.saveConfig('crypto', '', jsonToSave)
