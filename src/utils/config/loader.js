@@ -3,6 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const semver = require('semver')
 const jp = require('../../jadepool')
+const NBError = require('../../NBError')
 
 const logger = require('@jadepool/logger').of('Configure')
 
@@ -22,7 +23,7 @@ const setAutoSaveWhenLoad = value => {
  * @param {String} cfgPath 目录名
  * @param {String} key 子目录名
  * @param {ConfigDat} parent
- * @returns {{toMerged: Function, geneTemplate: Function, applyModify: Function, save: Function}}
+ * @returns {Promise<{toMerged: Function, geneTemplate: Function, applyModify: Function, save: Function}>}
  */
 const loadConfig = async (cfgPath, key = '', parent = null, forceSelf = false) => {
   const query = { path: cfgPath, key }
@@ -93,6 +94,7 @@ const loadConfig = async (cfgPath, key = '', parent = null, forceSelf = false) =
  * 从数据库中读取path相同的全部配置，同时也从文件夹中读取全部路径
  * @param {String} cfgPath
  * @param {ConfigDat} parent
+ * @returns {Promise<string[]>}
  */
 const loadConfigKeys = async (cfgPath, parent = null) => {
   const query = {
@@ -126,7 +128,7 @@ const loadConfigKeys = async (cfgPath, parent = null) => {
  * @param {Object} modJson 配置修改Json，需Merge
  * @param {Object} disabled 是否禁用
  * @param {ConfigDat} parent
- * @returns {ConfigDat}
+ * @returns {Promise<ConfigDat>}
  */
 const saveConfig = async (cfgPath, key, modJson, disabled = undefined, parent = null) => {
   let needSave = false
@@ -170,10 +172,45 @@ const saveConfig = async (cfgPath, key, modJson, disabled = undefined, parent = 
   return cfgDat
 }
 
+/**
+ * 从数据库中删除配置，该配置必须是customized的配置
+ * @param {String} cfgPath 目录名
+ * @param {String} key 子目录名
+ * @param {ConfigDat} parent
+ * @returns {Promise<ConfigDat>}
+ */
+const deleteConfig = async (cfgPath, key = '', parent = null) => {
+  const query = {
+    path: cfgPath,
+    key
+  }
+  if (parent) {
+    query.parent = parent
+  } else {
+    query.parent = { $exists: false }
+  }
+  let cfgDat = await jp.models.ConfigDat.findOne(query).exec()
+  if (!cfgDat) {
+    throw new NBError(10001, `failed to find config data`)
+  }
+  if (cfgDat.server !== jp.env.server) {
+    throw new NBError(10001, `server not match`)
+  }
+  if (!cfgDat.customized) {
+    throw new NBError(10001, `Only customized config can be deleted`)
+  }
+  // 查询并删除ConfigDat
+  query.server = jp.env.server
+  query.customized = true
+  await jp.models.ConfigDat.deleteOne(query).exec()
+  return true
+}
+
 module.exports = {
   // Methods
   setAutoSaveWhenLoad,
   loadConfig,
   loadConfigKeys,
+  deleteConfig,
   saveConfig
 }
