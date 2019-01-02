@@ -307,6 +307,8 @@ class Service extends jp.BaseService {
         if (!isValid) {
           result.error = { code: 401, message: 'Request is not authorized.' }
         }
+      } else if (jp.env.isProd) {
+        result.error = { code: 401, message: 'missing sig or extra.' }
       }
       // 检测方法名是否可用
       let methodName = _.kebabCase(jsonData.method)
