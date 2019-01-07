@@ -10,34 +10,75 @@ class ErrorCodeService extends BaseService {
    */
   constructor (services) {
     super(consts.SERVICE_NAMES.ERROR_CODE, services)
-  }
-
-  async initialize () {
+    /**
+     * @type {Map<string, {code: number, category: string, locales: object}>}
+     */
     this._errMap = new Map()
+  }
 
+  /**
+   * 初始化
+   * @param {Object} opts
+   */
+  async initialize (opts) {
     const cwdPath = process.cwd()
-    const pt = path.resolve(cwdPath, jp.config.errorCodePath)
-    const lineReader = require('readline').createInterface({ input: require('fs').createReadStream(pt) })
+    const localePath = opts.localePath || jp.config.errorCodePath
+    const filePath = path.resolve(cwdPath, localePath)
+    const fileData = path.parse(filePath)
 
+    const lineReader = require('readline').createInterface({ input: require('fs').createReadStream(filePath) })
+    /**
+     * @type {string[]}
+     */
+    let titleKeys
     lineReader.on('line', (line) => {
-      if (line.startsWith('*')) {
-        const linesp = line.split(',')
-        const status = parseInt(linesp[0].substring(2))
-        const message = linesp[1].trim()
-        const category = linesp[2] ? linesp[2].trim() : null
-
-        this._errMap.set(status, category === null ? { status, message } : { status, message, category })
+      const valueArray = line.split(',')
+      const record = {
+        code: undefined,
+        category: undefined,
+        locales: {}
       }
-    })
-
-    lineReader.on('close', () => {
-      // this._errMap.forEach((value, key, m) => console.log(_.assign(value)))
+      if (fileData.ext === '.md') {
+        if (!line.startsWith('*')) return
+        record.code = parseInt(valueArray[0].substring(2))
+        record.locales[consts.SUPPORT_LOCALES.ZH_CN] = valueArray[1].trim()
+        record.category = valueArray[2] ? valueArray[2].trim() : undefined
+      } else if (fileData.ext === '.csv') {
+        // 设置title
+        if (!titleKeys) {
+          titleKeys = valueArray
+          return
+        }
+        // Title Key
+        for (let i = 0; i < valueArray.length; i++) {
+          let lineKey = titleKeys[i] || 'default'
+          let lineValue = valueArray[i]
+          switch (lineKey) {
+            case 'code':
+              record.code = lineValue
+              break
+            case 'category':
+              record.category = lineValue
+              break
+            default:
+              record.locales[lineKey] = lineValue
+              break
+          }
+        }
+      }
+      this._errMap.set(record.code, record)
     })
   }
 
-  getErrObj (code) {
+  getErrObj (code, locale = consts.SUPPORT_LOCALES.ZH_CN) {
     const obj = this._errMap.get(code)
-    return obj || { status: 10001, message: 'system error' }
+    const localeMessage = obj.locales[locale] || obj.locales[consts.SUPPORT_LOCALES.ZH_CN]
+    return {
+      code: obj.code,
+      status: obj.code,
+      category: obj.category,
+      message: localeMessage
+    }
   }
 }
 

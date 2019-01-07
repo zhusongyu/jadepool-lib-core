@@ -24,6 +24,7 @@ class AppService extends jp.BaseService {
   /**
    * @param {object} opts
    * @param {boolean} opts.listenManually
+   * @param {number} [opts.defaultErrorStatus=500]
    * @param {(app: Express) => void} opts.routes
    */
   async initialize (opts) {
@@ -55,8 +56,8 @@ class AppService extends jp.BaseService {
 
     // Error handler function
     app.use((err, req, res, next) => {
-      let status = err.status || 500
-      let errCode = err.status || 10001
+      let status = opts.defaultErrorStatus || 500
+      let errCode
       let errResult
       if (err.response) {
         // 第三方调用失败
@@ -73,14 +74,18 @@ class AppService extends jp.BaseService {
         errCode = 403
       } else if (typeof err.code === 'number') {
         // NBError系列处理
-        if (err.code === 404 || err.code >= 40400) {
+        if (err.code === 404) {
           status = 404
         }
         errCode = err.code
+      } else {
+        // 未知系统错误
+        status = 500
       }
+      // 设置错误结果
       if (!errResult) {
         const errSrv = jp.getService(consts.SERVICE_NAMES.ERROR_CODE)
-        if (errSrv) {
+        if (errSrv && errCode) {
           errResult = errSrv.getErrObj(errCode)
           const category = errResult.category ? [ errResult.category ] : []
           logger.error(errResult.message, err, category)
@@ -88,7 +93,7 @@ class AppService extends jp.BaseService {
             errResult.result = { info: err.message }
           }
         } else {
-          errResult = err
+          errResult = { code: err.code || status, message: err && err.message }
         }
       }
       res.status(status).json(errResult)
