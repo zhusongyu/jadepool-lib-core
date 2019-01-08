@@ -66,12 +66,13 @@ class ErrorCodeService extends BaseService {
           }
         }
       }
-      this._errMap.set(record.code, record)
+      this._errMap.set(record.code.toString(), record)
     })
   }
 
   getErrObj (code, locale = consts.SUPPORT_LOCALES.ZH_CN) {
-    const obj = this._errMap.get(code)
+    const obj = this._errMap.get(code.toString())
+    if (!obj) return { code, status: code }
     const localeMessage = obj.locales[locale] || obj.locales[consts.SUPPORT_LOCALES.ZH_CN]
     return {
       code: obj.code,
