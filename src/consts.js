@@ -109,6 +109,11 @@ const WARN_LEVEL = {
   MINOR: 'MINOR', // 次要错误
   WARNING: 'WARNING' // 警告
 }
+const SUPPORT_LOCALES = {
+  ZH_CN: 'zh-cn',
+  EN: 'en',
+  JA: 'ja'
+}
 // --------- LIST ---------
 const ORDER_BIZTYPES_OUT = [
   ORDER_BIZTYPES.WITHDRAW,
@@ -143,5 +148,6 @@ module.exports = {
   BATCH_STATE,
   ISSUE_TYPES,
   ISSUE_STATE,
+  SUPPORT_LOCALES,
   WARN_LEVEL
 }
