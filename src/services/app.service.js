@@ -86,7 +86,9 @@ class AppService extends jp.BaseService {
       if (!errResult) {
         const errSrv = jp.getService(consts.SERVICE_NAMES.ERROR_CODE)
         if (errSrv && errCode) {
-          errResult = errSrv.getErrObj(errCode)
+          const reqData = Object.assign({}, req.query, req.body)
+          const locale = (reqData.lang || reqData.locale) || consts.SUPPORT_LOCALES.ZH_CN
+          errResult = errSrv.getErrObj(errCode, locale)
           const category = errResult.category ? [ errResult.category ] : []
           logger.error(errResult.message, err, category)
           if (err.message) {
