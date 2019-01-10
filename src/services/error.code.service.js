@@ -55,7 +55,7 @@ class ErrorCodeService extends BaseService {
           let lineValue = valueArray[i]
           switch (lineKey) {
             case 'code':
-              record.code = lineValue
+              record.code = parseInt(lineValue)
               break
             case 'category':
               record.category = lineValue
