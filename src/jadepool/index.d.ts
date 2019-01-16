@@ -1,5 +1,7 @@
+import services from '../services'
 import BaseService = require('../services/core')
 import Context = require('./context')
+import consts = require('../consts')
 
 interface EnvObject {
 	/** 是否为生产环境 */
@@ -59,20 +61,36 @@ declare class JadePool {
 	env: EnvObject
 	config: {}
 	models: {}
-	Context: Context
+	Context: typeof Context
 
 	/**
 	 * 注册服务
 	 * @param serviceClass 
 	 * @param opts 
 	 */
-	registerService(serviceClass : string | BaseService, opts : any): Promise<BaseService>;
-		
+	registerService(name: 'agenda', opts: services.AgendaOptions): Promise<services.AgendaService>;
+	registerService(name: 'express', opts: services.AppOptions): Promise<services.AppService>;
+	registerService(name: 'error.code', opts: services.ErrorCodeOptions): Promise<services.ErrorCodeService>;
+	registerService(name: 'script', opts: services.ScriptOptions): Promise<services.ScriptService>;
+	registerService(name: 'jsonrpc.server', opts: services.JSONRPCServerOptions): Promise<services.JSONRpcService>;
+	registerService(name: 'jsonrpc.client', opts: services.JSONRPCOptions): Promise<services.JSONRpcClientService>;
+	registerService(name: 'socket.io', opts: services.SocketIOOptions): Promise<services.SocketIOService>;
+	registerService(name: 'socket.io.worker', opts: services.SocketIOWorkerOptions): Promise<services.SocketIOWorkerService>;
+	registerService(name: string | BaseService, opts: any): Promise<BaseService>;
+
 	/**
 	 * 获取服务
 	 * @param name
 	 */
-	getService(name : string): BaseService;
+	getService(name: 'agenda'): services.AgendaService;
+	getService(name: 'express'): services.AppService;
+	getService(name: 'error.code'): services.ErrorCodeService;
+	getService(name: 'script'): services.ScriptService;
+	getService(name: 'jsonrpc.server'): services.JSONRpcService;
+	getService(name: 'jsonrpc.client'): services.JSONRpcClientService;
+	getService(name: 'socket.io'): services.SocketIOService;
+	getService(name: 'socket.io.worker'): services.SocketIOWorkerService;
+	getService(name: string): BaseService;
 
 	/**
 	 * 进行Methods调用
@@ -103,6 +121,6 @@ declare class JadePool {
 /**
  * Singleton导出
  */
-declare const jadepool : JadePool;
+declare const jadepool: JadePool;
 
 export = jadepool

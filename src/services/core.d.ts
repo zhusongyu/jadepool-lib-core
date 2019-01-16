@@ -16,7 +16,7 @@ declare class BaseService {
 	/**
 	 * 初始化服务
 	 */
-	initialize(): Promise<void>;
+	initialize(opts: any): Promise<void>;
 }
 
 export = BaseService;
