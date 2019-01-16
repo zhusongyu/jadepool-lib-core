@@ -1,7 +1,9 @@
 const _ = require('lodash')
+const HDKey = require('hdkey')
+const semver = require('semver')
 const { ecc } = require('@jadepool/crypto')
+const jp = require('../jadepool')
 const NBError = require('../NBError')
-const configLoader = require('./config/loader')
 
 const THIS_APP_ID = 'self'
 const PRIV_ID = 'pri'
@@ -14,6 +16,7 @@ const loadCryptoConfig = async (cryptoDat = undefined) => {
   if (cryptoDat && typeof cryptoDat.toMerged === 'function') {
     cfgDat = cryptoDat
   } else {
+    const configLoader = require('./config/loader')
     cfgDat = await configLoader.loadConfig('crypto')
   }
   if (!cfgDat) {
@@ -29,7 +32,6 @@ const cryptoUtils = {
   /**
    * 获取本系统 Private Key
    * @param {String} cryptoType
-   * @returns {Buffer}
    */
   async getPriKey (cryptoDat = undefined) {
     const cryptoCfg = await loadCryptoConfig(cryptoDat)
@@ -47,6 +49,7 @@ const cryptoUtils = {
     const keypair = ecc.generateKeyPair()
     const jsonToSave = _.set({}, PRIV_ID, keypair.priKey)
     // 保存jsoncfg的配置
+    const configLoader = require('./config/loader')
     await configLoader.saveConfig('crypto', '', jsonToSave)
     return keypair
   },
@@ -58,13 +61,6 @@ const cryptoUtils = {
    */
   pubKeyVerify (pubKeyStr, encode = ecc.DEFAULT_ENCODE, compress = false) {
     return ecc.pubKeyVerify(pubKeyStr, encode, compress)
-  },
-  /**
-   * 获取本系统 Public Key
-   */
-  async fetchSelfPubKey (cryptoType = 'ecc', compress = false, cryptoDat = undefined) {
-    const priKey = await cryptoUtils.getPriKey(cryptoDat)
-    return ecc.pubKeyCreate(priKey, ecc.DEFAULT_ENCODE, compress)
   },
   /**
    * 获取非本系统 Public Key
@@ -84,8 +80,11 @@ const cryptoUtils = {
    * @returns {Buffer}
    */
   async fetchPubKey (cryptoType, category, compress = false, cryptoDat = undefined) {
-    if (category === PRIV_ID || category === THIS_APP_ID) {
-      return cryptoUtils.fetchSelfPubKey(cryptoType, compress, cryptoDat)
+    if (category === THIS_APP_ID) {
+      return cryptoUtils.getInternalPubKey()
+    } else if (category === PRIV_ID) {
+      const priKey = await cryptoUtils.getPriKey(cryptoDat)
+      return ecc.pubKeyCreate(priKey, ecc.DEFAULT_ENCODE, compress)
     } else {
       return cryptoUtils.fetchAppPubKey(cryptoType, category, compress, cryptoDat)
     }
@@ -98,10 +97,10 @@ const cryptoUtils = {
   async buildSignedObj (obj, errMsg, sigAccept = 'object') {
     const data = {}
     if (errMsg) {
-      data.status = 400
-      data.message = errMsg
+      data.status = data.code = 400
+      data.message = data.message = errMsg
     } else {
-      data.status = 0
+      data.status = data.code = 0
       data.message = 'OK'
     }
     const priKey = await cryptoUtils.getPriKey()
@@ -115,6 +114,25 @@ const cryptoUtils = {
     return data
   },
   /**
+   * 获取内部私钥
+   */
+  async getInternalPriKey () {
+    if (jp.env.secret) {
+      const ver = semver.parse(jp.env.version)
+      const root = HDKey.fromMasterSeed(Buffer.from(jp.env.secret))
+      const hdnode = root.derive(`m/666'/0'/0'/${ver.major}/${ver.minor}/${ver.patch}`)
+      return hdnode.privateKey
+    }
+    return cryptoUtils.getPriKey()
+  },
+  /**
+   * 获取内部公钥
+   */
+  async getInternalPubKey () {
+    const internalPriKey = await cryptoUtils.getInternalPriKey()
+    return ecc.pubKeyCreate(internalPriKey)
+  },
+  /**
    * 内部签名检查函数
    * @param {String|Object} data
    * @param {Number} timestamp
@@ -126,7 +144,7 @@ const cryptoUtils = {
    * @param {boolean?} [opts.withoutTimestamp=false] 是否需要添加时间戳
    */
   async signInternal (data, timestamp = undefined, opts = {}) {
-    let priKey = await cryptoUtils.getPriKey()
+    let priKey = await cryptoUtils.getInternalPriKey()
     if (_.isString(data)) {
       return ecc.signString(data, timestamp, priKey, opts)
     } else if (_.isObject(data)) {
@@ -152,7 +170,7 @@ const cryptoUtils = {
    * @returns {Promise<boolean>} 是否认证通过
    */
   async verifyInternal (data, timestamp = undefined, sig, opts = {}) {
-    let pubKey = await cryptoUtils.fetchSelfPubKey()
+    let pubKey = await cryptoUtils.getInternalPubKey()
     if (_.isString(data)) {
       return ecc.verifyString(data, timestamp, sig, pubKey, opts)
     } else if (_.isObject(data)) {

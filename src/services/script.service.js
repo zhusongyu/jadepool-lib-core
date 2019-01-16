@@ -1,9 +1,10 @@
+const BaseService = require('./core')
 const jp = require('../jadepool')
 const consts = require('../consts')
 
 const logger = require('@jadepool/logger').of('Service', 'Script')
 
-class Service extends jp.BaseService {
+class Service extends BaseService {
   /**
    * @param {Object} services 服务列表
    */

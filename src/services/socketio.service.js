@@ -1,12 +1,13 @@
 const _ = require('lodash')
 const socketio = require('socket.io')
+const BaseService = require('./core')
 const jp = require('../jadepool')
 const consts = require('../consts')
 const NBError = require('../NBError')
 const cryptoUtils = require('../utils/crypto')
 const logger = require('@jadepool/logger').of('Service', 'SocketIO')
 
-class SocketService extends jp.BaseService {
+class SocketService extends BaseService {
   /**
    * @param {SerivceLib} services 服务列表
    */

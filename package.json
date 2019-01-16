@@ -1,6 +1,6 @@
 {
   "name": "@jadepool/lib-core",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Jadepool core library",
   "main": "index.js",
   "scripts": {
@@ -13,6 +13,7 @@
   "license": "MIT",
   "devDependencies": {
     "chai": "^4.2.0",
+    "dtsmake": "0.0.10",
     "eslint": "^5.10.0",
     "eslint-config-standard": "^12.0.0",
     "eslint-plugin-import": "^2.14.0",
@@ -22,13 +23,14 @@
     "mocha": "^5.2.0"
   },
   "dependencies": {
-    "@jadepool/crypto": "^0.1.1",
+    "@jadepool/crypto": "^0.1.2",
     "@jadepool/logger": "^1.0.0",
     "agenda": "^2.0.2",
     "axios": "^0.18.0",
     "body-parser": "^1.18.3",
     "cors": "^2.8.5",
     "express": "^4.16.4",
+    "hdkey": "^1.1.0",
     "lodash": "^4.17.11",
     "moment": "^2.22.2",
     "mongoose": "^5.3.15",
