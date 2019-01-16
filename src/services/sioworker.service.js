@@ -1,4 +1,5 @@
 const io = require('socket.io-client')
+const BaseService = require('./core')
 const jp = require('../jadepool')
 const consts = require('../consts')
 const NBError = require('../NBError')
@@ -7,7 +8,7 @@ const cfgLoader = require('../utils/config/loader')
 
 const logger = require('@jadepool/logger').of('Service', 'Worker(SocketIO)')
 
-class SioWorkerService extends jp.BaseService {
+class SioWorkerService extends BaseService {
   /**
    * @param {Object} services 服务列表
    */

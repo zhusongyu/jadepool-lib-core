@@ -4,7 +4,6 @@ const path = require('path')
 const Logger = require('@jadepool/logger')
 const ServiceLib = require('./serviceLib')
 const Context = require('./context')
-const BaseService = require('../services/core')
 
 const logger = Logger.of('JadePool')
 
@@ -40,6 +39,12 @@ class JadePool {
       TaskConfig: require('../models/taskConfig'),
       Warning: require('../models/warning')
     }
+  }
+  /**
+   * Context
+   */
+  get Context () {
+    return Context
   }
   /**
    * 插件目录
@@ -188,7 +193,4 @@ process.once('SIGQUIT', graceful('SIGQUIT'))
 process.once('SIGTERM', graceful('SIGTERM'))
 process.once('SIGINT', graceful('SIGINT'))
 
-module.exports = Object.assign(jadepool, {
-  Context,
-  BaseService
-})
+module.exports = jadepool

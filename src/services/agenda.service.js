@@ -1,12 +1,13 @@
 const _ = require('lodash')
 const Agenda = require('agenda')
+const BaseService = require('./core')
 const jp = require('../jadepool')
 const consts = require('../consts')
 const db = require('../utils/db')
 
 const logger = require('@jadepool/logger').of('Service', 'Agenda')
 
-class AgendaService extends jp.BaseService {
+class AgendaService extends BaseService {
   /**
    * @param {Object} services 服务列表
    */
