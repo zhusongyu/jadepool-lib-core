@@ -120,7 +120,8 @@ const cryptoUtils = {
     if (jp.env.secret) {
       const ver = semver.parse(jp.env.version)
       const root = HDKey.fromMasterSeed(Buffer.from(jp.env.secret))
-      const hdnode = root.derive(`m/666'/0'/0'/${ver.major}/${ver.minor}/${ver.patch}`)
+      // 以major和minor组成版本号一致的系统
+      const hdnode = root.derive(`m/666'/0'/0'/${ver.major}/${ver.minor}`)
       return hdnode.privateKey
     }
     return cryptoUtils.getPriKey()
