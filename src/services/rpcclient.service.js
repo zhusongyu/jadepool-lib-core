@@ -4,6 +4,7 @@ const { URL } = require('url')
 const WebSocket = require('ws')
 const axios = require('axios')
 const EventEmitter = require('events').EventEmitter
+const BaseService = require('./core')
 const jp = require('../jadepool')
 const consts = require('../consts')
 const NBError = require('../NBError')
@@ -15,7 +16,7 @@ const logger = require('@jadepool/logger').of('Service', 'RPC Client')
  * 1.支持保持对多个地址服务调用jsonrpc
  * 2.支持将本地methods包装为jsonrpc服务，暴露给连接对象
  */
-class Service extends jp.BaseService {
+class Service extends BaseService {
   /**
    * @param {Object} services 服务列表
    */

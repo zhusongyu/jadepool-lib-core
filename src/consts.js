@@ -26,10 +26,10 @@ const SERVICE_NAMES = {
   AGENDA: 'agenda', // 后台任务服务
   APP: 'express', // HTTP/HTTPS服务
   SCRIPT: 'script', // 根据生命周期运行脚本的服务
-  JSONRPC: 'jsonrpc', // 基于ws的通用jsonrpc发送和接收服务
+  JSONRPC: 'jsonrpc.client', // 基于ws的通用jsonrpc发送和接收服务
   JSONRPC_SERVER: 'jsonrpc.server', // 基于ws的通用jsonrpc服务端
   SOCKET_IO: 'socket.io', // Socket.io服务
-  SIO_WORKER: 'sio.woker' // Socket.io的worker服务中心
+  SIO_WORKER: 'socket.io.worker' // Socket.io的worker服务中心
 }
 const SIO_EVENTS = {
   INVOKE_METHOD: 'invokeMethod'
@@ -52,7 +52,9 @@ const ADDRESS_MODES = {
 const SERVER_TYPES = {
   API: 'api',
   MAIN: 'main',
-  SAFE: 'safe'
+  SAFE: 'safe',
+  EXTERNAL: 'external',
+  UNKNOWN: 'unknown'
 }
 const JOB_TYPES = {
   EVERY: 'every', // 循环任务

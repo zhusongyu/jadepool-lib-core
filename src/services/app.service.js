@@ -7,13 +7,14 @@ const morgan = require('morgan')
 const cors = require('cors')
 const bodyParser = require('body-parser')
 
+const BaseService = require('./core')
 const jp = require('../jadepool')
 const consts = require('../consts')
 const NBError = require('../NBError')
 const cfgLoader = require('../utils/config/loader')
 const logger = require('@jadepool/logger').of('Service', 'Express')
 
-class AppService extends jp.BaseService {
+class AppService extends BaseService {
   /**
    * @param {Object} services 服务列表
    */

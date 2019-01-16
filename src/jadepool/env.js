@@ -39,6 +39,7 @@ module.exports = function buildEnvObject (serverType, version) {
     host: '127.0.0.1', // 可通过环境变量 JP_HOST 覆盖
     defaultMongo: '127.0.0.1:27017', // 可通过环境变量 JP_DEFAULT_MONGO 覆盖
     defaultRedis: '127.0.0.1:6379', // 可通过环境变量 JP_DEFAULT_REDIS 覆盖
+    secret: 'JadePoolSeCreT', // 可通过环境变量 JP_SECRET 覆盖，用于内部私钥
     mode: undefined, // 可通过环境变量 JP_MODE 覆盖
     param: undefined, // 可通过环境变量 JP_PARAM 覆盖
     autoStart: true, // 可通过环境变量 JP_AUTO_START 覆盖, 设置后worker将自动启动
