@@ -76,9 +76,16 @@ export declare const ADDRESS_MODES: {
   SINGLE: 'single'
 }
 export declare const SERVER_TYPES: {
-  API: 'api',
+	/** 主服务 */
   MAIN: 'main',
-  SAFE: 'safe'
+	/** AdminAPI服务 */
+	API: 'api',
+	/** 安全服务 */
+	SAFE: 'safe',
+	/** 外部服务 */
+	EXTERNAL: 'external',
+	/** 未知服务 */
+  UNKNOWN: 'unknown'
 }
 export declare const JOB_TYPES: {
 	/** 循环任务 */

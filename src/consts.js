@@ -52,7 +52,9 @@ const ADDRESS_MODES = {
 const SERVER_TYPES = {
   API: 'api',
   MAIN: 'main',
-  SAFE: 'safe'
+  SAFE: 'safe',
+  EXTERNAL: 'external',
+  UNKNOWN: 'unknown'
 }
 const JOB_TYPES = {
   EVERY: 'every', // 循环任务
