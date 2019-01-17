@@ -97,7 +97,7 @@ export function getInternalPubKey(): Promise<Buffer>;
  * @param timestamp
  * @param opts
  */
-export function signInternal(data: string | object, timestamp: number, opts: SignOptions): SigObject;
+export function signInternal(data: string | object, timestamp: number, opts: SignOptions): Promise<SigObject>;
 
 /**
  * @param obj 参与签名的Obj对象
@@ -131,7 +131,7 @@ export function verifyInternal(data : string | object, timestamp: number | undef
  * @param publicKey
  * @param opts
  */
-export function verifyString (str: string, timestamp: number | undefined, sig: object | string, publicKey: Buffer, opts: HashOptions): Promise<boolean>;
+export function verifyString (str: string, timestamp: number | undefined, sig: object | string, publicKey: Buffer, opts: HashOptions): boolean;
 
 /**
  * @param obj 参与签名的Obj对象
@@ -139,4 +139,4 @@ export function verifyString (str: string, timestamp: number | undefined, sig: o
  * @param publicKey
  * @param opts
  */
-export function verify (obj: object, sig: object | string, publicKey: Buffer, opts: HashOptions): Promise<boolean>;
+export function verify (obj: object, sig: object | string, publicKey: Buffer, opts: HashOptions): boolean;

@@ -34,7 +34,16 @@ class Service extends BaseService {
     this.requests = new Map()
   }
 
+  /**
+   * 初始化
+   * @param {object} opts 参数
+   * @param {boolean} [opts.noAuth=false] 是否需要验证
+   * @param {string[]|string} opts.acceptMethods 可接受的RPC请求
+   */
   async initialize (opts) {
+    /** 是否需要验证 */
+    this.noAuth = !!opts.noAuth
+    // methods设置
     let methods = []
     if (opts.acceptMethods) {
       if (typeof opts.acceptMethods === 'string') {
@@ -62,6 +71,8 @@ class Service extends BaseService {
    * @param {String} url rpc连接地址
    * @param {object} opts 参数
    * @param {boolean} [opts.noAuth=false] 是否需要验证
+   * @param {string} [opts.signerId=undefined] 签名用的AppId
+   * @param {string} [opts.signer=undefined] 签名用的
    */
   async joinRPCServer (url, opts = {}) {
     const urlObj = new URL(url)
@@ -83,17 +94,11 @@ class Service extends BaseService {
 
     // Step 1. 构建认证query的签名
     let headers = {}
-    if (!opts.noAuth) {
+    if (!opts.noAuth && !this.noAuth) {
       const timestamp = Date.now()
       const processKey = consts.PROCESS.TYPES.ROUTER + '-' + jp.env.server
       const key = encodeURI(`${processKey}_${Math.floor(Math.random() * 1e8)}_${timestamp}`)
-      let sig
-      try {
-        const cryptoUtils = require('../utils/crypto')
-        sig = await cryptoUtils.signInternal(key, timestamp)
-      } catch (err) {
-        throw new NBError(10001, `failed to sign internal`)
-      }
+      let sig = await this._signObject(key, timestamp, opts.signerId, opts.signer)
       headers['Authorization'] = [key, sig.timestamp, sig.signature].join(',')
     }
 
@@ -147,6 +152,9 @@ class Service extends BaseService {
    * @param {String} methodName 方法名
    * @param {Array} args 参数数组
    * @param {object?} opts 请求参数
+   * @param {boolean} [opts.noAuth=false] 是否需要验证
+   * @param {string} [opts.signerId=undefined] 签名用的AppId
+   * @param {string} [opts.signer=undefined] 签名用的
    */
   async requestJSONRPC (url, methodName, args, opts = {}) {
     const urlObj = new URL(url)
@@ -166,7 +174,47 @@ class Service extends BaseService {
       jsonrpc: '2.0'
     }
     logger.tag(`Request:${methodName}`).log(`id=${reqData.id}`)
-    return requestFunc.call(this, url, methodName, reqData, opts)
+    return requestFunc.call(this, url, reqData, opts)
+  }
+
+  /**
+   * 进行内容签名
+   * @param {string|object} sigData
+   * @param {number|undefined} timestamp
+   * @param {string?} signerId
+   * @param {string|Buffer?} signer
+   * @param {object} opts
+   */
+  async _signObject (sigData, timestamp, signerId = undefined, signer = undefined, opts = {}) {
+    try {
+      const cryptoUtils = require('../utils/crypto')
+      let appid
+      let sig
+      if (signerId === undefined) {
+        appid = cryptoUtils.THIS_APP_ID
+        sig = await cryptoUtils.signInternal(sigData, timestamp, opts)
+      } else {
+        let priKey
+        // 不存在Signer即使用PriKey
+        if (!signer) {
+          appid = cryptoUtils.PRIV_ID
+          priKey = await cryptoUtils.getPriKey()
+        } else {
+          appid = signerId
+          priKey = typeof signer === 'string' ? Buffer.from(signer, cryptoUtils.DEFAULT_ENCODE) : signer
+        }
+        opts = Object.assign({ withoutTimestamp: timestamp === undefined }, opts)
+        if (_.isString(sigData)) {
+          sig = cryptoUtils.signString(sigData, timestamp, priKey, opts)
+        } else {
+          let objToSign = timestamp === undefined ? Object.assign({ timestamp }, sigData) : sigData
+          sig = cryptoUtils.sign(objToSign, priKey, opts)
+        }
+      }
+      return Object.assign({ appid }, sig)
+    } catch (err) {
+      throw new NBError(10001, `failed to sign object`)
+    }
   }
 
   /**
@@ -175,29 +223,25 @@ class Service extends BaseService {
    * @param {String} methodName 方法名
    * @param {object} reqData
    * @param {string} reqData.id
+   * @param {string} reqData.method
    * @param {object} opts 请求参数
    * @param {boolean} [opts.noAuth=false] 是否需要验证
+   * @param {string} [opts.signerId=undefined] 签名用的AppId
+   * @param {string} [opts.signer=undefined] 签名用的
    */
-  async _requestHttpRPC (url, methodName, reqData, opts = {}) {
-    opts = _.defaults(opts, {
-      appid: 'jadepool',
-      lang: 'zh-cn',
-      hash: 'sha256',
-      sort: 'key',
-      encode: 'hex',
-      withoutTimestamp: true
-    })
+  async _requestHttpRPC (url, reqData, opts = {}) {
+    let extra = { lang: opts.lang || 'zh-cn' }
     let data = Object.assign({}, reqData)
-    if (!opts.noAuth) {
-      let sig
-      try {
-        const cryptoUtils = require('../utils/crypto')
-        sig = await cryptoUtils.signInternal(reqData, undefined, opts)
-      } catch (err) {
-        throw new NBError(10001, `failed to sign internal`)
-      }
-      data.extra = Object.assign({ sig: sig.signature }, opts)
+    if (!opts.noAuth && !this.noAuth) {
+      extra.appid = opts.signerId || 'jadepool'
+      extra.hash = opts.hash || 'sha256'
+      extra.sort = opts.sort || 'key'
+      extra.encode = opts.encode || 'hex'
+      // 进行签名
+      let sig = await this._signObject(reqData, undefined, opts.signerId, opts.signer, extra)
+      extra.sig = sig.signature
     }
+    data.extra = extra
     let resdata
     try {
       const res = await axios({
@@ -224,15 +268,15 @@ class Service extends BaseService {
   /**
    * 请求Ws的RPC调用
    * @param {String} url RPC的url
-   * @param {String} methodName 方法名
    * @param {object} reqData
    * @param {string} reqData.id
+   * @param {string} reqData.method
    * @param {object} opts 请求参数
    */
-  async _requestWsRPC (url, methodName, reqData, opts) {
+  async _requestWsRPC (url, reqData, opts) {
     const ws = this.clients.get(url)
     if (!ws || ws.readyState !== ws.OPEN) {
-      throw new NBError(21004, `method=${methodName}`)
+      throw new NBError(21004, `method=${reqData.method}`)
     }
     const emitter = new EventEmitter()
     this.requests.set(reqData.id, emitter)
@@ -245,7 +289,7 @@ class Service extends BaseService {
     return new Promise((resolve, reject) => {
       // 30秒超时定义
       const timeoutMs = 30 * 1000
-      const timeout = setTimeout(() => reject(new NBError(21005, `id=${reqData.id},method=${methodName}`)), timeoutMs)
+      const timeout = setTimeout(() => reject(new NBError(21005, `id=${reqData.id},method=${reqData.method}`)), timeoutMs)
       // 发起请求
       ws.send(JSON.stringify(reqData), err => {
         if (err) {
@@ -291,25 +335,27 @@ class Service extends BaseService {
       // 判断是否为方法调用或通知，将进行本地调用
       let result = { jsonrpc: '2.0' }
       // 验证签名
-      if (jsonData.sig || jsonData.extra) {
-        let isValid = false
+      if (!this.noAuth) {
         const sigData = jsonData.sig || jsonData.extra
-        delete jsonData.sig
-        try {
-          const cryptoUtils = require('../utils/crypto')
-          const pubKey = await cryptoUtils.fetchPubKey('ecc', sigData.appid || 'app', false)
-          if (pubKey) {
-            isValid = cryptoUtils.verify(jsonData, sigData.signature, pubKey, sigData)
+        if (sigData) {
+          let isValid = false
+          delete jsonData.sig
+          try {
+            const cryptoUtils = require('../utils/crypto')
+            const pubKey = await cryptoUtils.fetchPubKey('ecc', sigData.appid || 'app', false)
+            if (pubKey) {
+              isValid = cryptoUtils.verify(jsonData, sigData.signature, pubKey, sigData)
+            }
+          } catch (err) {
+            logger.error(`failed to verify sig`, err)
+            isValid = false
           }
-        } catch (err) {
-          logger.error(`failed to verify sig`, err)
-          isValid = false
+          if (!isValid) {
+            result.error = { code: 401, message: 'Request is not authorized.' }
+          }
+        } else if (jp.env.isProd) {
+          result.error = { code: 401, message: 'missing sig or extra.' }
         }
-        if (!isValid) {
-          result.error = { code: 401, message: 'Request is not authorized.' }
-        }
-      } else if (jp.env.isProd) {
-        result.error = { code: 401, message: 'missing sig or extra.' }
       }
       // 检测方法名是否可用
       let methodName = _.kebabCase(jsonData.method)
