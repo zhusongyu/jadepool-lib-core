@@ -25,6 +25,8 @@ const loadCryptoConfig = async (cryptoDat = undefined) => {
   return cfgDat.toMerged()
 }
 
+let internalPriKey = null
+
 const cryptoUtils = {
   DEFAULT_ENCODE: ecc.DEFAULT_ENCODE,
   THIS_APP_ID,
@@ -118,11 +120,14 @@ const cryptoUtils = {
    */
   async getInternalPriKey () {
     if (jp.env.secret) {
-      const ver = semver.parse(jp.env.version)
-      const root = HDKey.fromMasterSeed(Buffer.from(jp.env.secret))
-      // 以major和minor组成版本号一致的系统
-      const hdnode = root.derive(`m/666'/0'/0'/${ver.major}/${ver.minor}`)
-      return hdnode.privateKey
+      if (!internalPriKey) {
+        const ver = semver.parse(jp.env.version)
+        const root = HDKey.fromMasterSeed(Buffer.from(jp.env.secret))
+        // 以major和minor组成版本号一致的系统
+        const hdnode = root.derive(`m/666'/0'/0'/${ver.major}/${ver.minor}/${ver.patch}`)
+        internalPriKey = hdnode.privateKey.toString('hex')
+      }
+      return Buffer.from(internalPriKey, 'hex')
     }
     return cryptoUtils.getPriKey()
   },
@@ -130,8 +135,7 @@ const cryptoUtils = {
    * 获取内部公钥
    */
   async getInternalPubKey () {
-    const internalPriKey = await cryptoUtils.getInternalPriKey()
-    return ecc.pubKeyCreate(internalPriKey)
+    return ecc.pubKeyCreate(await cryptoUtils.getInternalPriKey())
   },
   /**
    * 内部签名检查函数

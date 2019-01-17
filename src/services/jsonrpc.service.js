@@ -40,9 +40,18 @@ class JSONRPCService extends BaseService {
    * @param {object} opts
    * @param {string?} opts.host
    * @param {number?} opts.port
+   * @param {string[]} opts.acceptMethods
+   * @param {boolean?} [opts.noAuth=false] 是否需要验证
+   * @param {string?} opts.signerId
+   * @param {Buffer|string|undefined} opts.signer
+   * @param {Buffer|string|undefined} opts.verifier
    */
   async initialize (opts) {
-    this.opts = opts
+    // 设置签名和验签规则
+    this.noAuth = !!opts.noAuth
+    this.signerId = opts.signerId
+    this.signer = opts.signer
+    this.verifier = opts.verifier
     // 定义ws server
     const host = opts.host || '0.0.0.0'
     const port = opts.port || 7897
@@ -55,23 +64,36 @@ class JSONRPCService extends BaseService {
        * @return {boolean}
        */
       verifyClient: (info, done) => {
+        // 无需验证
+        if (opts.noAuth) {
+          return done(true)
+        }
         if (!info.req.headers || !info.req.headers.authorization) {
           logger.warn(`missing headers.authorization. client: ${info.origin}`)
           return done(false)
         }
         const authString = info.req.headers.authorization
         let [key, timestamp, sig] = authString.split(',')
-        cryptoUtils.verifyInternal(key, parseInt(timestamp), sig)
-          .then(res => {
-            if (!res) {
-              logger.warn(`authorization failed. client: ${info.origin}`)
-            }
-            done(!!res)
+        let promise
+        if (!opts.verifier) {
+          promise = cryptoUtils.verifyInternal(key, parseInt(timestamp), sig)
+        } else {
+          const pubKey = typeof opts.verifier === 'string' ? Buffer.from(opts.verifier, cryptoUtils.DEFAULT_ENCODE) : opts.verifier
+          promise = new Promise((resolve, reject) => {
+            try {
+              resolve(cryptoUtils.verifyString(key, parseInt(timestamp), sig, pubKey))
+            } catch (err) { reject(err) }
           })
-          .catch(err => {
-            logger.error(`verify from jadepool: ${authString}`, err)
-            done(false)
-          })
+        }
+        promise.then(result => {
+          if (!result) {
+            logger.warn(`authorization failed. client: ${info.origin}`)
+          }
+          done(!!result)
+        }).catch(err => {
+          logger.error(`verify from jadepool: ${authString}`, err)
+          done(false)
+        })
       }
     })
     this.wss.once('listening', () => { logger.log(`JSONRPC Service listen to ${host}:${port}`) })
@@ -115,11 +137,25 @@ class JSONRPCService extends BaseService {
     logger.tag(`Request:${methodName}`).log(`id=${reqData.id}`)
     const emitter = new EventEmitter()
     this.requests.set(reqData.id, emitter)
-    const sigOpts = { hash: 'sha256', encode: 'base64', withoutTimestamp: true }
-    const sigData = await cryptoUtils.signInternal(reqData, undefined, sigOpts)
-    const objToSend = Object.assign({
-      sig: Object.assign({ appid: cryptoUtils.THIS_APP_ID, signature: sigData.signature }, sigOpts)
-    }, reqData)
+    let objToSend = reqData
+    // 判断是否进行信息签名
+    if (!this.noAuth) {
+      const sigOpts = {
+        hash: 'sha256',
+        encode: 'base64',
+        withoutTimestamp: true
+      }
+      let sigData
+      if (this.signerId === undefined) {
+        sigOpts.appid = cryptoUtils.THIS_APP_ID
+        sigData = await cryptoUtils.signInternal(reqData, undefined, sigOpts)
+      } else {
+        const priKey = typeof this.signer === 'string' ? Buffer.from(this.signer, cryptoUtils.DEFAULT_ENCODE) : this.signer
+        sigOpts.appid = this.signerId || consts.DEFAULT_KEY
+        sigData = await cryptoUtils.sign(reqData, priKey, sigOpts)
+      }
+      objToSend.sig = Object.assign({ signature: sigData.signature }, sigOpts)
+    }
     // 发起并等待请求
     const result = await new Promise((resolve, reject) => {
       // 发起请求
