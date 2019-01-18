@@ -1,6 +1,7 @@
 const _ = require('lodash')
 const HDKey = require('hdkey')
 const semver = require('semver')
+const crypto = require('crypto')
 const { ecc } = require('@jadepool/crypto')
 const jp = require('../jadepool')
 const NBError = require('../NBError')
@@ -149,6 +150,9 @@ const cryptoUtils = {
    * @param {boolean?} [opts.withoutTimestamp=false] 是否需要添加时间戳
    */
   async signInternal (data, timestamp = undefined, opts = {}) {
+    // 强制设置withoutTimestamp
+    opts.withoutTimestamp = opts.withoutTimestamp || timestamp === undefined
+    // 获取公钥
     let priKey = await cryptoUtils.getInternalPriKey()
     if (_.isString(data)) {
       return ecc.signString(data, timestamp, priKey, opts)
@@ -175,6 +179,9 @@ const cryptoUtils = {
    * @returns {Promise<boolean>} 是否认证通过
    */
   async verifyInternal (data, timestamp = undefined, sig, opts = {}) {
+    // 强制设置withoutTimestamp
+    opts.withoutTimestamp = opts.withoutTimestamp || timestamp === undefined
+    // 获取公钥
     let pubKey = await cryptoUtils.getInternalPubKey()
     if (_.isString(data)) {
       return ecc.verifyString(data, timestamp, sig, pubKey, opts)
@@ -186,7 +193,42 @@ const cryptoUtils = {
     }
   },
   verify: ecc.verify,
-  verifyString: ecc.verifyString
+  verifyString: ecc.verifyString,
+  // ======= 对称加密 ==========
+  /**
+   * 使用AES进行对称加密
+   * @param {string|object} data
+   * @returns {string}
+   */
+  async encryptInternal (data) {
+    data = typeof data === 'string' ? data : JSON.stringify(data)
+    const algorithm = 'aes-192-cbc'
+    const iv = Buffer.alloc(16, 0)
+    const key = await cryptoUtils.getInternalPriKey()
+    const cipher = crypto.createCipheriv(algorithm, key.slice(0, 24), iv)
+    let encrypted = cipher.update(data, 'utf8', 'hex')
+    encrypted += cipher.final('hex')
+    return encrypted
+  },
+  /**
+   * 使用AES进行对称解谜密
+   * @param {string} data
+   */
+  async decryptInternal (data) {
+    const algorithm = 'aes-192-cbc'
+    const iv = Buffer.alloc(16, 0)
+    const key = await cryptoUtils.getInternalPriKey()
+    const decipher = crypto.createDecipheriv(algorithm, key.slice(0, 24), iv)
+    let decrypted = decipher.update(data, 'hex', 'utf8')
+    decrypted += decipher.final('utf8')
+    let result
+    try {
+      result = JSON.parse(decrypted)
+    } catch (err) {
+      result = decrypted
+    }
+    return result
+  }
 }
 
 module.exports = cryptoUtils

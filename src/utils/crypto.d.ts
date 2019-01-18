@@ -140,3 +140,15 @@ export function verifyString (str: string, timestamp: number | undefined, sig: o
  * @param opts
  */
 export function verify (obj: object, sig: object | string, publicKey: Buffer, opts: HashOptions): boolean;
+
+/**
+ * 内部对称性加密
+ * @param data
+ */
+export function encryptInternal (data: object | string): Promise<string>;
+
+/**
+ * 内部对称性解密
+ * @param data
+ */
+export function decryptInternal (data: string): Promise<string|object>;

@@ -1,6 +1,7 @@
 const assert = require('chai').assert
 const express = require('express')
 const bodyParser = require('body-parser')
+process.env.LOGGER_LEVEL = 'WARN'
 const { jadepool, consts, utils } = require('../../')
 
 const config = {
@@ -13,7 +14,7 @@ describe('Services: rpcclient', () => {
   let srv
   before(async () => {
     await jadepool.initialize(new jadepool.Context(
-      consts.SERVER_TYPES.MAIN,
+      consts.SERVER_TYPES.UNKNOWN,
       '0.1.0',
       undefined,
       config
