@@ -203,7 +203,7 @@ class JSONRPCService extends BaseService {
       } else {
         // 进行本地调用
         try {
-          res.result = await jp.invokeMethod(methodName, jsonRequest.params || {}, ws)
+          res.result = await jp.invokeMethod(methodName, jp.env.param, jsonRequest.params || {}, ws)
         } catch (err) {
           let code = err.code
           let message = err.message
