@@ -1,6 +1,6 @@
 {
   "name": "@jadepool/lib-core",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Jadepool core library",
   "main": "index.js",
   "scripts": {
@@ -25,6 +25,8 @@
   "dependencies": {
     "@jadepool/crypto": "^0.1.2",
     "@jadepool/logger": "^1.0.0",
+    "@types/mongoose": "^5.3.8",
+    "@types/redis": "^2.8.10",
     "agenda": "^2.0.2",
     "axios": "^0.18.0",
     "body-parser": "^1.18.3",
