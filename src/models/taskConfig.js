@@ -37,5 +37,5 @@ schema.index({ server: 1, working: -1 })
 schema.index({ name: 1 })
 schema.index({ server: 1, name: 1 }, { unique: true })
 
-const TaskConfig = fetchConnection().model('adminTaskCfg', schema)
+const TaskConfig = fetchConnection().model(consts.MODEL_NAMES.TASK_CONFIG, schema)
 module.exports = TaskConfig

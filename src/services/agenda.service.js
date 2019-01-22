@@ -107,7 +107,8 @@ class AgendaService extends BaseService {
       if (taskObj.job) {
         await taskObj.job.remove()
       }
-      let taskCfg = await jp.models.TaskConfig.findOne({ server: jp.env.server, name: taskObj.name }).exec()
+      const TaskConfig = jp.getModel(consts.MODEL_NAMES.TASK_CONFIG)
+      let taskCfg = await TaskConfig.findOne({ server: jp.env.server, name: taskObj.name }).exec()
       if (!taskCfg) return
       // 根据TaskConfig进行 job启动
       if (taskCfg.jobtype === consts.JOB_TYPES.EVERY) {

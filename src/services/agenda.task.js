@@ -54,7 +54,8 @@ class Task {
     await this.initialize()
     // 设置TaskConfig的working状态
     try {
-      await jp.models.TaskConfig.updateOne(this.taskQuery, { $set: { working: true } })
+      const TaskConfig = jp.getModel(consts.MODEL_NAMES.TASK_CONFIG)
+      await TaskConfig.updateOne(this.taskQuery, { $set: { working: true } })
     } catch (err) {}
   }
 
@@ -65,7 +66,8 @@ class Task {
     this[sDestroying] = true
     // 设置TaskConfig的working状态
     try {
-      await jp.models.TaskConfig.updateOne(this.taskQuery, { $set: { working: false } })
+      const TaskConfig = jp.getModel(consts.MODEL_NAMES.TASK_CONFIG)
+      await TaskConfig.updateOne(this.taskQuery, { $set: { working: false } })
     } catch (err) {}
     // 等待退出
     if (this[sHandlingAmt] > 0) {
@@ -118,7 +120,7 @@ class Task {
     if (this.recordRound) {
       logger.diff(this.name).tag('Start').log(`round=${this[sRunAmt]}`)
     }
-    const TaskConfig = jp.models.TaskConfig
+    const TaskConfig = jp.getModel(consts.MODEL_NAMES.TASK_CONFIG)
     // 任务进行中
     this[sHandlingAmt]++
     // 获取当前task的相关配置信息
@@ -200,7 +202,8 @@ class Task {
       const errDesc = errCodeSrv.getErrObj(err.code)
       // Warning记录
       if (errDesc) {
-        const warn = new jp.models.Warning()
+        const Warning = jp.getModel(consts.MODEL_NAMES.WARNING)
+        const warn = new Warning()
         warn.level = level
         warn.category = errDesc.status
         let errMsg = err.message || ''
