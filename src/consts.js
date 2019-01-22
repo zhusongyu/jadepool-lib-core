@@ -61,6 +61,29 @@ const JOB_TYPES = {
   NORMAL: 'normal', // 普通任务
   SCHEDULE: 'schedule' // 计划任务
 }
+const MODEL_NAMES = {
+  // Config Models
+  CONFIG_DATA: 'configdat',
+  CONFIG_REV: 'configrev',
+  // Busines Models
+  ADDRESS: 'address',
+  ORDER: 'order',
+  SCAN_TASK: 'scantask',
+  TASK_CONFIG: 'adminTaskCfg',
+  ETH_BATCH: 'ethbatch',
+  ETH_FAUCET: 'ethfaucet',
+  AUDIT: 'audit',
+  RULER: 'ruler',
+  BLOCK: 'block',
+  ISSUE_RECORD: 'issueRecord',
+  NOTIFICATION: 'notification',
+  WARNING: 'warning',
+  // Admin Models
+  ACCOUNT: 'account',
+  ROLE: 'role',
+  ACTION: 'action',
+  NOTI_EMAIL: 'notiEmail'
+}
 const ADDRESS_STATE = {
   NEW: 'new', // 刚创建
   USED: 'used', // 已分配使用
@@ -141,6 +164,7 @@ module.exports = {
   ADDRESS_MODES,
   SERVER_TYPES,
   JOB_TYPES,
+  MODEL_NAMES,
   ADDRESS_TYPE,
   ADDRESS_STATE,
   ORDER_STATE,

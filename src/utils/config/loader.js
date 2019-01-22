@@ -3,6 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const semver = require('semver')
 const jp = require('../../jadepool')
+const consts = require('../../consts')
 const NBError = require('../../NBError')
 
 const logger = require('@jadepool/logger').of('Configure')
@@ -35,7 +36,8 @@ const loadConfig = async (cfgPath, key = '', parent = null, forceSelf = false) =
   if (forceSelf) {
     query.server = jp.env.server
   }
-  const ConfigDat = jp.models.ConfigDat
+
+  const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
   let cfgDat = await ConfigDat.findOne(query).populate('parent').exec()
   if ((enableAutoSaveWhenLoad && (!cfgDat || semver.gt(jp.env.version, cfgDat.version))) ||
     (!jp.env.isProd && cfgDat && cfgDat.dirty)) {
@@ -104,7 +106,8 @@ const loadConfigKeys = async (cfgPath, parent = null) => {
   if (parent) { query.parent = parent }
 
   // Config in DB
-  const cfgs = (await jp.models.ConfigDat.find(query).exec()) || []
+  const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
+  const cfgs = (await ConfigDat.find(query).exec()) || []
   let namesInDBs = _.map(cfgs, 'key')
   // Config in Files
   const cwdPath = process.cwd()
@@ -143,7 +146,8 @@ const saveConfig = async (cfgPath, key, modJson, disabled = undefined, parent = 
       key,
       origin: '{}'
     }
-    cfgDat = new jp.models.ConfigDat(data)
+    const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
+    cfgDat = new ConfigDat(data)
     if (parent) {
       cfgDat.parent = parent
       // 设置origin为parent的template
@@ -189,7 +193,8 @@ const deleteConfig = async (cfgPath, key = '', parent = null) => {
   } else {
     query.parent = { $exists: false }
   }
-  let cfgDat = await jp.models.ConfigDat.findOne(query).exec()
+  const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
+  let cfgDat = await ConfigDat.findOne(query).exec()
   if (!cfgDat) {
     throw new NBError(10001, `failed to find config data`)
   }
@@ -202,7 +207,7 @@ const deleteConfig = async (cfgPath, key = '', parent = null) => {
   // 查询并删除ConfigDat
   query.server = jp.env.server
   query.customized = true
-  await jp.models.ConfigDat.deleteOne(query).exec()
+  await ConfigDat.deleteOne(query).exec()
   return true
 }
 

@@ -31,7 +31,7 @@ schema.index({ create_at: -1 })
 schema.index({ level: 1 })
 schema.index({ level: 1, category: 1, module: 1 })
 
-const Warning = fetchConnection().model('warning', schema)
+const Warning = fetchConnection().model(consts.MODEL_NAMES.WARNING, schema)
 Warning.prototype.toClientObject = function () {
   const obj = this.toObject()
   obj.id = String(obj._id)

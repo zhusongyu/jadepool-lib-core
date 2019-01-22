@@ -50,6 +50,24 @@ class JadePoolContext {
   get config () { return this._config }
 
   /**
+   * Models
+   */
+  get models () {
+    const result = {}
+    result[consts.MODEL_NAMES.CONFIG_DATA] = result.ConfigDat = require('../models/configdat')
+    result[consts.MODEL_NAMES.TASK_CONFIG] = result.TaskConfig = require('../models/taskConfig')
+    result[consts.MODEL_NAMES.WARNING] = result.Warning = require('../models/warning')
+    return result
+  }
+
+  /**
+   * @param {string} name
+   */
+  getModel (name) {
+    return this.models[name]
+  }
+
+  /**
    * 注册服务
    * @param {typeof BaseService|string} serviceClass
    * @param {Object} opts 传入的初始化参数

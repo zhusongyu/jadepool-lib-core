@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import services from '../services'
 import BaseService = require('../services/core')
 import Context = require('./context')
@@ -91,6 +92,12 @@ declare class JadePool {
 	getService(name: 'socket.io'): services.SocketIOService;
 	getService(name: 'socket.io.worker'): services.SocketIOWorkerService;
 	getService(name: string): BaseService;
+
+	/**
+	 * 获取模型
+	 * @param name
+	 */
+	getModel(name: string): mongoose.Model<mongoose.Document>;
 
 	/**
 	 * 进行Methods调用
