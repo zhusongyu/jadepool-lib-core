@@ -33,19 +33,11 @@ class JadePool {
   /**
    * Models
    */
-  get models () {
-    return {
-      ConfigDat: require('../models/configdat'),
-      TaskConfig: require('../models/taskConfig'),
-      Warning: require('../models/warning')
-    }
-  }
+  get models () { return this.ctx.models }
   /**
    * Context
    */
-  get Context () {
-    return Context
-  }
+  get Context () { return Context }
   /**
    * 插件目录
    * @type {string}
@@ -67,6 +59,14 @@ class JadePool {
    */
   getService (name) {
     return this.ctx.getService(name)
+  }
+
+  /**
+   * 获取模型对象
+   * @param {string} name
+   */
+  getModel (name) {
+    return this.ctx.getModel(name)
   }
 
   /**

@@ -56,7 +56,7 @@ schema.index({ create_at: -1, path: 1, key: 1 })
 schema.index({ server: 1, path: 1, key: 1, parent: 1 })
 schema.index({ path: 1, key: 1, parent: 1 }, { unique: true })
 
-const ConfigDat = fetchConnection('config').model('configdat', schema)
+const ConfigDat = fetchConnection('config').model(consts.MODEL_NAMES.CONFIG_DATA, schema)
 
 ConfigDat.prototype.applyModify = function (jsonToSave) {
   try {

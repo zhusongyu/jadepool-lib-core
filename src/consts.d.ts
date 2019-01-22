@@ -95,6 +95,29 @@ export declare const JOB_TYPES: {
 	/** 计划任务 */
   SCHEDULE: 'schedule'
 }
+export declare const MODEL_NAMES: {
+  // Config Models
+  CONFIG_DATA: 'configdat',
+  CONFIG_REV: 'configrev',
+  // Busines Models
+  ADDRESS: 'address',
+  ORDER: 'order',
+  SCAN_TASK: 'scantask',
+  TASK_CONFIG: 'adminTaskCfg',
+  ETH_BATCH: 'ethbatch',
+  ETH_FAUCET: 'ethfaucet',
+  AUDIT: 'audit',
+  RULER: 'ruler',
+  BLOCK: 'block',
+  ISSUE_RECORD: 'issueRecord',
+  NOTIFICATION: 'notification',
+  WARNING: 'warning',
+  // Admin Models
+  ACCOUNT: 'account',
+  ROLE: 'role',
+  ACTION: 'action',
+  NOTI_EMAIL: 'notiEmail'
+}
 export declare const ADDRESS_STATE: {
 	/** 刚创建 */
 	NEW: 'new',

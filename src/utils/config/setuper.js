@@ -5,6 +5,7 @@ const {
   setAutoSaveWhenLoad
 } = require('./loader')
 const { fetchAllCoinNames } = require('./index')
+const consts = require('../../consts')
 const jp = require('../../jadepool')
 
 const logger = require('@jadepool/logger').of('Configure')
@@ -208,7 +209,8 @@ const configSetupMethods = {
     // 直接加载mods修改
     const modsDat = await loadConfig('mods')
     if (modsDat) {
-      jp.models.ConfigDat.mergeConfigObj(jp.config, modsDat.toMerged(), undefined, true)
+      const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
+      ConfigDat.mergeConfigObj(jp.config, modsDat.toMerged(), undefined, true)
       logger.tag('Dynamic Mods').log('applied')
     }
     // 根据watchers的条件修改config
