@@ -8,10 +8,19 @@ declare interface ConfigDat {
 
 /**
  * 设置是否自动保存
- * @param {boolean} value
  * @param value 
  */
 export declare function setAutoSaveWhenLoad(value : boolean): void;
+
+/**
+ * 设置path + key的别名目录
+ * 对于loadConfig来说，只取最后一个被设置的别名目录
+ * 对于loadConfigKeys来说，别名目录 + config目录下的结果都将累加到最终结果
+ * @param path 
+ * @param key 
+ * @param aliasPath 
+ */
+export declare function setAliasConfigPath(path: string, key: string, aliasPath: string): void;
 
 /**
  * 从数据库中读取配置，若该配置不存在，则从文件中读取并保存到数据库

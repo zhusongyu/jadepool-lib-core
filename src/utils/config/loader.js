@@ -9,6 +9,7 @@ const NBError = require('../../NBError')
 const logger = require('@jadepool/logger').of('Configure')
 
 // 环境配置
+const CONFIG_ROOT_PATH = path.resolve(process.cwd(), 'config')
 let enableAutoSaveWhenLoad = false
 
 /**
@@ -20,10 +21,46 @@ const setAutoSaveWhenLoad = value => {
 }
 
 /**
+ * @type {Map<string, string>}
+ */
+const aliasMap = new Map()
+/**
+ * 设置path + key的别名目录
+ * 对于loadConfig来说，只取最后一个被设置的别名目录
+ * 对于loadConfigKeys来说，别名目录 + config目录下的结果都将累加到最终结果
+ * @param {string} cfgPath
+ * @param {string} key
+ * @param {string} aliasPath
+ */
+const setAliasConfigPath = (cfgPath, key, aliasPath) => {
+  if (fs.existsSync(aliasPath)) {
+    aliasMap.set(`${cfgPath}.${key}`, aliasPath)
+  }
+}
+
+/**
+ * 获取path + key的全部别名目录
+ * @param {string} cfgPath
+ * @param {string} key
+ * @param {any} parent
+ */
+const getConfigPaths = (cfgPath, key, parent = null) => {
+  const paths = []
+  const aliasKey = `${cfgPath}.${key}`
+  if (aliasMap.has(aliasKey)) {
+    paths.push(aliasMap.get(aliasKey))
+  }
+  let parentPath = (parent && parent.path && parent.key) ? path.resolve(CONFIG_ROOT_PATH, parent.path, parent.key) : CONFIG_ROOT_PATH
+  parentPath = path.resolve(parentPath, cfgPath)
+  paths.push(key ? path.resolve(parentPath, key) : parentPath)
+  return paths
+}
+
+/**
  * 从数据库中读取配置，若该配置不存在，则从文件中读取并保存到数据库
  * @param {String} cfgPath 目录名
  * @param {String} key 子目录名
- * @param {ConfigDat} parent
+ * @param {any} parent
  * @returns {Promise<{toMerged: Function, geneTemplate: Function, applyModify: Function, save: Function}>}
  */
 const loadConfig = async (cfgPath, key = '', parent = null, forceSelf = false) => {
@@ -42,12 +79,8 @@ const loadConfig = async (cfgPath, key = '', parent = null, forceSelf = false) =
   if ((enableAutoSaveWhenLoad && (!cfgDat || semver.gt(jp.env.version, cfgDat.version))) ||
     (!jp.env.isProd && cfgDat && cfgDat.dirty)) {
     // 读取文件配置
-    const cwdPath = process.cwd()
-    let cfgFilePath = path.resolve(cwdPath, 'config')
-    if (parent) {
-      cfgFilePath = path.resolve(cfgFilePath, parent.path, parent.key)
-    }
-    cfgFilePath = path.resolve(cfgFilePath, cfgPath || '', key || '')
+    let cfgFilePaths = getConfigPaths(cfgPath, key, parent)
+    let cfgFilePath = cfgFilePaths[0]
     // 不存在文件配置，说明这个是自定义的配置
     if (!fs.existsSync(cfgFilePath)) {
       if (!cfgDat) return null
@@ -95,7 +128,7 @@ const loadConfig = async (cfgPath, key = '', parent = null, forceSelf = false) =
 /**
  * 从数据库中读取path相同的全部配置，同时也从文件夹中读取全部路径
  * @param {String} cfgPath
- * @param {ConfigDat} parent
+ * @param {any} parent
  * @returns {Promise<string[]>}
  */
 const loadConfigKeys = async (cfgPath, parent = null) => {
@@ -110,18 +143,15 @@ const loadConfigKeys = async (cfgPath, parent = null) => {
   const cfgs = (await ConfigDat.find(query).exec()) || []
   let namesInDBs = _.map(cfgs, 'key')
   // Config in Files
-  const cwdPath = process.cwd()
-  let cfgFilePath = path.resolve(cwdPath, 'config')
-  if (parent) {
-    cfgFilePath = path.resolve(cfgFilePath, parent.path, parent.key)
-  }
-  let targetPath = path.resolve(cfgFilePath, cfgPath)
-  let nameInFolders = []
-  if (fs.existsSync(targetPath)) {
-    nameInFolders = fs.readdirSync(targetPath).filter(fileName => fileName.indexOf('.') === -1)
-  }
+  let cfgFilePaths = getConfigPaths(cfgPath, '', parent)
   // 返回系列Keys
-  return _.union(namesInDBs, nameInFolders)
+  return _.reduce(cfgFilePaths, (allNames, currPath) => {
+    if (fs.existsSync(currPath)) {
+      let nameInFolders = fs.readdirSync(currPath).filter(fileName => fileName.indexOf('.') === -1)
+      allNames = _.union(allNames, nameInFolders)
+    }
+    return allNames
+  }, namesInDBs)
 }
 
 /**
@@ -130,8 +160,8 @@ const loadConfigKeys = async (cfgPath, parent = null) => {
  * @param {String} key 子目录名
  * @param {Object} modJson 配置修改Json，需Merge
  * @param {Object} disabled 是否禁用
- * @param {ConfigDat} parent
- * @returns {Promise<ConfigDat>}
+ * @param {any} parent
+ * @returns {Promise<{toMerged: Function, geneTemplate: Function, applyModify: Function, save: Function}>}
  */
 const saveConfig = async (cfgPath, key, modJson, disabled = undefined, parent = null) => {
   let needSave = false
@@ -180,8 +210,8 @@ const saveConfig = async (cfgPath, key, modJson, disabled = undefined, parent = 
  * 从数据库中删除配置，该配置必须是customized的配置
  * @param {String} cfgPath 目录名
  * @param {String} key 子目录名
- * @param {ConfigDat} parent
- * @returns {Promise<ConfigDat>}
+ * @param {any} parent
+ * @returns {Promise<boolean>}
  */
 const deleteConfig = async (cfgPath, key = '', parent = null) => {
   const query = {
@@ -214,6 +244,7 @@ const deleteConfig = async (cfgPath, key = '', parent = null) => {
 module.exports = {
   // Methods
   setAutoSaveWhenLoad,
+  setAliasConfigPath,
   loadConfig,
   loadConfigKeys,
   deleteConfig,
