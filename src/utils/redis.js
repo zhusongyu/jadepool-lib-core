@@ -52,8 +52,7 @@ const redisLib = {
       opts = _.clone(cfg)
     }
     // dev环境中，若无法获得地址则使用默认数据
-    const nodeEnv = process.env.NODE_ENV
-    if (_.isEmpty(opts) && nodeEnv !== 'production') {
+    if (_.isEmpty(opts) && !jp.env.isProd) {
       opts.url = `redis://${jp.env.defaultRedis}`
     }
     if (_.isEmpty(opts)) {

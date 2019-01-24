@@ -301,7 +301,7 @@ const setupConfig = async (name, enableAutoSave = false) => {
 const setupAll = async () => {
   if (!jp.config.cfgLoads || !_.isArray(jp.config.cfgLoads)) return
   // 常量设置
-  jp.config.isTestNet = (process.env.NODE_ENV !== 'production')
+  jp.config.isTestNet = !jp.env.isProd
 
   logger.diff('SetupAll').tag('Start').log(`cfgs=${jp.config.cfgLoads.length}`)
   // 仅读取以保证数据库写入
