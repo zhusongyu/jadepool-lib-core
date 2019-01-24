@@ -72,6 +72,7 @@ module.exports = function buildEnvObject (serverType, version) {
   let processKey = `${processType}-${serverType}-${processPrefix}${process.pid}`
 
   return _.assign({
+    name: process.env.NODE_ENV,
     isProd: process.env.NODE_ENV === 'production',
     eccEnabled: ['staging', 'production'].indexOf(process.env.NODE_ENV) > -1,
     server: serverType,

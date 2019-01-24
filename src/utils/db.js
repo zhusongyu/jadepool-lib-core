@@ -28,9 +28,8 @@ const getUri = (dbKey = consts.DEFAULT_KEY) => {
     }
   }
   // dev环境中，若无法获得地址则使用默认数据
-  const nodeEnv = process.env.NODE_ENV
-  if (!mongoUrl && nodeEnv !== 'production') {
-    mongoUrl = `mongodb://${jp.env.defaultMongo}/jadepool-${nodeEnv}`
+  if (!mongoUrl && !jp.env.isProd) {
+    mongoUrl = `mongodb://${jp.env.defaultMongo}/jadepool-${jp.env.name}`
   }
   // 报错
   if (!mongoUrl) {
