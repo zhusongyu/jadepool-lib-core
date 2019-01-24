@@ -5,6 +5,8 @@ import Context = require('./context')
 import consts = require('../consts')
 
 interface EnvObject {
+	/** 环境名称 */
+	name: string,
 	/** 是否为生产环境 */
 	isProd: boolean;
 	/** 是否启用ECC验证 */
