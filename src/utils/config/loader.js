@@ -50,7 +50,15 @@ const getConfigPaths = (cfgPath, key, parent = null) => {
   if (aliasMap.has(aliasKey)) {
     paths.push(aliasMap.get(aliasKey))
   }
-  let parentPath = (parent && parent.path && parent.key) ? path.resolve(CONFIG_ROOT_PATH, parent.path, parent.key) : CONFIG_ROOT_PATH
+  let parentPath = CONFIG_ROOT_PATH
+  if (parent && parent.path && parent.key) {
+    let parentKey = `${parent.path}.${parent.key}`
+    if (aliasMap.has(parentKey)) {
+      parentPath = aliasMap.get(parentKey)
+    } else {
+      parentPath = path.resolve(CONFIG_ROOT_PATH, parent.path, parent.key)
+    }
+  }
   parentPath = path.resolve(parentPath, cfgPath)
   paths.push(key ? path.resolve(parentPath, key) : parentPath)
   return paths
