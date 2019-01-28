@@ -109,7 +109,7 @@ class AgendaService extends BaseService {
       }
       const TaskConfig = jp.getModel(consts.MODEL_NAMES.TASK_CONFIG)
       let taskCfg = await TaskConfig.findOne({ server: jp.env.server, name: taskObj.name }).exec()
-      if (!taskCfg) return
+      if (!taskCfg || taskCfg.paused) return
       // 根据TaskConfig进行 job启动
       if (taskCfg.jobtype === consts.JOB_TYPES.EVERY) {
         if (taskCfg.seconds < 0) return
@@ -117,6 +117,7 @@ class AgendaService extends BaseService {
         logger.tag('Jobs-start', taskObj.name).log(`interval=${timeStr}`)
         taskObj.job = await this._agenda.every(timeStr, taskObj.name, _.pick(taskObj, ['fileName', 'prefix', 'chainKey']))
       } else if (taskCfg.jobtype === consts.JOB_TYPES.SCHEDULE) {
+        if (!taskCfg.cron) return
         logger.tag('Jobs-start', taskObj.name).log(`cron=${taskCfg.cron}`)
         taskObj.job = await this._agenda.every(taskCfg.cron, taskObj.name, _.pick(taskObj, ['fileName', 'prefix', 'chainKey']))
       }
