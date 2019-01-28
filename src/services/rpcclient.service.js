@@ -37,6 +37,7 @@ class Service extends BaseService {
   /**
    * 初始化
    * @param {object} opts 参数
+   * @param {number} [opts.timeout=120] ws的请求timeout时间
    * @param {boolean} [opts.noAuth=false] 是否需要验证
    * @param {string[]|string} opts.acceptMethods 可接受的RPC请求
    */
@@ -57,6 +58,11 @@ class Service extends BaseService {
      * @type {String[]}
      */
     this.acceptMethods = methods
+    /**
+     * 过期时间
+     * @type {number}
+     */
+    this.timeout = opts.timeout || 120
   }
 
   async onDestroy () {
@@ -288,7 +294,7 @@ class Service extends BaseService {
     // 发起并等待请求
     return new Promise((resolve, reject) => {
       // 30秒超时定义
-      const timeoutMs = 30 * 1000
+      const timeoutMs = this.timeout * 1000
       const timeout = setTimeout(() => reject(new NBError(21005, `id=${reqData.id},method=${reqData.method}`)), timeoutMs)
       // 发起请求
       ws.send(JSON.stringify(reqData), err => {
