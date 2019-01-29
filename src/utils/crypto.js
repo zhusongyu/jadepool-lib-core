@@ -5,6 +5,7 @@ const crypto = require('crypto')
 const { ecc } = require('@jadepool/crypto')
 const jp = require('../jadepool')
 const NBError = require('../NBError')
+const configLoader = require('./config/loader')
 
 const THIS_APP_ID = 'self'
 const PRIV_ID = 'pri'
@@ -17,7 +18,6 @@ const loadCryptoConfig = async (cryptoDat = undefined) => {
   if (cryptoDat && typeof cryptoDat.toMerged === 'function') {
     cfgDat = cryptoDat
   } else {
-    const configLoader = require('./config/loader')
     cfgDat = await configLoader.loadConfig('crypto')
   }
   if (!cfgDat) {
@@ -52,7 +52,6 @@ const cryptoUtils = {
     const keypair = ecc.generateKeyPair()
     const jsonToSave = _.set({}, PRIV_ID, keypair.priKey)
     // 保存jsoncfg的配置
-    const configLoader = require('./config/loader')
     await configLoader.saveConfig('crypto', '', jsonToSave)
     return keypair
   },
@@ -67,6 +66,7 @@ const cryptoUtils = {
   },
   /**
    * 获取非本系统 Public Key
+   * @deprecated 该API已过期，未来将移除
    */
   async fetchAppPubKey (cryptoType, category, compress = false, cryptoDat = undefined) {
     const cryptoCfg = await loadCryptoConfig(cryptoDat)
@@ -77,6 +77,7 @@ const cryptoUtils = {
   },
   /**
    * 获取 Public Key
+   * @deprecated 该API已过期，未来将移除
    * @param {String} cryptoType
    * @param {String} category
    * @param {Boolean} compress
@@ -90,6 +91,23 @@ const cryptoUtils = {
       return ecc.pubKeyCreate(priKey, ecc.DEFAULT_ENCODE, compress)
     } else {
       return cryptoUtils.fetchAppPubKey(cryptoType, category, compress, cryptoDat)
+    }
+  },
+  /**
+   * 获取某AppId对应的公钥们
+   * @param {string} appid
+   * @param {boolean?} compress
+   * @returns {Buffer[]}
+   */
+  async fetchPublicKeys (appid, compress = false) {
+    if (appid === THIS_APP_ID) {
+      return [ await cryptoUtils.getInternalPubKey() ]
+    } else if (appid === PRIV_ID) {
+      const priKey = await cryptoUtils.getPriKey()
+      return [ ecc.pubKeyCreate(priKey, undefined, compress) ]
+    } else {
+      const appCfg = await jp.fetchAppConfig(appid)
+      return appCfg ? appCfg.getPublicKeys() : []
     }
   },
   /**

@@ -3,6 +3,9 @@ const NBError = require('../../NBError')
 const consts = require('../../consts')
 const jp = require('../../jadepool')
 
+/**
+ * @deprecated
+ */
 const fetchCallbackUrl = (category, customUrl) => {
   let url = _.get(jp.config, `callback.${category}`)
   let debugUrl = _.get(jp.config, `callback.debug`)

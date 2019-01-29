@@ -8,6 +8,7 @@ const BaseService = require('./core')
 const jp = require('../jadepool')
 const consts = require('../consts')
 const NBError = require('../NBError')
+const cryptoUtils = require('../utils/crypto')
 
 const logger = require('@jadepool/logger').of('Service', 'RPC Client')
 
@@ -193,7 +194,6 @@ class Service extends BaseService {
    */
   async _signObject (sigData, timestamp, signerId = undefined, signer = undefined, opts = {}) {
     try {
-      const cryptoUtils = require('../utils/crypto')
       let appid
       let sig
       if (signerId === undefined) {
@@ -347,11 +347,8 @@ class Service extends BaseService {
           let isValid = false
           delete jsonData.sig
           try {
-            const cryptoUtils = require('../utils/crypto')
-            const pubKey = await cryptoUtils.fetchPubKey('ecc', sigData.appid || 'app', false)
-            if (pubKey) {
-              isValid = cryptoUtils.verify(jsonData, sigData.signature, pubKey, sigData)
-            }
+            const pubKeys = await cryptoUtils.fetchPublicKeys(sigData.appid || 'app')
+            isValid = pubKeys.some(pubKey => cryptoUtils.verify(jsonData, sigData.signature, pubKey, sigData))
           } catch (err) {
             logger.error(`failed to verify sig`, err)
             isValid = false

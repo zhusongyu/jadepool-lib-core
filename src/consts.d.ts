@@ -98,7 +98,8 @@ export declare const JOB_TYPES: {
 export declare const MODEL_NAMES: {
   // Config Models
   CONFIG_DATA: 'configdat',
-  CONFIG_REV: 'configrev',
+	CONFIG_REV: 'configrev',
+	APPLICATION: 'app',
   // Busines Models
   ADDRESS: 'address',
   ORDER: 'order',

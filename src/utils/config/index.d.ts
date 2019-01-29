@@ -33,6 +33,7 @@ interface ChainConfig {
 
 /**
  * 获取callbackUrl
+ * @deprecated
  * @param category 回调地址类型
  * @param customUrl 自定义的URL
  */

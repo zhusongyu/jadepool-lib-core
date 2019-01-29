@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 import BaseService = require('../services/core')
+import { AppDocument } from '../models'
 
 /**
  * Jadepool上下文
@@ -32,7 +33,13 @@ declare class JadePoolContext {
 	 * @param name
 	 */
 	getModel(name: string): mongoose.Model<mongoose.Document>;
-		
+
+	/**
+	 * 获取应用信息
+	 * @param id
+	 */
+	fetchAppConfig (id: string): Promise<AppDocument>;
+
 	/**
 	 * Jadepool初始化
 	 * @param jadepool 

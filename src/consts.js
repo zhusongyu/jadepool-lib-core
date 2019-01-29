@@ -65,6 +65,7 @@ const MODEL_NAMES = {
   // Config Models
   CONFIG_DATA: 'configdat',
   CONFIG_REV: 'configrev',
+  APPLICATION: 'app',
   // Busines Models
   ADDRESS: 'address',
   ORDER: 'order',
