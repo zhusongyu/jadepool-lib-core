@@ -197,17 +197,17 @@ class Service extends BaseService {
       let appid
       let sig
       if (signerId === undefined) {
-        appid = cryptoUtils.THIS_APP_ID
+        appid = consts.SYSTEM_APPIDS.INTERNAL
         sig = await cryptoUtils.signInternal(sigData, timestamp, opts)
       } else {
         let priKey
         // 不存在Signer即使用PriKey
         if (!signer) {
-          appid = cryptoUtils.PRIV_ID
+          appid = consts.SYSTEM_APPIDS.DEFAULT
           priKey = await cryptoUtils.getPriKey()
         } else {
           appid = signerId
-          priKey = typeof signer === 'string' ? Buffer.from(signer, cryptoUtils.DEFAULT_ENCODE) : signer
+          priKey = typeof signer === 'string' ? Buffer.from(signer, consts.DEFAULT_ENCODE) : signer
         }
         opts = Object.assign({ withoutTimestamp: timestamp === undefined }, opts)
         if (_.isString(sigData)) {

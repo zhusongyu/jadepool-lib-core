@@ -2,6 +2,7 @@
  * --------- STRING ---------
  */
 export declare const DEFAULT_KEY: 'default';
+export declare const DEFAULT_ENCODE: 'base64';
 
 /**
  * --------- MAP ---------
@@ -57,6 +58,11 @@ export declare const SERVICE_NAMES: {
 
 export declare const SIO_EVENTS: {
 	INVOKE_METHOD: 'invokeMethod';
+}
+
+export declare const SYSTEM_APPIDS: {
+  INTERNAL: 'self',
+  DEFAULT: 'pri'
 }
 
 export declare const NSP_TYPES: {

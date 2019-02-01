@@ -28,10 +28,6 @@ interface KeyPair {
 	pubKeyUnCompressed: string;
 }
 
-export declare var DEFAULT_ENCODE: string;
-export declare var THIS_APP_ID : string;
-export declare var PRIV_ID : string;
-		
 /**
  * 获取本系统 Private Key
  * @param {String} cryptoType

@@ -4,11 +4,9 @@ const semver = require('semver')
 const crypto = require('crypto')
 const { ecc } = require('@jadepool/crypto')
 const jp = require('../jadepool')
+const consts = require('../consts')
 const NBError = require('../NBError')
 const configLoader = require('./config/loader')
-
-const THIS_APP_ID = 'self'
-const PRIV_ID = 'pri'
 
 /**
  * 加载实时的Crypto配置
@@ -29,28 +27,25 @@ const loadCryptoConfig = async (cryptoDat = undefined) => {
 let internalPriKey = null
 
 const cryptoUtils = {
-  DEFAULT_ENCODE: ecc.DEFAULT_ENCODE,
-  THIS_APP_ID,
-  PRIV_ID,
   /**
    * 获取本系统 Private Key
    * @param {String} cryptoType
    */
   async getPriKey (cryptoDat = undefined) {
     const cryptoCfg = await loadCryptoConfig(cryptoDat)
-    let priKeyStr = _.get(cryptoCfg, PRIV_ID)
+    let priKeyStr = _.get(cryptoCfg, consts.SYSTEM_APPIDS.DEFAULT)
     if (!priKeyStr) {
       const keypair = await cryptoUtils.refreshPriKey()
       priKeyStr = keypair.priKey
     }
-    return Buffer.from(priKeyStr, ecc.DEFAULT_ENCODE)
+    return Buffer.from(priKeyStr, consts.DEFAULT_ENCODE)
   },
   /**
    * 重置本系统的 Private Key
    */
   async refreshPriKey () {
     const keypair = ecc.generateKeyPair()
-    const jsonToSave = _.set({}, PRIV_ID, keypair.priKey)
+    const jsonToSave = _.set({}, consts.SYSTEM_APPIDS.DEFAULT, keypair.priKey)
     // 保存jsoncfg的配置
     await configLoader.saveConfig('crypto', '', jsonToSave)
     return keypair
@@ -61,7 +56,7 @@ const cryptoUtils = {
    * @param {String} encode
    * @returns {Buffer|null}
    */
-  pubKeyVerify (pubKeyStr, encode = ecc.DEFAULT_ENCODE, compress = false) {
+  pubKeyVerify (pubKeyStr, encode = consts.DEFAULT_ENCODE, compress = false) {
     return ecc.pubKeyVerify(pubKeyStr, encode, compress)
   },
   /**
@@ -73,7 +68,7 @@ const cryptoUtils = {
     let pubKeyStr = _.get(cryptoCfg, `${cryptoType}.${category}`)
     pubKeyStr = _.isObject(pubKeyStr) ? pubKeyStr.pub : pubKeyStr
     if (!pubKeyStr) return null
-    return ecc.pubKeyVerify(pubKeyStr, ecc.DEFAULT_ENCODE, compress)
+    return ecc.pubKeyVerify(pubKeyStr, consts.DEFAULT_ENCODE, compress)
   },
   /**
    * 获取 Public Key
@@ -84,11 +79,11 @@ const cryptoUtils = {
    * @returns {Buffer}
    */
   async fetchPubKey (cryptoType, category, compress = false, cryptoDat = undefined) {
-    if (category === THIS_APP_ID) {
+    if (category === consts.SYSTEM_APPIDS.INTERNAL) {
       return cryptoUtils.getInternalPubKey()
-    } else if (category === PRIV_ID) {
+    } else if (category === consts.SYSTEM_APPIDS.DEFAULT) {
       const priKey = await cryptoUtils.getPriKey(cryptoDat)
-      return ecc.pubKeyCreate(priKey, ecc.DEFAULT_ENCODE, compress)
+      return ecc.pubKeyCreate(priKey, consts.DEFAULT_ENCODE, compress)
     } else {
       return cryptoUtils.fetchAppPubKey(cryptoType, category, compress, cryptoDat)
     }
@@ -100,9 +95,9 @@ const cryptoUtils = {
    * @returns {Buffer[]}
    */
   async fetchPublicKeys (appid, compress = false) {
-    if (appid === THIS_APP_ID) {
+    if (appid === consts.SYSTEM_APPIDS.INTERNAL) {
       return [ await cryptoUtils.getInternalPubKey() ]
-    } else if (appid === PRIV_ID) {
+    } else if (appid === consts.SYSTEM_APPIDS.DEFAULT) {
       const priKey = await cryptoUtils.getPriKey()
       return [ ecc.pubKeyCreate(priKey, undefined, compress) ]
     } else {
