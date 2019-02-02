@@ -133,6 +133,12 @@ export declare const ADDRESS_STATE: {
 	/** TODO 被屏蔽 */
   BLOCKED: 'blocked'
 }
+export declare const ADDRESS_ACCEPT_MODE: {
+	/** 只接受该币种类型的资产 */
+	SAME_TOKEN: 'token',
+	/** 接受同属一条链类型的全部资产 */
+  SAME_CHAIN: 'chain'
+}
 export declare const ADDRESS_TYPE: {
 	/** 热主 */
 	HOT_WALLET: 0,

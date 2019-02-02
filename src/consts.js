@@ -95,6 +95,10 @@ const ADDRESS_STATE = {
   USED: 'used', // 已分配使用
   BLOCKED: 'blocked' // TODO 被屏蔽
 }
+const ADDRESS_ACCEPT_MODE = {
+  SAME_TOKEN: 'token',
+  SAME_CHAIN: 'chain'
+}
 const ADDRESS_TYPE = {
   HOT_WALLET: 0, // 热主
   COLD_WALLET: 1, // 冷钱包
@@ -174,6 +178,7 @@ module.exports = {
   JOB_TYPES,
   MODEL_NAMES,
   ADDRESS_TYPE,
+  ADDRESS_ACCEPT_MODE,
   ADDRESS_STATE,
   ORDER_STATE,
   ORDER_BIZTYPES,
