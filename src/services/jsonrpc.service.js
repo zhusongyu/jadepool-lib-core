@@ -78,7 +78,7 @@ class JSONRPCService extends BaseService {
         if (!opts.verifier) {
           promise = cryptoUtils.verifyInternal(key, parseInt(timestamp), sig)
         } else {
-          const pubKey = typeof opts.verifier === 'string' ? Buffer.from(opts.verifier, cryptoUtils.DEFAULT_ENCODE) : opts.verifier
+          const pubKey = typeof opts.verifier === 'string' ? Buffer.from(opts.verifier, consts.DEFAULT_ENCODE) : opts.verifier
           promise = new Promise((resolve, reject) => {
             try {
               resolve(cryptoUtils.verifyString(key, parseInt(timestamp), sig, pubKey))
@@ -147,11 +147,11 @@ class JSONRPCService extends BaseService {
       }
       let sigData
       if (this.signerId === undefined) {
-        sigOpts.appid = cryptoUtils.THIS_APP_ID
+        sigOpts.appid = consts.SYSTEM_APPIDS.INTERNAL
         sigData = await cryptoUtils.signInternal(reqData, undefined, sigOpts)
       } else {
-        const priKey = typeof this.signer === 'string' ? Buffer.from(this.signer, cryptoUtils.DEFAULT_ENCODE) : this.signer
-        sigOpts.appid = this.signerId || consts.DEFAULT_KEY
+        const priKey = typeof this.signer === 'string' ? Buffer.from(this.signer, consts.DEFAULT_ENCODE) : this.signer
+        sigOpts.appid = this.signerId || consts.SYSTEM_APPIDS.DEFAULT
         sigData = await cryptoUtils.sign(reqData, priKey, sigOpts)
       }
       objToSend.sig = Object.assign({ signature: sigData.signature }, sigOpts)

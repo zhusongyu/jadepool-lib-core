@@ -1,5 +1,6 @@
 // --------- STRING ---------
 const DEFAULT_KEY = 'default'
+const DEFAULT_ENCODE = 'base64'
 // --------- MAP ---------
 const PROCESS = {
   NAME_PREFIX: 'Jadepool',
@@ -34,6 +35,10 @@ const SERVICE_NAMES = {
 const SIO_EVENTS = {
   INVOKE_METHOD: 'invokeMethod'
 }
+const SYSTEM_APPIDS = {
+  INTERNAL: 'self',
+  DEFAULT: 'pri'
+}
 const NSP_TYPES = {
   NULL: 'null',
   COIN_TYPE: 'data.type',
@@ -65,6 +70,7 @@ const MODEL_NAMES = {
   // Config Models
   CONFIG_DATA: 'configdat',
   CONFIG_REV: 'configrev',
+  APPLICATION: 'app',
   // Busines Models
   ADDRESS: 'address',
   ORDER: 'order',
@@ -88,6 +94,10 @@ const ADDRESS_STATE = {
   NEW: 'new', // 刚创建
   USED: 'used', // 已分配使用
   BLOCKED: 'blocked' // TODO 被屏蔽
+}
+const ADDRESS_ACCEPT_MODE = {
+  SAME_TOKEN: 'token',
+  SAME_CHAIN: 'chain'
 }
 const ADDRESS_TYPE = {
   HOT_WALLET: 0, // 热主
@@ -156,9 +166,11 @@ const ORDER_BIZTYPES_IN = [
 
 module.exports = {
   DEFAULT_KEY,
+  DEFAULT_ENCODE,
   PROCESS,
   SERVICE_NAMES,
   SIO_EVENTS,
+  SYSTEM_APPIDS,
   NSP_TYPES,
   LEDGER_MODES,
   ADDRESS_MODES,
@@ -166,6 +178,7 @@ module.exports = {
   JOB_TYPES,
   MODEL_NAMES,
   ADDRESS_TYPE,
+  ADDRESS_ACCEPT_MODE,
   ADDRESS_STATE,
   ORDER_STATE,
   ORDER_BIZTYPES,

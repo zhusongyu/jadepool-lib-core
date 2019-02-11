@@ -2,6 +2,7 @@
  * --------- STRING ---------
  */
 export declare const DEFAULT_KEY: 'default';
+export declare const DEFAULT_ENCODE: 'base64';
 
 /**
  * --------- MAP ---------
@@ -59,6 +60,11 @@ export declare const SIO_EVENTS: {
 	INVOKE_METHOD: 'invokeMethod';
 }
 
+export declare const SYSTEM_APPIDS: {
+  INTERNAL: 'self',
+  DEFAULT: 'pri'
+}
+
 export declare const NSP_TYPES: {
   NULL: 'null',
   COIN_TYPE: 'data.type',
@@ -98,7 +104,8 @@ export declare const JOB_TYPES: {
 export declare const MODEL_NAMES: {
   // Config Models
   CONFIG_DATA: 'configdat',
-  CONFIG_REV: 'configrev',
+	CONFIG_REV: 'configrev',
+	APPLICATION: 'app',
   // Busines Models
   ADDRESS: 'address',
   ORDER: 'order',
@@ -125,6 +132,12 @@ export declare const ADDRESS_STATE: {
 	USED: 'used',
 	/** TODO 被屏蔽 */
   BLOCKED: 'blocked'
+}
+export declare const ADDRESS_ACCEPT_MODE: {
+	/** 只接受该币种类型的资产 */
+	SAME_TOKEN: 'token',
+	/** 接受同属一条链类型的全部资产 */
+  SAME_CHAIN: 'chain'
 }
 export declare const ADDRESS_TYPE: {
 	/** 热主 */

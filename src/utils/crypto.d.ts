@@ -28,10 +28,6 @@ interface KeyPair {
 	pubKeyUnCompressed: string;
 }
 
-export declare var DEFAULT_ENCODE: string;
-export declare var THIS_APP_ID : string;
-export declare var PRIV_ID : string;
-		
 /**
  * 获取本系统 Private Key
  * @param {String} cryptoType
@@ -52,25 +48,24 @@ export function refreshPriKey(): Promise<KeyPair>;
  * @return  
  */
 export function pubKeyVerify(pubKeyStr: string, encode: string, compress?: boolean): Buffer | null;
-	
-/**
- * 获取非本系统 Public Key
- * @param cryptoType 
- * @param category 
- * @param compress 
- * @param cryptoDat 
- */
-export function fetchAppPubKey(cryptoType: string, category: string, compress?: boolean, cryptoDat?: any): Promise<Buffer | null>;
-	
+
 /**
  * 获取 Public Key
+ * @deprecated
  * @param cryptoType 
  * @param category 
  * @param compress 
  * @param cryptoDat 
  * @return  
  */
-export function fetchPubKey(cryptoType: string, category: string, compress?: boolean, cryptoDat?: any): Promise<Buffer | null>;
+export function fetchPubKey(cryptoType: string, category: string, compress?: boolean, cryptoDat?: any): Promise<Buffer>;
+
+/**
+ * 获取某AppId对应的公钥们
+ * @param appid 应用id
+ * @param compress
+ */
+export function fetchPublicKeys (appid: string, compress?: boolean): Promise<Buffer[]>;
 	
 /**
  * 封装需签名的对象
