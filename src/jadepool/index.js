@@ -70,6 +70,14 @@ class JadePool {
   }
 
   /**
+   * 获取应用信息
+   * @param {string} id
+   */
+  fetchAppConfig (id) {
+    return this.ctx.fetchAppConfig(id)
+  }
+
+  /**
    * 方法调用
    */
   async invokeMethod () {

@@ -54,6 +54,7 @@ class JadePoolContext {
    */
   get models () {
     const result = {}
+    result[consts.MODEL_NAMES.APPLICATION] = result.AppConfig = require('../models/app')
     result[consts.MODEL_NAMES.CONFIG_DATA] = result.ConfigDat = require('../models/configdat')
     result[consts.MODEL_NAMES.TASK_CONFIG] = result.TaskConfig = require('../models/taskConfig')
     result[consts.MODEL_NAMES.WARNING] = result.Warning = require('../models/warning')
@@ -65,6 +66,15 @@ class JadePoolContext {
    */
   getModel (name) {
     return this.models[name]
+  }
+
+  /**
+   * 获取应用信息
+   * @param {string} id
+   */
+  async fetchAppConfig (id) {
+    const AppConfig = this.getModel(consts.MODEL_NAMES.APPLICATION)
+    return AppConfig.findOne({ id }).exec()
   }
 
   /**
