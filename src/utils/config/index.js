@@ -39,6 +39,7 @@ const fetchCoinCfg = (coinName, useCached = false) => {
       chainKey: parsedCfg.chainKey,
       rate: basicCfg.Rate,
       disabled: basicCfg.disabled,
+      enabled: !basicCfg.disabled,
       basic: basicCfg,
       jadepool: _.assign({}, ..._.map(parsedCfg.jpCfgPath, path => _.get(jp.config, path)))
     }
