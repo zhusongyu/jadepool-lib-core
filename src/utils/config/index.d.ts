@@ -1,4 +1,5 @@
 interface CoinConfig {
+  enabled: boolean,
   disabled: boolean,
   name: string,
   chain: string,
@@ -21,6 +22,7 @@ interface ChainConfig {
     file?: string,
     rpc?: string
   },
+  generalOptions: object,
   tokenExtendsEnabled: boolean,
   addressMode: string,
   addressOnline: boolean,
