@@ -37,6 +37,7 @@ const fetchCoinCfg = (coinName, useCached = false) => {
       name: coinName,
       chain: parsedCfg.chain,
       chainKey: parsedCfg.chainKey,
+      type: basicCfg.Type,
       rate: basicCfg.Rate,
       disabled: basicCfg.disabled,
       enabled: !basicCfg.disabled,

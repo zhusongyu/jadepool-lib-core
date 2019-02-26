@@ -4,6 +4,7 @@ interface CoinConfig {
   name: string,
   chain: string,
   chainKey: string,
+  type: string,
   rate: number,
   basic: {
     Rate: number
@@ -24,6 +25,8 @@ interface ChainConfig {
   },
   generalOptions: object,
   tokenExtendsEnabled: boolean,
+  tokenTypes: string[],
+  tokenTemplate: object,
   addressMode: string,
   addressOnline: boolean,
   // 细节参数
