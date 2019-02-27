@@ -24,7 +24,6 @@ const applyIgnoreKeys = (types, jsonObj) => {
 }
 
 const _coinCfgCache = new Map()
-const _chainCfgCache = new Map()
 
 const fetchCoinCfg = (coinName, useCached = false) => {
   const parsedCfg = _.find(jp.config.coins, { name: coinName })
@@ -50,20 +49,14 @@ const fetchCoinCfg = (coinName, useCached = false) => {
 }
 
 const fetchChainCfg = (nameOrKeyOrCoreType) => {
-  if (!_chainCfgCache.has(nameOrKeyOrCoreType)) {
-    let chainCfg = _.find(jp.config.chain, { Chain: nameOrKeyOrCoreType })
-    if (!chainCfg) {
-      chainCfg = _.find(jp.config.chain, { key: nameOrKeyOrCoreType })
-    }
-    if (!chainCfg) {
-      chainCfg = _.find(jp.config.chain, { CoreType: nameOrKeyOrCoreType })
-    }
-    if (!chainCfg) {
-      return null
-    }
-    _chainCfgCache.set(nameOrKeyOrCoreType, chainCfg)
+  let chainCfg = _.find(jp.config.chain, { key: nameOrKeyOrCoreType })
+  if (!chainCfg) {
+    chainCfg = _.find(jp.config.chain, { Chain: nameOrKeyOrCoreType })
   }
-  return _chainCfgCache.get(nameOrKeyOrCoreType)
+  if (!chainCfg) {
+    chainCfg = _.find(jp.config.chain, { CoreType: nameOrKeyOrCoreType })
+  }
+  return chainCfg
 }
 
 const fetchAllCoinNames = (chainKey) => {
