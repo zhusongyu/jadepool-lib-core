@@ -29,6 +29,10 @@ interface ChainConfig {
   tokenTemplate: object,
   addressMode: string,
   addressOnline: boolean,
+  stakeEnabled?: boolean,
+  stakeOptions?: {
+    stakeToken: string
+  },
   // 细节参数
   tokens: object,
   node: object,
