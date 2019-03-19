@@ -184,12 +184,14 @@ export declare const ORDER_BIZTYPES: {
 	RECHARGE_UNEXPECTED: 'RECHARGE_UNEXPECTED',
 	/** 出：区块链函数调用订单，(value为消耗为0，fee消耗, 额外业务数据在action中记录) */
 	SYSTEM_CALL: 'SYSTEM_CALL',
-	/** 出：抵押订单，(value为抵押值，fee消耗，抵押用可收回) */
-	DELEGATE: 'DELEGATE',
 	/** 入：已回收的抵押额，(value为本金，fee为0，属于本金收回) */
 	PRINCIPAL_FUND: 'PRINCIPAL_FUND',
 	/** 入：收益记录订单，(value为收益额，fee为0, 属于额外利息收入) */
-  INTEREST_FUND: 'INTEREST_FUND'
+  INTEREST_FUND: 'INTEREST_FUND',
+	/** 冻结：抵押订单，(value为冻结的抵押值，fee为消耗) */
+	DELEGATE: 'DELEGATE',
+	/** 解冻请求：取消抵押请求，(value为递交解冻抵押值，fee为消耗) */
+	UNDELEGATE: 'DELEGATE',
 }
 export declare const DELEGATION_STATE: {
 	/** 未抵押 */
