@@ -136,6 +136,18 @@ const DELEGATION_STATE = {
   UNSTAKING: 1,
   STAKED: 2
 }
+const ORDER_DEFAULT_ACTIONS = {
+  // ERC20 and asset related
+  APPROVE: 'approve',
+  FREEZE: 'freeze',
+  BURN: 'burn',
+  // Staking
+  DELEGATE: 'delegate',
+  UNDELEGATE: 'un-delegate',
+  REDELEGATE: 're-delegate',
+  CLAIM_REWARD: 'claim-reward',
+  SET_REWARD_ADDRESS: 'set-reward-address'
+}
 const BATCH_STATE = {
   STARTED: 'started', // 批处理交易已经开始
   DONE: 'done', // 批处理交易全部正确结束
@@ -216,6 +228,7 @@ module.exports = {
   ORDER_BIZTYPES_OUT,
   ORDER_BIZTYPES_FUND,
   ORDER_BIZTYPES_ASSET_FLOW,
+  ORDER_DEFAULT_ACTIONS,
   DELEGATION_STATE,
   BATCH_STATE,
   ISSUE_TYPES,

@@ -193,6 +193,16 @@ export declare const ORDER_BIZTYPES: {
 	/** 解冻请求：取消抵押请求，(value为递交解冻抵押值，fee为消耗) */
 	UNDELEGATE: 'DELEGATE',
 }
+export declare const ORDER_DEFAULT_ACTIONS: {
+  APPROVE: 'approve',
+  FREEZE: 'freeze',
+  BURN: 'burn',
+  DELEGATE: 'delegate',
+  UNDELEGATE: 'un-delegate',
+  REDELEGATE: 're-delegate',
+  CLAIM_REWARD: 'claim-reward',
+  SET_REWARD_ADDRESS: 'set-reward-address'
+}
 export declare const DELEGATION_STATE: {
 	/** 未抵押 */
 	UNSTAKED: 0,
