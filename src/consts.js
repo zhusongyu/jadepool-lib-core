@@ -74,6 +74,7 @@ const MODEL_NAMES = {
   // Busines Models
   ADDRESS: 'address',
   ORDER: 'order',
+  DELEGATION: 'delegation',
   SCAN_TASK: 'scantask',
   TASK_CONFIG: 'adminTaskCfg',
   ETH_BATCH: 'ethbatch',
@@ -85,6 +86,7 @@ const MODEL_NAMES = {
   NOTIFICATION: 'notification',
   WARNING: 'warning',
   // Admin Models
+  AUDIT_BALANCE: 'auditbalance',
   ACCOUNT: 'account',
   ROLE: 'role',
   ACTION: 'action',
