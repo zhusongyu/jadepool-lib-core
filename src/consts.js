@@ -92,6 +92,12 @@ const MODEL_NAMES = {
   ACTION: 'action',
   NOTI_EMAIL: 'notiEmail'
 }
+const PRIVKEY_SOURCES = {
+  DB: 'datebase', // 数据库
+  SEED: 'seed', // 来源seed软件
+  HSM_PURE: 'hsm_pure', // 纯签名密码机
+  HSM_DEEP: 'hsm_deep' // 深度安全密码机
+}
 const ADDRESS_STATE = {
   NEW: 'new', // 刚创建
   USED: 'used', // 已分配使用
@@ -223,6 +229,7 @@ module.exports = {
   SERVER_TYPES,
   JOB_TYPES,
   MODEL_NAMES,
+  PRIVKEY_SOURCES,
   ADDRESS_TYPE,
   ADDRESS_ACCEPT_MODE,
   ADDRESS_STATE,
