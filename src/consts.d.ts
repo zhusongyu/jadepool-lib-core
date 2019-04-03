@@ -127,6 +127,16 @@ export declare const MODEL_NAMES: {
   ACTION: 'action',
   NOTI_EMAIL: 'notiEmail'
 }
+export declare const PRIVKEY_SOURCES: {
+	/** 数据库 */
+  DB: 'datebase',
+	/** 来源seed软件 */
+	SEED: 'seed',
+	/** 纯签名密码机 */
+	HSM_PURE: 'hsm_pure',
+	/** 深度安全密码机 */
+  HSM_DEEP: 'hsm_deep'
+}
 export declare const ADDRESS_STATE: {
 	/** 刚创建 */
 	NEW: 'new',
