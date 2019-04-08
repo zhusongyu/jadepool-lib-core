@@ -8,6 +8,8 @@ import consts = require('../consts')
 interface EnvObject {
 	/** 环境名称 */
 	name: string,
+	/** Pm2启动时cluster模式下的instanceNum */
+	instanceId: number,
 	/** 是否为生产环境 */
 	isProd: boolean;
 	/** 是否启用ECC验证 */

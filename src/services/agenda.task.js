@@ -84,32 +84,6 @@ class Task {
   }
 
   /**
-   * 禁用循环任务
-   */
-  async disable () {
-    logger.tag(this.name, 'Disable').log(`handling=${this[sHandlingAmt]}`)
-    const existQuery = {
-      name: this.name,
-      $or: [
-        { type: 'single', repeatInterval: { $exists: true } }
-      ]
-    }
-    await this.agenda.update(existQuery, { $set: { disabled: true } })
-  }
-
-  /**
-   * 启用系列任务
-   */
-  async enable () {
-    logger.tag(this.name, 'Enable').log(`handling=${this[sHandlingAmt]}`)
-    const existQuery = {
-      name: this.name,
-      disabled: true
-    }
-    await this.agenda.update(existQuery, { $set: { disabled: false } })
-  }
-
-  /**
    * @param {Object} job
    */
   async onHandle (job, done) {
