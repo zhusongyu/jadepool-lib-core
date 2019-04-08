@@ -1,5 +1,16 @@
 # Change Logs
 
+## V0.6.0
+
+Feature:
+
+1. 新增process.service, 该service负责全部子进程管理
+
+Fixes: 修复Process相关事件监听
+
+1. processRunner添加exit信号监听SIGUSR2，同时将相同的signal传递给child_process
+2. jadepool主进程处理exit信号时直接使用传入的signal参数, 最后以process.exit(0)结束进程
+
 ## V0.5.2
 
 1. `cancelFinishedJobs`方法中包含disabled Tasks
