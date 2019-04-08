@@ -46,6 +46,8 @@ export declare const SERVICE_NAMES: {
 	APP: 'express',
 	/** 根据生命周期运行脚本的服务 */
 	SCRIPT: 'script',
+	/** 子进程管理服务 */
+	CHILD_PROCESS: 'child.process',
 	/** 基于ws的通用jsonrpc发送和接收服务 */
 	JSONRPC: 'jsonrpc.client',
 	/** 基于ws的通用jsonrpc服务端 */

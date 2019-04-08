@@ -27,6 +27,7 @@ const SERVICE_NAMES = {
   AGENDA: 'agenda', // 后台任务服务
   APP: 'express', // HTTP/HTTPS服务
   SCRIPT: 'script', // 根据生命周期运行脚本的服务
+  CHILD_PROCESS: 'child.process', // 子进程管理服务
   JSONRPC: 'jsonrpc.client', // 基于ws的通用jsonrpc发送和接收服务
   JSONRPC_SERVER: 'jsonrpc.server', // 基于ws的通用jsonrpc服务端
   SOCKET_IO: 'socket.io', // Socket.io服务

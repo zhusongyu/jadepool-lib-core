@@ -170,35 +170,33 @@ let isGracefulExiting = false
 /**
  * 统一Process处理函数
  */
-const graceful = (SigStr) => {
-  return async () => {
-    if (isGracefulExiting) return
-    isGracefulExiting = true
-    // 新注册等待后方可自动退出
-    const ts = 1000
-    if (Date.now() - ServiceLib.lastRegisterTime < ts) {
-      await new Promise(resolve => setTimeout(resolve, ts))
-    }
-    try {
-      logger.diff('Services Exit').log(`Begin`)
-      await Promise.all(_.map(jadepool.ctx.services, async ins => {
-        if (typeof ins.onDestroy === 'function') {
-          await ins.onDestroy()
-        }
-        logger.tag('Detached').log(`name=${ins.name}`)
-      }))
-      logger.diff('Services Exit').log(`End`)
-    } catch (err) {
-      logger.tag('Services Exit').error('failed to graceful exit', err)
-    }
-    await Logger.exit()
-    process.kill(process.pid, SigStr)
+const graceful = async (signal) => {
+  if (isGracefulExiting) return
+  isGracefulExiting = true
+  // 新注册等待后方可自动退出
+  const ts = 1000
+  if (Date.now() - ServiceLib.lastRegisterTime < ts) {
+    await new Promise(resolve => setTimeout(resolve, ts))
   }
+  try {
+    logger.diff('Services Exit').tag(`Begin`).log(`signal=${signal}`)
+    await Promise.all(_.map(jadepool.ctx.services, async ins => {
+      if (typeof ins.onDestroy === 'function') {
+        await ins.onDestroy(signal)
+      }
+      logger.tag('Detached').log(`name=${ins.name}`)
+    }))
+    logger.diff('Services Exit').tag('End').log(`signal=${signal}`)
+  } catch (err) {
+    logger.tag('Services Exit').error('failed to graceful exit', err)
+  }
+  await Logger.exit()
+  process.exit(0)
 }
 // 注册process的优雅退出处理函数
-process.once('SIGUSR2', graceful('SIGUSR2'))
-process.once('SIGQUIT', graceful('SIGQUIT'))
-process.once('SIGTERM', graceful('SIGTERM'))
-process.once('SIGINT', graceful('SIGINT'))
+process.once('SIGUSR2', graceful)
+process.once('SIGQUIT', graceful)
+process.once('SIGTERM', graceful)
+process.once('SIGINT', graceful)
 
 module.exports = jadepool

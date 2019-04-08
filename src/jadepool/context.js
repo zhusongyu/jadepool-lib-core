@@ -111,6 +111,9 @@ class JadePoolContext {
         case consts.SERVICE_NAMES.AGENDA:
           ClassToRegister = require('../services/agenda.service')
           break
+        case consts.SERVICE_NAMES.CHILD_PROCESS:
+          ClassToRegister = require('../services/process.service')
+          break
         default:
           logger.warn(`failed to registerService: ${serviceClass}`)
           return

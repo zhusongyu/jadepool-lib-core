@@ -82,6 +82,7 @@ declare class JadePool {
 	registerService(name: 'jsonrpc.client', opts: services.JSONRPCOptions): Promise<services.JSONRpcClientService>;
 	registerService(name: 'socket.io', opts: services.SocketIOOptions): Promise<services.SocketIOService>;
 	registerService(name: 'socket.io.worker', opts: services.SocketIOWorkerOptions): Promise<services.SocketIOWorkerService>;
+	registerService(name: 'child.process', opts: any): Promise<services.ProcessService>;
 	registerService(name: string | BaseService, opts: any): Promise<BaseService>;
 
 	/**
@@ -96,6 +97,7 @@ declare class JadePool {
 	getService(name: 'jsonrpc.client'): services.JSONRpcClientService;
 	getService(name: 'socket.io'): services.SocketIOService;
 	getService(name: 'socket.io.worker'): services.SocketIOWorkerService;
+	getService(name: 'child.process'): services.ProcessService;
 	getService(name: string): BaseService;
 
 	/**
