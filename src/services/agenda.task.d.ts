@@ -21,14 +21,6 @@ declare class Task {
 	 */
 	private onDestroy(): Promise<void>;
 	/**
-	 * 禁用循环任务
-	 */
-	private disable(): Promise<void>;
-	/**
-	 * 启用系列任务
-	 */
-	private enable(): Promise<void>;
-	/**
 	 * @param job 
 	 * @param done 
 	 */

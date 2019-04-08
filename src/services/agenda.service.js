@@ -21,10 +21,8 @@ class AgendaService extends BaseService {
    * @returns {Promise}
    */
   async onDestroy () {
-    // 先禁用
-    await Promise.all(_.map(this._tasks, task => {
-      return task.instance.disable()
-    }))
+    // 停止agenda processing
+    await this._agenda.stop()
     // 后删除
     await Promise.all(_.map(this._tasks, task => {
       return task.instance.onDestroy()
@@ -32,13 +30,13 @@ class AgendaService extends BaseService {
     // 关闭agenda
     this._tasks.length = 0
     this._agenda.removeAllListeners()
-    await this._agenda.stop()
   }
 
   // Class Methods
   /**
    * 初始化
-   * @param {{ tasks: [{fileName: String, name: String, chainKey: String}] }} opts 传入的初始化参数
+   * @param {Object} opts 传入的初始化参数
+   * @param {{fileName: String, name: String, chainKey: String}[]} [opts.tasks=undefined] 任务配置
    */
   async initialize (opts) {
     logger.diff('Initialize').log('Begin')
@@ -77,22 +75,27 @@ class AgendaService extends BaseService {
     this._agenda.on('fail', (err, job) => {
       logger.tag('Jobs-failed').log(`name=${job.attrs.name},msg=${err.message}`)
     })
+
+    // 等待agenda初始化完成
+    if (!this._inited) {
+      await this._agenda._ready
+    }
+
     // Step 1. 加载Tasks配置
     this._tasks = (opts && opts.tasks) || []
-    const taskNames = this._tasks.map(task => task.name)
-    logger.tag('Jobs-load').log(`amount=${this._tasks.length}`)
+    logger.tag('Jobs-find').log(`amount=${this._tasks.length}`)
 
     // Step 2 清理过期Tasks
     let cleaned = 0
     try {
-      if (!this._inited) {
-        await this._agenda._ready
-      }
-      cleaned = await this._agenda.cancel({ name: { $in: taskNames } })
+      const taskNames = this._tasks.map(task => task.name)
+      cleaned = await this.cancelFinishedJobs(taskNames)
     } catch (err) {
       logger.error('failed to cancel tasks', err)
     }
-    logger.tag('Jobs-cleanup').log(`amount=${cleaned}`)
+    if (cleaned > 0) {
+      logger.tag('Jobs-cleanup').log(`amount=${cleaned}`)
+    }
 
     // Step 3. 定义新的Tasks
     for (let i = 0, len = this._tasks.length; i < len; i++) {
@@ -156,6 +159,35 @@ class AgendaService extends BaseService {
       running++
     }))
     logger.tag('Jobs', 'Start-or-reload').log(`running=${running}`)
+  }
+
+  /**
+   * 移除已经完成任务
+   * @param {string[]} taskNames
+   */
+  async cancelFinishedJobs (taskNames) {
+    let finishQuery
+    // 版本
+    if (this._isMongoLegacy) {
+      finishQuery = {
+        $where: 'function () { return this.lastRunAt <= this.lastFinishedAt }'
+      }
+    } else {
+      finishQuery = {
+        $expr: { $lte: [ '$lastRunAt', '$lastFinishedAt' ] }
+      }
+    }
+    const query = {
+      $and: [
+        { name: { $in: taskNames } },
+        { lockedAt: null },
+        { nextRunAt: null },
+        { lastRunAt: { $exists: true } },
+        { lastFinishedAt: { $exists: true } },
+        finishQuery
+      ]
+    }
+    return this._agenda.cancel(query)
   }
 
   /**
