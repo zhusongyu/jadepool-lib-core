@@ -11,19 +11,28 @@ class ProcessRunner {
     this._env = env
     this._requests = new Map()
     this._forkChildProcess()
-    // 父进程退出时杀死所有子进程
-    const processExit = (code) => {
-      let pid
-      if (this._ins) {
-        pid = this._ins.pid
-        this._ins.removeAllListeners()
-        this._ins.kill()
-      }
-      logger.tag(this._name, `(${pid})exit`).log(`code=${code}`)
+  }
+
+  /**
+   * 该Service的优雅退出函数
+   * @param signal 退出信号
+   */
+  async onDestroy (signal) {
+    let pid = -1
+    if (this._ins) {
+      pid = this._ins.pid
+      this._ins.removeAllListeners()
+      // 等待child process退出
+      await new Promise((resolve, reject) => {
+        if (!this._ins.connected) {
+          resolve()
+        } else {
+          this._ins.once('exit', resolve)
+          this._ins.kill(signal)
+        }
+      })
     }
-    process.once('SIGQUIT', processExit)
-    process.once('SIGTERM', processExit)
-    process.once('SIGINT', processExit)
+    logger.tag(this._name, `(${pid})exit`).log(`signal=${signal}`)
   }
 
   /**
@@ -41,7 +50,7 @@ class ProcessRunner {
       cwd: this._execPath,
       env: this._env
     })
-    this._ins.on('exit', (code, signal) => {
+    this._ins.once('exit', (code, signal) => {
       logger.tag(this._name, `(${this._ins.pid})exit`).log(`code=${code},signal=${signal}`)
       if (code !== 0) {
         this._forkChildProcess()
