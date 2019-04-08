@@ -182,7 +182,7 @@ const graceful = async (signal) => {
     logger.diff('Services Exit').tag(`Begin`).log(`signal=${signal}`)
     await Promise.all(_.map(jadepool.ctx.services, async ins => {
       if (typeof ins.onDestroy === 'function') {
-        await ins.onDestroy()
+        await ins.onDestroy(signal)
       }
       logger.tag('Detached').log(`name=${ins.name}`)
     }))
