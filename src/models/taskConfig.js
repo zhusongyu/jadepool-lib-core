@@ -14,7 +14,11 @@ const schema = new mongoose.Schema({
     type: String,
     enum: _.values(consts.JOB_TYPES),
     default: 'every',
-    require: true
+    required: true
+  },
+  autoRunAmount: {
+    type: Number,
+    default: 0
   },
   seconds: {
     type: Number,

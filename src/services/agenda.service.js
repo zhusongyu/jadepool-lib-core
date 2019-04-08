@@ -132,15 +132,26 @@ class AgendaService extends BaseService {
       let taskCfg = await TaskConfig.findOne({ server: jp.env.server, name: taskObj.name }).exec()
       if (!taskCfg || taskCfg.paused) return
       // 根据TaskConfig进行 job启动
-      if (taskCfg.jobtype === consts.JOB_TYPES.EVERY) {
-        if (taskCfg.seconds < 0) return
-        const timeStr = `${taskCfg.seconds} seconds`
-        logger.tag('Jobs-start', taskObj.name).log(`interval=${timeStr}`)
-        taskObj.job = await this._agenda.every(timeStr, taskObj.name, _.pick(taskObj, ['fileName', 'prefix', 'chainKey']))
-      } else if (taskCfg.jobtype === consts.JOB_TYPES.SCHEDULE) {
-        if (!taskCfg.cron) return
-        logger.tag('Jobs-start', taskObj.name).log(`cron=${taskCfg.cron}`)
-        taskObj.job = await this._agenda.every(taskCfg.cron, taskObj.name, _.pick(taskObj, ['fileName', 'prefix', 'chainKey']))
+      const jobData = _.pick(taskObj, ['fileName', 'prefix', 'chainKey'])
+      switch (taskCfg.jobtype) {
+        case consts.JOB_TYPES.EVERY:
+          if (taskCfg.seconds < 0) return
+          const timeStr = `${taskCfg.seconds} seconds`
+          logger.tag('Jobs-start', taskObj.name).log(`interval=${timeStr}`)
+          taskObj.job = await this._agenda.every(timeStr, taskObj.name, jobData)
+          break
+        case consts.JOB_TYPES.SCHEDULE:
+          if (!taskCfg.cron) return
+          logger.tag('Jobs-start', taskObj.name).log(`cron=${taskCfg.cron}`)
+          taskObj.job = await this._agenda.every(taskCfg.cron, taskObj.name, jobData)
+          break
+        case consts.JOB_TYPES.NORMAL:
+          if (!taskCfg.autoRunAmount) return
+          logger.tag('Jobs-start', taskObj.name).log(`auto.run.amount=${taskCfg.autoRunAmount}`)
+          for (let i = 0; i < taskCfg.autoRunAmount; i++) {
+            this._agenda.now(taskObj.name, jobData)
+          }
+          break
       }
       running++
     }))
