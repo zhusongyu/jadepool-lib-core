@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const semver = require('semver')
 const Agenda = require('agenda')
 const BaseService = require('./core')
 const jp = require('../jadepool')
@@ -43,6 +44,26 @@ class AgendaService extends BaseService {
     logger.diff('Initialize').log('Begin')
     // Step 0. 初始化agenda
     const mongoConn = await db.fetchConnection('agenda')
+    let mongoLegacy = false
+    // 判定mongo版本
+    const mongoAdmin = new db.mongoose.mongo.Admin(mongoConn.db)
+    await new Promise((resolve, reject) => {
+      mongoAdmin.buildInfo(function (err, info) {
+        if (err) {
+          logger.error(`failed-to-getMongoDB-Info`, err)
+          reject(err)
+          return
+        }
+        if (semver.lt(info.version, '3.6.0')) {
+          mongoLegacy = true
+        }
+        logger.log(`mongodb.version=${info.version},mongoLegacy=${mongoLegacy}`)
+        resolve()
+      })
+    })
+    this._isMongoLegacy = mongoLegacy
+
+    // Ageneda实例
     this._agenda = new Agenda({
       mongo: mongoConn.db,
       processEvery: '10 seconds',
@@ -126,6 +147,33 @@ class AgendaService extends BaseService {
     logger.tag('Jobs', 'Start-or-reload').log(`running=${running}`)
   }
 
+  /**
+   * 正在running的jobs
+   * @param {string} taskName
+   */
+  async runningJobs (taskName) {
+    let runningQuery
+    // 版本
+    if (this._isMongoLegacy) {
+      runningQuery = {
+        $where: 'function () { return this.lastRunAt > this.lastFinishedAt }'
+      }
+    } else {
+      runningQuery = {
+        $expr: { $gt: [ '$lastRunAt', '$lastFinishedAt' ] }
+      }
+    }
+    const query = {
+      name: taskName,
+      $or: [
+        { nextRunAt: { $ne: null } },
+        { lastFinishedAt: { $exists: false } },
+        runningQuery
+      ]
+    }
+    // 返回运行中的任务
+    return this.jobs(query)
+  }
   // agenda sugar
   async jobs (query) {
     if (!this._inited) {
