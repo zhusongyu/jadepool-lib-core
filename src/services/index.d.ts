@@ -1,5 +1,6 @@
 import BaseService = require('./core')
 import Task = require('./agenda.task')
+import Agenda from 'agenda'
 
 export as namespace services
 
@@ -17,14 +18,20 @@ declare class AgendaService extends BaseService {
   constructor (services : any);
   
   initialize (opts: AgendaOptions): Promise<void>
+  /**
+   * 重载配置
+   */
+  startOrReloadJobs (): Promise<void>  
+  /**
+   * 正在running的jobs
+   */
+  runningJobs (taskName: string): Promise<Agenda.Job[]>
 
-  startOrReloadJobs (): Promise<void>
-
-  jobs (query: object): Promise<any>
+  jobs (query: object): Promise<Agenda.Job[]>
   update (query: object, update: object): Promise<any>
-  every (interval: string | number, name: string, data: object, options: object): Promise<any>
-  schedule (when: string, name: string, data: object): Promise<any>
-  now (name: string, data: object): Promise<any>
+  every (interval: string | number, name: string, data: object, options: object): Promise<Agenda.Job>
+  schedule (when: string, name: string, data: object): Promise<Agenda.Job>
+  now (name: string, data: object): Promise<Agenda.Job>
 }
 
 declare interface AppOptions {
