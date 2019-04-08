@@ -1,5 +1,9 @@
 # Change Logs
 
+## V0.5.2
+
+1. `cancelFinishedJobs`方法中包含disabled Tasks
+
 ## V0.5.1
 
 1. 新增环境变量`jadepool.env.instanceId`表示pm2启动时的进程序号

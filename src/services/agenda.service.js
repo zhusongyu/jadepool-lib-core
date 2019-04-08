@@ -178,13 +178,18 @@ class AgendaService extends BaseService {
       }
     }
     const query = {
-      $and: [
-        { name: { $in: taskNames } },
-        { lockedAt: null },
-        { nextRunAt: null },
-        { lastRunAt: { $exists: true } },
-        { lastFinishedAt: { $exists: true } },
-        finishQuery
+      name: { $in: taskNames },
+      lockedAt: null,
+      $or: [
+        { disabled: true },
+        {
+          $and: [
+            { nextRunAt: null },
+            { lastRunAt: { $exists: true } },
+            { lastFinishedAt: { $exists: true } },
+            finishQuery
+          ]
+        }
       ]
     }
     return this._agenda.cancel(query)
