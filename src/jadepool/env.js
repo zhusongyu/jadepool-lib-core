@@ -11,6 +11,10 @@ if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'dev'
 }
 
+if (!process.env.NODE_APP_INSTANCE) {
+  process.env.NODE_APP_INSTANCE = '0'
+}
+
 /**
  * 构建Env对象
  * @param {string} serverType
@@ -73,6 +77,7 @@ module.exports = function buildEnvObject (serverType, version) {
 
   return _.assign({
     name: process.env.NODE_ENV,
+    instanceId: parseInt(process.env.NODE_APP_INSTANCE),
     isProd: process.env.NODE_ENV === 'production',
     eccEnabled: ['staging', 'production'].indexOf(process.env.NODE_ENV) > -1,
     server: serverType,
