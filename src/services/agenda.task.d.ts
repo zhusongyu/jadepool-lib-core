@@ -1,8 +1,12 @@
+import Agenda from 'agenda'
+import { AgendaService } from './index'
+
 declare class Task {
 	constructor(taskName: string);
 	/**
 	 * Accessor getters
 	 */
+	agenda: AgendaService;
 	isWorking : boolean;
 	round : number;
 	handlingAmt : number;
@@ -28,7 +32,7 @@ declare class Task {
 	 * @param job 
 	 * @param done 
 	 */
-	private onHandle(job: any, done: any): Promise<void>;
+	private onHandle(job: Agenda.Job, done: Function): Promise<void>;
 		
 	/**
 	 * 处理定制错误 NBError
@@ -36,13 +40,13 @@ declare class Task {
 	 * @param err 
 	 * @param level 
 	 */
-	private handleError(job: any, err: Error, level: 'CRITICAL'|'MAJOR'|'MINOR'|'WARNING'): Promise<void>;
+	private handleError(job: Agenda.Job, err: Error, level: 'CRITICAL'|'MAJOR'|'MINOR'|'WARNING'): Promise<void>;
 		
 	/**
 	 * 进行下一步Schedule
 	 * @param job 
 	 */
-	next(job: any): void;
+	next(job: Agenda.Job): void;
 		
 	/**
 	 * 待重载初始化函数
@@ -52,7 +56,7 @@ declare class Task {
 	/**
 	 * 待重载函数处理函数
 	 */
-	handler(job: any): Promise<void>;
+	handler(job: Agenda.Job): Promise<void>;
 }
 
 export = Task;
