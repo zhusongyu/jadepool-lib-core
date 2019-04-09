@@ -67,10 +67,10 @@ const fetchAllCoinNames = (chainKey) => {
 }
 
 const fetchAllChainNames = () => {
-  switch (jp.env.processType) {
-    case consts.PROCESS.TYPES.BLOCKCHAIN: return jp.env.param ? [ jp.env.param ] : []
-    case consts.PROCESS.TYPES.ROUTER: return _.keys(jp.config.chain)
-    default: return []
+  if (jp.env.server === consts.SERVER_TYPES.MAIN && jp.env.processType === consts.PROCESS.TYPES.BLOCKCHAIN) {
+    return jp.env.param ? [ jp.env.param ] : []
+  } else {
+    return _.keys(jp.config.chain)
   }
 }
 

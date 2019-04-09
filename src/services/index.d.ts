@@ -118,8 +118,9 @@ declare class ProcessService extends BaseService {
    * @param name 子进程唯一别名
    * @param execPath 子进程路径
    * @param env 子进程环境变量
+	 * @param cwd 可选，运行目录，默认为脚本目录
    */
-  forkNamedProcess (name: string, execPath: string, env: { [key: string]: string }): ProcessRunner;
+  forkNamedProcess (name: string, execPath: string, env: { [key: string]: string }, cwd?: string): ProcessRunner;
 	/**
 	 * 调用子进程方法(jsonrpc形式)
    * @param name 子进程唯一别名
