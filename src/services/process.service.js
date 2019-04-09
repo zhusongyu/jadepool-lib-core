@@ -36,12 +36,12 @@ class Service extends BaseService {
   /**
    * 创建或获取一个常驻的子进程
    */
-  forkNamedProcess (name, execPath, env) {
+  forkNamedProcess (name, execPath, env, cwd) {
     let cp = this.children.get(name)
     if (!cp) {
       if (typeof execPath !== 'string') return null
       if (!fs.existsSync(execPath)) return null
-      cp = new ProcessRunner(name, execPath, env)
+      cp = new ProcessRunner(name, execPath, env, cwd)
       this.children.set(name, cp)
     }
     return cp

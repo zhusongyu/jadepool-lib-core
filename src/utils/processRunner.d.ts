@@ -9,8 +9,9 @@ declare class ProcessRunner {
 	 * @param name 进程名
 	 * @param execPath 脚本路径
 	 * @param env 进程环境变量
+	 * @param cwd 可选，运行目录，默认为脚本目录
 	 */
-	constructor (name: string, execPath: string, env: object);
+	constructor (name: string, execPath: string, env: object, cwd?: string);
 	/**
 	 * 优雅退出
 	 */
