@@ -1,5 +1,12 @@
 # Change Logs
 
+## V0.6.2
+
+Features:
+
+1. ProcessorRunner新增方法restart
+2. process.service方法 requestChild修改为requestProcess
+
 ## V0.6.1
 
 Fixes:

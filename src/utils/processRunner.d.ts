@@ -19,7 +19,11 @@ declare class ProcessRunner {
 	/**
 	 * 运行中的实例
 	 */
-	childInstance: ChildProcess; 
+	childInstance: ChildProcess;
+	/**
+	 * 重启进程实例
+	 */
+	restart(): Promise<ChildProcess>;
 	/**
 	 * 发起请求
 	 * @param method 
