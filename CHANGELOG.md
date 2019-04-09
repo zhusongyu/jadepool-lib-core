@@ -1,5 +1,12 @@
 # Change Logs
 
+## V0.6.1
+
+Fixes:
+
+1. 修复ProcessorRunner启动是cwd和script混淆的问题
+2. utils.config.fetchAllChainNames仅在env.server为main是需要调节
+
 ## V0.6.0
 
 Feature:
@@ -8,7 +15,7 @@ Feature:
 
 Fixes: 修复Process相关事件监听
 
-1. processRunner添加exit信号监听SIGUSR2，同时将相同的signal传递给child_process
+1. processRunner将相同的signal传递给child_process
 2. jadepool主进程处理exit信号时直接使用传入的signal参数, 最后以process.exit(0)结束进程
 
 ## V0.5.2
