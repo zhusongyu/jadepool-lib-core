@@ -1,13 +1,15 @@
 const uuid = require('uuid')
+const path = require('path')
 const EventEmitter = require('events').EventEmitter
 const cp = require('child_process')
 
 const logger = require('@jadepool/logger').of('ProcessRunner')
 
 class ProcessRunner {
-  constructor (name, execPath, env) {
+  constructor (name, execPath, env, cwd) {
     this._name = name
     this._execPath = execPath
+    this._cwd = cwd || (execPath.endsWith('.js') ? path.parse(execPath).dir : execPath)
     this._env = env
     this._requests = new Map()
     this._forkChildProcess()
@@ -47,7 +49,7 @@ class ProcessRunner {
 
   _forkChildProcess () {
     this._ins = cp.fork(this._execPath, [], {
-      cwd: this._execPath,
+      cwd: this._cwd,
       env: this._env
     })
     this._ins.once('exit', (code, signal) => {
