@@ -121,13 +121,18 @@ declare class ProcessService extends BaseService {
 	 * @param cwd 可选，运行目录，默认为脚本目录
    */
   forkNamedProcess (name: string, execPath: string, env: { [key: string]: string }, cwd?: string): ProcessRunner;
+  /**
+   * 重启进程
+   * @param name 子进程唯一别名
+   */
+  restartNamedProcess (name: string): Promise<ProcessRunner>
 	/**
 	 * 调用子进程方法(jsonrpc形式)
    * @param name 子进程唯一别名
 	 * @param method 函数名
 	 * @param params 参数
 	 */
-  requestChild (name: string, method: string, params: any): Promise<any>;
+  requestProcess (name: string, method: string, params: any): Promise<any>;
 }
 
 declare interface SocketIOOptions {

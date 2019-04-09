@@ -48,9 +48,20 @@ class Service extends BaseService {
   }
 
   /**
+   * 重启进程
+   * @param {strin} name
+   */
+  async restartNamedProcess (name) {
+    let cp = this.children.get(name)
+    if (!cp) return null
+    await cp.restart()
+    return cp
+  }
+
+  /**
    * 调用子进程方法(jsonrpc形式)
    */
-  async requestChild (name, method, params) {
+  async requestProcess (name, method, params) {
     let cp = this.children.get(name)
     if (!cp) return null
     return cp.request(method, params)
