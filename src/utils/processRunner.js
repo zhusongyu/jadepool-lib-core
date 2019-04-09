@@ -73,6 +73,22 @@ class ProcessRunner {
   }
 
   /**
+   * 重启子进程
+   */
+  async restart () {
+    await new Promise((resolve, reject) => {
+      if (this._ins) {
+        this._ins.removeAllListeners()
+        this._ins.once('exit', resolve)
+        this._ins.kill()
+      } else {
+        resolve()
+      }
+    })
+    return this._forkChildProcess()
+  }
+
+  /**
    * 发起请求
    * @param {string} method
    * @param {any[]} params
