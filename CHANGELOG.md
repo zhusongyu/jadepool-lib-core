@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.6.3
+
+Fixes:
+
+1. agenda.service，当normal Task存在autoRunAmount时需要先检测数据库中的现存jobs
+
 ## V0.6.2
 
 Features:

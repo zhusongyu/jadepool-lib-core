@@ -100,6 +100,10 @@ class AgendaService extends BaseService {
     // Step 3. 定义新的Tasks
     for (let i = 0, len = this._tasks.length; i < len; i++) {
       const t = this._tasks[i].instance
+      if (!t) {
+        logger.tag('Job-missing').warn(`name=${t.name}`)
+        continue
+      }
       if (t.onInit && typeof t.onInit === 'function') {
         await t.onInit()
       }
@@ -150,8 +154,11 @@ class AgendaService extends BaseService {
           break
         case consts.JOB_TYPES.NORMAL:
           if (!taskCfg.autoRunAmount) return
-          logger.tag('Jobs-start', taskObj.name).log(`auto.run.amount=${taskCfg.autoRunAmount}`)
-          for (let i = 0; i < taskCfg.autoRunAmount; i++) {
+          const runnings = await this.runningJobs(taskObj.name)
+          const autoRunAmount = Math.max(0, taskCfg.autoRunAmount - runnings.length)
+          if (!autoRunAmount) return
+          logger.tag('Jobs-start', taskObj.name).log(`auto.run.amount=${autoRunAmount}`)
+          for (let i = 0; i < autoRunAmount; i++) {
             this._agenda.now(taskObj.name, jobData)
           }
           break
