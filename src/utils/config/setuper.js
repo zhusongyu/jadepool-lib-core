@@ -153,6 +153,7 @@ const configSetupMethods = {
       // 跳过区块链已被禁用的货币
       if (chainCfg.disabled) continue
       // 设置基础数据
+      chainCfg.id = String(chainCfgDat._id)
       chainCfg.key = key
       // 设置节点数据
       const nodes = _.isArray(chainCfg.node) ? chainCfg.node : [ chainCfg.node ]

@@ -2,6 +2,7 @@ const _ = require('lodash')
 const NBError = require('../../NBError')
 const consts = require('../../consts')
 const jp = require('../../jadepool')
+const { mongoose } = require('../db')
 
 /**
  * @deprecated
@@ -38,10 +39,14 @@ const fetchCoinCfg = (coinName, useCached = false) => {
       chainKey: parsedCfg.chainKey,
       type: basicCfg.Type,
       rate: basicCfg.Rate,
-      disabled: basicCfg.disabled,
-      enabled: !basicCfg.disabled,
+      tokenEnabled: true,
+      depositWithdrawEnabled: !basicCfg.disabled,
       basic: basicCfg,
-      jadepool: _.assign({}, ..._.map(parsedCfg.jpCfgPath, path => _.get(jp.config, path)))
+      jadepool: _.assign({}, ..._.map(parsedCfg.jpCfgPath, path => _.get(jp.config, path))),
+      /** @deprecated */
+      disabled: basicCfg.disabled,
+      /** @deprecated */
+      enabled: !basicCfg.disabled
     }
     _coinCfgCache.set(coinName, result)
   }
@@ -74,11 +79,117 @@ const fetchAllChainNames = () => {
   }
 }
 
+/**
+ * 获取实时的币种配置
+ * @param {string|object} chain
+ * @param {string} coinName
+ */
+const loadCoinCfg = async (chain, coinName) => {
+  const chainCfg = await loadChainCfg(chain)
+  if (!chainCfg || !chainCfg.tokens) {
+    throw new NBError(10001, `failed to load chain: ${chain}/${coinName}`)
+  }
+  // Config in DB
+  const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
+  const queryBase = { path: 'tokens', parent: mongoose.Types.ObjectId(chainCfg.id) }
+  const coinDat = await ConfigDat.findOne(Object.assign({ key: coinName }, queryBase)).exec()
+  if (!coinDat) {
+    throw new NBError(20000, `coin: ${coinName}`)
+  }
+  const coinCfg = coinDat.toMerged()
+  // 判断是否加载基础类
+  if (chainCfg.tokens.build.extends) {
+    const baseCoinDat = await ConfigDat.findOne(Object.assign({ key: chainCfg.tokens.build.base }, queryBase)).exec()
+    if (baseCoinDat) {
+      const baseCoinCfg = baseCoinDat.toMerged()
+      coinCfg.coin = _.merge({}, baseCoinCfg.coin, coinCfg.coin)
+      coinCfg.jadepool = _.merge({}, baseCoinCfg.jadepool, coinCfg.jadepool)
+    }
+  }
+  // 构造 result
+  return {
+    name: coinName,
+    chain: chainCfg.Chain,
+    chainKey: chainCfg.key,
+    // 状态标记
+    tokenEnabled: chainCfg.tokens.enabled.indexOf(coinName) !== -1,
+    depositWithdrawEnabled: !coinCfg.coin.disabled,
+    // Coin数据
+    basic: coinCfg.coin,
+    type: coinCfg.coin.Type,
+    rate: coinCfg.coin.Rate,
+    // Jadepool数据
+    jadepool: coinCfg.jadepool
+  }
+}
+
+/**
+ * 获取实时的区块链配置
+ * @param {string} chainKey
+ */
+const loadChainCfg = async (chainKey) => {
+  if (typeof chainKey !== 'string') return chainKey
+  // Config in DB
+  const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
+  const query = { path: 'chain', key: chainKey }
+  const chainDat = await ConfigDat.findOne(query).exec()
+  if (!chainDat) return null
+  const chainCfg = chainDat.toMerged()
+  // 设置额外参数
+  chainCfg.id = String(chainDat._id)
+  chainCfg.key = chainKey
+  // 设置tokens配置
+  const tokensDat = await ConfigDat.findOne({ path: 'tokens', key: '', parent: chainDat }).exec()
+  if (tokensDat) {
+    chainCfg.tokens = tokensDat.toMerged()
+  }
+  return chainCfg
+}
+
+/**
+ * 获取实时的全部已启用的币种名称
+ * @param {string} [chainKey=undefined]
+ */
+const loadAllCoinNames = async (chainKey) => {
+  // Config in DB
+  const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
+  const query = {
+    path: 'chain',
+    key: typeof chainKey === 'string' ? chainKey : { $ne: '' }
+  }
+  const cfgs = (await ConfigDat.find(query).exec()) || []
+  const enabledChains = cfgs.filter(cfg => !cfg.disabled)
+  const coinNamesArr = await Promise.all(enabledChains.map(async (chainDat) => {
+    const tokensDat = await ConfigDat.findOne({ path: 'tokens', key: '', parent: chainDat }).exec()
+    if (!tokensDat) return []
+    const tokensCfg = tokensDat.toMerged()
+    return tokensCfg.enabled || []
+  }))
+  return _.flatten(coinNamesArr)
+}
+
+/**
+ * 获取实时的全部已启用区块链
+ */
+const loadAllChainNames = async () => {
+  // Config in DB
+  const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
+
+  const query = { path: 'chain', key: { $ne: '' } }
+  const cfgs = (await ConfigDat.find(query).exec()) || []
+  return cfgs.filter(cfg => !cfg.disabled).map(cfg => cfg.key)
+}
+
 module.exports = {
   applyIgnoreKeys,
   fetchCallbackUrl,
   fetchCoinCfg,
   fetchChainCfg,
   fetchAllCoinNames,
-  fetchAllChainNames
+  fetchAllChainNames,
+  // 实时读取
+  loadCoinCfg,
+  loadChainCfg,
+  loadAllCoinNames,
+  loadAllChainNames
 }
