@@ -1,5 +1,12 @@
 # Change Logs
 
+## V0.7.0
+
+Features:
+
+1. utils.config新增方法loadCoinCfg, loadChainCfg, loadAllCoinNames, loadAllChainNames
+2. 增加utils.config的测试用例
+
 ## V0.6.3
 
 Fixes:
