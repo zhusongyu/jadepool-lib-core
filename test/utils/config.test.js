@@ -15,18 +15,20 @@ describe('Config', () => {
   })
 
   it('loadCoinCfg', async () => {
-    const coinCfg = await utils.config.loadCoinCfg('ETH', 'ETH')
+    let coinCfg = await utils.config.loadCoinCfg('ETH', 'ETH')
     assert.equal(coinCfg.name, 'ETH')
     assert.equal(coinCfg.chain, 'Ethereum')
     assert.typeOf(coinCfg.tokenEnabled, 'boolean')
     assert.typeOf(coinCfg.depositWithdrawEnabled, 'boolean')
     assert.typeOf(coinCfg.basic, 'object')
     assert.typeOf(coinCfg.jadepool, 'object')
+    coinCfg = await utils.config.loadCoinCfg('ETH.ETH')
+    assert.equal(coinCfg.name, 'ETH')
+    assert.equal(coinCfg.chain, 'Ethereum')
   })
 
   it('loadChainCfg', async () => {
     const chainCfg = await utils.config.loadChainCfg('ETH')
-    console.log(chainCfg)
     assert.typeOf(chainCfg.id, 'string')
     assert.equal(chainCfg.key, 'ETH')
     assert.equal(chainCfg.Chain, 'Ethereum')
@@ -35,6 +37,9 @@ describe('Config', () => {
   it('loadAllCoinNames', async () => {
     const coinNames = await utils.config.loadAllCoinNames()
     assert.isArray(coinNames)
+    if (coinNames.length > 0) {
+      assert.isTrue(coinNames[0].indexOf('.') !== -1)
+    }
   })
 
   it('loadAllChainNames', async () => {

@@ -94,6 +94,11 @@ export function fetchAllChainNames(): string[]
  * @param useCached
  */
 export function loadCoinCfg(chain: string | ChainConfig, coinName: string): Promise<CoinConfig>
+/**
+ * 获取实时的CoinCfg
+ * @param coinName 格式需要为 chainKey.coinName
+ */
+export function loadCoinCfg(coinName: string): Promise<CoinConfig>
 
 /**
  * 获取实时的区块链配置
