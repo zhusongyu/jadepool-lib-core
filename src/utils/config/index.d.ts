@@ -1,19 +1,27 @@
 interface CoinConfig {
-  enabled: boolean,
-  disabled: boolean,
   name: string,
   chain: string,
   chainKey: string,
+  /** 该币种是否启用 */
+  tokenEnabled: boolean,
+  /** 该币种充提是否启用 */
+  depositWithdrawEnabled: boolean,
   type: string,
   rate: number,
   basic: {
     Rate: number
   },
   jadepool: object
+  /** @deprecated */
+  enabled?: boolean,
+  /** @deprecated */
+  disabled?: boolean,
 }
 
 interface ChainConfig {
   // 基础参数
+  id: string,
+  disabled: boolean,
   key: string,
   Chain:string,
   ChainIndex: number,
@@ -37,7 +45,7 @@ interface ChainConfig {
   // 细节参数
   tokens: object,
   node: object,
-  agenda: object,
+  agenda?: object,
   closer: object
 }
 
@@ -79,3 +87,27 @@ export function fetchAllCoinNames(chainKey?: string): string[]
  * 获取该进程负责的全部链名称
  */
 export function fetchAllChainNames(): string[]
+
+/**
+ * 获取实时的CoinCfg
+ * @param coinName
+ * @param useCached
+ */
+export function loadCoinCfg(chain: string | ChainConfig, coinName: string): Promise<CoinConfig>
+
+/**
+ * 获取实时的区块链配置
+ * @param chainKey
+ */
+export function loadChainCfg(chainKey: string): Promise<ChainConfig>
+
+/**
+ * 获取实时的相关链的全部货币名
+ * @param chainKey 可选，若不填则返回该进程负责的全部区块链
+ */
+export function loadAllCoinNames(chainKey?: string): Promise<string[]>
+
+/**
+ * 获取实时的全部链名称
+ */
+export function loadAllChainNames(): Promise<string[]>
