@@ -4,12 +4,14 @@ const DEFAULT_ENCODE = 'base64'
 // --------- MAP ---------
 const PROCESS = {
   NAME_PREFIX: 'Jadepool',
+  /** @deprecated */
   CLUSTER_MODES: {
     AUTO: 'auto',
     NODE: 'node',
     PM2: 'pm2'
   },
   LAUNCH_MODES: {
+    /** @deprecated */
     ALL_IN_ONE: 'allinone',
     MASTER: 'master', // 中心管理者，同一项目不同机器同一时间仅存在一个进程
     AGENT: 'agent', // 附属管理者，同一项目在每台机器上仅存在一个进程
@@ -51,10 +53,6 @@ const LEDGER_MODES = {
   LOCAL: 'local',
   RPC: 'rpc'
 }
-const ADDRESS_MODES = {
-  MULTI: 'multi',
-  SINGLE: 'single'
-}
 const SERVER_TYPES = {
   API: 'api',
   MAIN: 'main',
@@ -94,15 +92,38 @@ const MODEL_NAMES = {
   NOTI_EMAIL: 'notiEmail'
 }
 const PRIVKEY_SOURCES = {
-  DB: 'datebase', // 数据库
-  SEED: 'seed', // 来源seed软件
-  HSM_PURE: 'hsm_pure', // 纯签名密码机
-  HSM_DEEP: 'hsm_deep' // 深度安全密码机
+  /** 数据库 */
+  DB: 'datebase',
+  /** 来源seed软件 */
+  SEED: 'seed',
+  /** 纯签名密码机 */
+  HSM_PURE: 'hsm_pure',
+  /** 深度安全密码机 */
+  HSM_DEEP: 'hsm_deep'
+}
+/** 区块配置中设置支持的地址模式 */
+const ADDRESS_MODES = {
+  MULTI: 'multi',
+  SINGLE: 'single'
+}
+/** 地址模型中设置的地址业务模式 */
+const ADDRESS_BIZ_MODES = {
+  /** 按照瑶池默认规则进行操作 */
+  AUTO: 'auto',
+  /** 强制为multi地址模式。若不支持，则会选择设置为auto模式 */
+  DEPOSIT_WITH_ADDR: 'deposit',
+  /** 强制为single地址模式并带MEMO的地址。若不支持memo，则会选择设置为auto模式 */
+  DEPOSIT_WITH_MEMO: 'deposit_memo',
+  /** 到账后自动发起代理。若不支持代理，则会选择设置为auto模式 */
+  DELEGATE: 'delegate'
 }
 const ADDRESS_STATE = {
-  NEW: 'new', // 刚创建
-  USED: 'used', // 已分配使用
-  BLOCKED: 'blocked' // TODO 被屏蔽
+  /** 刚创建 */
+  NEW: 'new',
+  /** 已分配使用 */
+  USED: 'used',
+  /** TODO 被屏蔽 */
+  BLOCKED: 'blocked'
 }
 const ADDRESS_ACCEPT_MODE = {
   SAME_TOKEN: 'token',
@@ -233,6 +254,7 @@ module.exports = {
   PRIVKEY_SOURCES,
   ADDRESS_TYPE,
   ADDRESS_ACCEPT_MODE,
+  ADDRESS_BIZ_MODES,
   ADDRESS_STATE,
   ORDER_STATE,
   ORDER_BIZTYPES,

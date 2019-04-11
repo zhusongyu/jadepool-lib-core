@@ -1,5 +1,13 @@
 # Change Logs
 
+## V0.7.1
+
+Features:
+
+1. utils.config.loadAllCoinNames返回时带chainKey
+2. utils.config.loadCoinCfg支持单个coinName作为参数，但必须为`chainKey.coinName`格式
+3. 新增consts.ADDRESS_BIZ_MODES
+
 ## V0.7.0
 
 Features:
