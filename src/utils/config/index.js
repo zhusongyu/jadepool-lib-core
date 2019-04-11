@@ -85,6 +85,9 @@ const fetchAllChainNames = () => {
  * @param {string} coinName
  */
 const loadCoinCfg = async (chain, coinName) => {
+  if (coinName === undefined && typeof chain === 'string') {
+    [ chain, coinName ] = chain.split('.')
+  }
   const chainCfg = await loadChainCfg(chain)
   if (!chainCfg || !chainCfg.tokens) {
     throw new NBError(10001, `failed to load chain: ${chain}/${coinName}`)
@@ -163,7 +166,7 @@ const loadAllCoinNames = async (chainKey) => {
     const tokensDat = await ConfigDat.findOne({ path: 'tokens', key: '', parent: chainDat }).exec()
     if (!tokensDat) return []
     const tokensCfg = tokensDat.toMerged()
-    return tokensCfg.enabled || []
+    return (tokensCfg.enabled || []).map(name => `${chainDat.key}.${name}`)
   }))
   return _.flatten(coinNamesArr)
 }

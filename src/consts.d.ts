@@ -139,6 +139,16 @@ export declare const PRIVKEY_SOURCES: {
 	/** 深度安全密码机 */
   HSM_DEEP: 'hsm_deep'
 }
+export declare const ADDRESS_BIZ_MODES: {
+  /** 按照瑶池默认规则进行操作 */
+  AUTO: 'auto',
+  /** 强制为multi地址模式。若不支持，则会选择设置为auto模式 */
+  DEPOSIT_WITH_ADDR: 'deposit',
+  /** 强制为single地址模式并带MEMO的地址。若不支持memo，则会选择设置为auto模式 */
+  DEPOSIT_WITH_MEMO: 'deposit_memo',
+  /** 到账后自动发起代理。若不支持代理，则会选择设置为auto模式 */
+  DELEGATE: 'delegate'
+}
 export declare const ADDRESS_STATE: {
 	/** 刚创建 */
 	NEW: 'new',
