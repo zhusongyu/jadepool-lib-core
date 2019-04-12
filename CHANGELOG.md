@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.7.4
+
+Fixes:
+
+1. 修复agenda.cancelFinishedJobs未删除干净的问题，启动时只要lockedAt为null都可以删除
+
 ## V0.7.3
 
 Improvement:
