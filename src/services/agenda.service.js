@@ -193,33 +193,8 @@ class AgendaService extends BaseService {
    * @param {string[]} taskNames
    */
   async cancelFinishedJobs (taskNames) {
-    let finishQuery
-    // 版本
-    if (this._isMongoLegacy) {
-      finishQuery = {
-        $where: 'function () { return this.lastRunAt <= this.lastFinishedAt }'
-      }
-    } else {
-      finishQuery = {
-        $expr: { $lte: [ '$lastRunAt', '$lastFinishedAt' ] }
-      }
-    }
-    const query = {
-      name: { $in: taskNames },
-      lockedAt: null,
-      $or: [
-        { disabled: true },
-        {
-          $and: [
-            { nextRunAt: null },
-            { lastRunAt: { $exists: true } },
-            { lastFinishedAt: { $exists: true } },
-            finishQuery
-          ]
-        }
-      ]
-    }
-    return this._agenda.cancel(query)
+    // 只要是lockedAt为null的全都可以删掉，因为lockedAt是在agenda.stop或者task finish后设置的
+    return this._agenda.cancel({ name: { $in: taskNames }, lockedAt: null })
   }
 
   /**
