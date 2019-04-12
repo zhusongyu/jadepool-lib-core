@@ -80,6 +80,8 @@ class AgendaService extends BaseService {
     if (!this._inited) {
       await this._agenda._ready
     }
+    // 创建index
+    await this.ensureIndexes()
 
     // Step 1. 加载Tasks配置
     this._tasks = (opts && opts.tasks) || []
@@ -166,6 +168,24 @@ class AgendaService extends BaseService {
       running++
     }))
     logger.tag('Jobs', 'Start-or-reload').log(`running=${running}`)
+  }
+
+  /**
+   * 设置index
+   */
+  async ensureIndexes () {
+    if (!this._inited) {
+      await this._agenda._ready
+    }
+    return new Promise((resolve, reject) => {
+      try {
+        this._agenda._collection.createIndex({ name: 1, nextRunAt: 1, lastRunAt: 1, lastFinishedAt: 1 }, { name: 'runningJobs1' })
+        this._agenda._collection.createIndex({ name: 1, 'data.id': 1, nextRunAt: 1, lastRunAt: 1, lastFinishedAt: 1 }, { name: 'runningJobs2' })
+      } catch (err) {
+        logger.error('Failed to create Agenda index!', err)
+      }
+      resolve()
+    })
   }
 
   /**

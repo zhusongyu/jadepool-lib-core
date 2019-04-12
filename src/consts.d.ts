@@ -9,14 +9,17 @@ export declare const DEFAULT_ENCODE: 'base64';
  */
 export declare namespace PROCESS {
 	const NAME_PREFIX: 'Jadepool';
-	/** 已废弃 */
+	/** @deprecated */
 	const CLUSTER_MODES: {
     AUTO: 'auto',
     NODE: 'node',
     PM2: 'pm2'
   }
 	const LAUNCH_MODES: {
-		/** 全进程单进程执行，已废弃 */
+		/**
+		 * 全进程单进程执行，已废弃
+		 * @deprecated
+		 */
 		ALL_IN_ONE: 'allinone',
 		/** 中心管理者，同一项目不同机器同一时间仅存在一个进程 */
 		MASTER: 'master',
@@ -140,14 +143,18 @@ export declare const PRIVKEY_SOURCES: {
   HSM_DEEP: 'hsm_deep'
 }
 export declare const ADDRESS_BIZ_MODES: {
-  /** 按照瑶池默认规则进行操作 */
+  /** 按照瑶池默认规则进行修改 */
   AUTO: 'auto',
-  /** 强制为multi地址模式。若不支持，则会选择设置为auto模式 */
+  /** 设置为自动sweepToHot的独立地址。 */
   DEPOSIT_WITH_ADDR: 'deposit',
-  /** 强制为single地址模式并带MEMO的地址。若不支持memo，则会选择设置为auto模式 */
-  DEPOSIT_WITH_MEMO: 'deposit_memo',
-  /** 到账后自动发起代理。若不支持代理，则会选择设置为auto模式 */
-  DELEGATE: 'delegate'
+  /** 设置为带MEMO的热主地址。*/
+	DEPOSIT_WITH_MEMO: 'deposit_memo',
+  /** 设置为自动delegate的独立地址。 */
+	DELEGATE: 'delegate',
+	/** 设置为自动delegate的带MEMO热主地址。 */
+	DELEGATE_WITH_MEMO: 'delegate_memo',
+	/** 设置为普通地址类型，不做任何处理 */
+	NORMAL_ADDR: 'normal'
 }
 export declare const ADDRESS_STATE: {
 	/** 刚创建 */
@@ -156,12 +163,6 @@ export declare const ADDRESS_STATE: {
 	USED: 'used',
 	/** TODO 被屏蔽 */
   BLOCKED: 'blocked'
-}
-export declare const ADDRESS_ACCEPT_MODE: {
-	/** 只接受该币种类型的资产 */
-	SAME_TOKEN: 'token',
-	/** 接受同属一条链类型的全部资产 */
-  SAME_CHAIN: 'chain'
 }
 export declare const ADDRESS_TYPE: {
 	/** 热主 */
