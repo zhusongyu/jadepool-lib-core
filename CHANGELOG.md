@@ -1,5 +1,15 @@
 # Change Logs
 
+## V0.7.2
+
+Features:
+
+1. consts调整。移除ADDRESS_ACCEPT_MODE，添加更多的ADDRESS_BIZ_MODES
+
+Fixes:
+
+1. agenda.service为runningJobs添加index
+
 ## V0.7.1
 
 Features:
