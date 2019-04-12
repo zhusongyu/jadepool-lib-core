@@ -108,14 +108,18 @@ const ADDRESS_MODES = {
 }
 /** 地址模型中设置的地址业务模式 */
 const ADDRESS_BIZ_MODES = {
-  /** 按照瑶池默认规则进行操作 */
+  /** 按照瑶池默认规则进行修改 */
   AUTO: 'auto',
-  /** 强制为multi地址模式。若不支持，则会选择设置为auto模式 */
+  /** 设置为自动sweepToHot的独立地址。 */
   DEPOSIT_WITH_ADDR: 'deposit',
-  /** 强制为single地址模式并带MEMO的地址。若不支持memo，则会选择设置为auto模式 */
+  /** 设置为带MEMO的热主地址。 */
   DEPOSIT_WITH_MEMO: 'deposit_memo',
-  /** 到账后自动发起代理。若不支持代理，则会选择设置为auto模式 */
-  DELEGATE: 'delegate'
+  /** 设置为自动delegate的独立地址。 */
+  DELEGATE: 'delegate',
+  /** 设置为自动delegate的带MEMO热主地址。 */
+  DELEGATE_WITH_MEMO: 'delegate_memo',
+  /** 设置为普通类型的独立地址，不做任何处理 */
+  NORMAL: 'normal'
 }
 const ADDRESS_STATE = {
   /** 刚创建 */
@@ -124,10 +128,6 @@ const ADDRESS_STATE = {
   USED: 'used',
   /** TODO 被屏蔽 */
   BLOCKED: 'blocked'
-}
-const ADDRESS_ACCEPT_MODE = {
-  SAME_TOKEN: 'token',
-  SAME_CHAIN: 'chain'
 }
 const ADDRESS_TYPE = {
   HOT_WALLET: 0, // 热主
@@ -253,7 +253,6 @@ module.exports = {
   MODEL_NAMES,
   PRIVKEY_SOURCES,
   ADDRESS_TYPE,
-  ADDRESS_ACCEPT_MODE,
   ADDRESS_BIZ_MODES,
   ADDRESS_STATE,
   ORDER_STATE,
