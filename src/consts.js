@@ -114,10 +114,6 @@ const ADDRESS_BIZ_MODES = {
   DEPOSIT_WITH_ADDR: 'deposit',
   /** 设置为带MEMO的热主地址。 */
   DEPOSIT_WITH_MEMO: 'deposit_memo',
-  /** 设置为自动delegate的独立地址。 */
-  DELEGATE: 'delegate',
-  /** 设置为自动delegate的带MEMO热主地址。 */
-  DELEGATE_WITH_MEMO: 'delegate_memo',
   /** 设置为普通类型的独立地址，不做任何处理 */
   NORMAL: 'normal'
 }

@@ -37,6 +37,8 @@ interface ChainConfig {
   tokenTemplate: object,
   addressMode: string,
   addressOnline: boolean,
+  addressWaitForUse?: boolean,
+  addressBizModes?: string[],
   systemCallEnabled?: boolean,
   stakeEnabled?: boolean,
   stakeOptions?: {
