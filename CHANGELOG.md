@@ -1,5 +1,12 @@
 # Change Logs
 
+## V0.7.3
+
+Improvement:
+
+1. 移除ADDRESS_BIZ_MODES.DELEGATE系列，因为它们在业务上不能成立
+2. 【更新*.d.ts】 ChainConfig中添加addressWaitForUse和addressBizModes
+
 ## V0.7.2
 
 Features:
