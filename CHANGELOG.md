@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.7.5
+
+Fixes:
+
+1. consts.d.ts中字段错误，修正为 consts.ADDRESS_BIZ_MODES.NORMAL
+
 ## V0.7.4
 
 Fixes:
