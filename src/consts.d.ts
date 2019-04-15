@@ -150,7 +150,7 @@ export declare const ADDRESS_BIZ_MODES: {
   /** 设置为带MEMO的热主地址。*/
 	DEPOSIT_WITH_MEMO: 'deposit_memo',
 	/** 设置为普通地址类型，不做任何处理 */
-	NORMAL_ADDR: 'normal'
+	NORMAL: 'normal'
 }
 export declare const ADDRESS_STATE: {
 	/** 刚创建 */
