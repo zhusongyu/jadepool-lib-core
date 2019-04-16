@@ -1,6 +1,6 @@
 {
   "name": "@jadepool/lib-core",
-  "version": "0.7.6",
+  "version": "0.7.7",
   "description": "Jadepool core library",
   "main": "index.js",
   "scripts": {
