@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.7.6
+
+Fixes:
+
+1. instanceId可以使用NODE_INSTANCE_ID来设置，以避免Node-config冲突
+
 ## V0.7.5
 
 Fixes:
