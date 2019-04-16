@@ -142,9 +142,9 @@ const loadConfig = async (cfgPath, key = '', parent = null, forceSelf = false) =
 const loadConfigKeys = async (cfgPath, parent = null) => {
   const query = {
     path: cfgPath,
-    key: { $ne: '' }
+    key: { $ne: '' },
+    parent: parent || { $exists: false }
   }
-  if (parent) { query.parent = parent }
 
   // Config in DB
   const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)

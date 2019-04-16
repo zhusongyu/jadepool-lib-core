@@ -26,10 +26,7 @@ const schema = new mongoose.Schema({
   timestamps: { createdAt: 'create_at', updatedAt: 'update_at' }
 })
 
-schema.index({ create_at: -1 })
-
-schema.index({ level: 1 })
-schema.index({ level: 1, category: 1, module: 1 })
+schema.index({ level: 1, category: 1, create_at: -1 }, { name: 'query' })
 
 const Warning = fetchConnection().model(consts.MODEL_NAMES.WARNING, schema)
 Warning.prototype.toClientObject = function () {

@@ -45,7 +45,7 @@ const schema = new Schema({
   timestamps: { createdAt: 'create_at', updatedAt: 'update_at' }
 })
 
-schema.index({ id: 1 })
+schema.index({ id: 1 }, { name: 'uniqueIndex', unique: true })
 
 const AppConfig = fetchConnection('config').model(consts.MODEL_NAMES.APPLICATION, schema)
 
