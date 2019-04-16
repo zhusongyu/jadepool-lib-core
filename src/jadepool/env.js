@@ -11,10 +11,6 @@ if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'dev'
 }
 
-if (!process.env.NODE_APP_INSTANCE) {
-  process.env.NODE_APP_INSTANCE = '0'
-}
-
 /**
  * 构建Env对象
  * @param {string} serverType
@@ -72,12 +68,13 @@ module.exports = function buildEnvObject (serverType, version) {
     }
   }
   // 进程参数
-  let processPrefix = envOpts.param ? envOpts.param.toLowerCase() + '.' : ''
-  let processKey = `${processType}-${serverType}-${processPrefix}${process.pid}`
+  const processPrefix = envOpts.param ? envOpts.param.toLowerCase() + '.' : ''
+  const processKey = `${processType}-${serverType}-${processPrefix}${process.pid}`
+  const instanceId = process.env.NODE_APP_INSTANCE || process.env.NODE_INSTANCE_ID || '0'
 
   return _.assign({
     name: process.env.NODE_ENV,
-    instanceId: parseInt(process.env.NODE_APP_INSTANCE),
+    instanceId: parseInt(instanceId),
     isProd: process.env.NODE_ENV === 'production',
     eccEnabled: ['staging', 'production'].indexOf(process.env.NODE_ENV) > -1,
     server: serverType,
