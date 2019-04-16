@@ -1,22 +1,28 @@
 # Change Logs
 
+## V0.7.7
+
+Improvement:
+
+* 命名并更新index
+
 ## V0.7.6
 
 Fixes:
 
-1. instanceId可以使用NODE_INSTANCE_ID来设置，以避免Node-config冲突
+* instanceId可以使用NODE_INSTANCE_ID来设置，以避免Node-config冲突
 
 ## V0.7.5
 
 Fixes:
 
-1. consts.d.ts中字段错误，修正为 consts.ADDRESS_BIZ_MODES.NORMAL
+* consts.d.ts中字段错误，修正为 consts.ADDRESS_BIZ_MODES.NORMAL
 
 ## V0.7.4
 
 Fixes:
 
-1. 修复agenda.cancelFinishedJobs未删除干净的问题，启动时只要lockedAt为null都可以删除
+* 修复agenda.cancelFinishedJobs未删除干净的问题，启动时只要lockedAt为null都可以删除
 
 ## V0.7.3
 
