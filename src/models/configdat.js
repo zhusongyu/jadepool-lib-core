@@ -50,11 +50,8 @@ const schema = new Schema({
   timestamps: { createdAt: 'create_at', updatedAt: 'update_at' }
 })
 
-schema.index({ create_at: -1 })
-schema.index({ create_at: -1, path: 1, key: 1 })
-
-schema.index({ server: 1, path: 1, key: 1, parent: 1 })
-schema.index({ path: 1, key: 1, parent: 1 }, { unique: true })
+schema.index({ path: 1, key: 1, parent: 1 }, { name: 'uniqueIndex', unique: true })
+schema.index({ path: 1, key: 1, parent: 1, server: 1 }, { name: 'findWithServer' })
 
 const ConfigDat = fetchConnection('config').model(consts.MODEL_NAMES.CONFIG_DATA, schema)
 

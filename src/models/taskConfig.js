@@ -36,10 +36,12 @@ const schema = new mongoose.Schema({
   timestamps: { createdAt: 'create_at', updatedAt: 'update_at' }
 })
 
-schema.index({ create_at: -1 })
-schema.index({ server: 1, working: -1 })
-schema.index({ name: 1 })
-schema.index({ server: 1, name: 1 }, { unique: true })
+// Admin查询
+schema.index({ server: 1, working: -1 }, { name: 'findWithServer' })
+schema.index({ name: 'text' }, { name: 'findWithName' })
+
+// 代码查询
+schema.index({ server: 1, name: 1 }, { name: 'uniqueIndex', unique: true })
 
 const TaskConfig = fetchConnection().model(consts.MODEL_NAMES.TASK_CONFIG, schema)
 module.exports = TaskConfig
