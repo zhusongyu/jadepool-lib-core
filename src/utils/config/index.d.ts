@@ -11,7 +11,26 @@ interface CoinConfig {
   basic: {
     Rate: number
   },
-  jadepool: object
+  jadepool: {
+    RescanMode: string
+    /** 高水位 */
+    HighWaterLevel: number
+    /** 高水位转出后目标 */
+    SweepTo: number
+    /** 低水位 */
+    LowWaterLevel: number
+    /** 一批sendOrder的数量(二选一,作用相同仅显示不同) */
+    BatchCount?: number
+    /** 一批sendOrder的数量(二选一,作用相同仅显示不同) */
+    MaxOrdersInOneTx?: number
+    // 自动汇总的地址类
+    SweepToHotCap?: number
+    SendAgainCap?: number
+    // UTXO类
+    MergedBalance?: boolean
+    AvailableUtxoCap?: number
+    MaxInputsInOneTx?: number
+  },
   /** @deprecated */
   enabled?: boolean,
   /** @deprecated */
