@@ -1,5 +1,15 @@
 # Change Logs
 
+## V0.7.10
+
+Improvement:
+
+* 增加utils.db.fetchConnection的定义
+
+Fixes:
+
+* 修复MODEL_NAME，mongoose在写入数据库时会将name全部小写
+
 ## V0.7.9
 
 Fixes:

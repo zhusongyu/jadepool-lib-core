@@ -80,21 +80,21 @@ const MODEL_NAMES = {
   ORDER: 'order',
   DELEGATION: 'delegation',
   SCAN_TASK: 'scantask',
-  TASK_CONFIG: 'adminTaskCfg',
+  TASK_CONFIG: 'admintaskcfg',
   ETH_BATCH: 'ethbatch',
   ETH_FAUCET: 'ethfaucet',
   AUDIT: 'audit',
   AUDIT_BALANCE: 'auditbalance',
   RULER: 'ruler',
   BLOCK: 'block',
-  ISSUE_RECORD: 'issueRecord',
+  ISSUE_RECORD: 'issuerecord',
   NOTIFICATION: 'notification',
   WARNING: 'warning',
   // Admin Models
   ACCOUNT: 'account',
   ROLE: 'role',
   ACTION: 'action',
-  NOTI_EMAIL: 'notiEmail'
+  NOTI_EMAIL: 'notiemail'
 }
 const PRIVKEY_SOURCES = {
   /** 数据库 */
