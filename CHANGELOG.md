@@ -1,5 +1,12 @@
 # Change Logs
 
+## V0.7.11
+
+Improvement:
+
+* d.ts定义文件 - 新增coinCfg.jadepool下的通用内容
+* d.ts定义文件 - 调整部分consts的提示内容
+
 ## V0.7.10
 
 Improvement:
