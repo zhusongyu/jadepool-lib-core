@@ -47,7 +47,7 @@ const schema = new Schema({
 
 schema.index({ id: 1 }, { name: 'uniqueIndex', unique: true })
 
-const AppConfig = fetchConnection('config').model(consts.MODEL_NAMES.APPLICATION, schema)
+const AppConfig = fetchConnection(consts.DB_KEYS.CONFIG).model(consts.MODEL_NAMES.APPLICATION, schema)
 
 /**
  * 验证是否具有某权限
