@@ -39,7 +39,6 @@ interface ChainConfig {
   addressOnline: boolean,
   addressWaitForUse?: boolean,
   addressBizModes?: string[],
-  systemCallEnabled?: boolean,
   stakeEnabled?: boolean,
   stakeOptions?: {
     stakeToken: string
