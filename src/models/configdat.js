@@ -53,7 +53,7 @@ const schema = new Schema({
 schema.index({ path: 1, key: 1, parent: 1 }, { name: 'uniqueIndex', unique: true })
 schema.index({ path: 1, key: 1, parent: 1, server: 1 }, { name: 'findWithServer' })
 
-const ConfigDat = fetchConnection('config').model(consts.MODEL_NAMES.CONFIG_DATA, schema)
+const ConfigDat = fetchConnection(consts.DB_KEYS.CONFIG).model(consts.MODEL_NAMES.CONFIG_DATA, schema)
 
 ConfigDat.prototype.applyModify = function (jsonToSave) {
   try {

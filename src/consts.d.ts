@@ -106,6 +106,11 @@ export declare const JOB_TYPES: {
 	/** 计划任务 */
   SCHEDULE: 'schedule'
 }
+export declare const DB_KEYS: {
+  DEFAULT: 'default',
+  CONFIG: 'config',
+  ADMIN: 'admin'
+}
 export declare const MODEL_NAMES: {
   // Config Models
   CONFIG_DATA: 'configdat',
@@ -263,6 +268,11 @@ export declare const SUPPORT_LOCALES: {
 /**
  * --------- LIST ---------
  */
-export declare const ORDER_BIZTYPES_OUT : string[];
+export declare const MODEL_LIST_CONFIG: string[]
+export declare const MODEL_LIST_ADMIN: string[]
+export declare const MODEL_LIST_DEFAULT: string[]
 
-export declare const ORDER_BIZTYPES_IN : string[];
+export declare const ORDER_BIZTYPES_OUT: string[];
+export declare const ORDER_BIZTYPES_IN: string[];
+export declare const ORDER_BIZTYPES_FUND: string[];
+export declare const ORDER_BIZTYPES_ASSET_FLOW: string[];

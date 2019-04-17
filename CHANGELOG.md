@@ -1,5 +1,13 @@
 # Change Logs
 
+## V0.7.8
+
+Improvement:
+
+* 添加常量`consts.DB_KEYS`, `consts.MODEL_LIST_ADMIN`, `consts.MODEL_LIST_CONFIG`, `consts.MODEL_LIST_DEFAULT`
+* 添加常量字段`consts.ORDER_DEFAULT_ACTIONS.UTXO_SCATTER`
+* 移除ChainCfg中的非必要字段 systemCallEnabled
+
 ## V0.7.7
 
 Improvement:
