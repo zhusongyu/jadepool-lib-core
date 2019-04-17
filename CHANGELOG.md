@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.7.9
+
+Fixes:
+
+* 修复AUDIT_BALANCE所在的DB
+
 ## V0.7.8
 
 Improvement:
