@@ -208,7 +208,7 @@ export declare const ORDER_BIZTYPES: {
 	RECHARGE_INTERNAL: 'RECHARGE_INTERNAL',
 	/** 入：意外收入 */
 	RECHARGE_UNEXPECTED: 'RECHARGE_UNEXPECTED',
-	/** 出：区块链函数调用订单，(value为消耗为0，fee消耗, 额外业务数据在action中记录) */
+	/** 出：执行某个区块链行为的订单，(value为消耗，fee消耗, 额外业务数据在action中记录) */
 	SYSTEM_CALL: 'SYSTEM_CALL',
 	/** 入：已回收的抵押额，(value为本金，fee为0，属于本金收回) */
 	PRINCIPAL_FUND: 'PRINCIPAL_FUND',
@@ -220,13 +220,23 @@ export declare const ORDER_BIZTYPES: {
 	UNDELEGATE: 'DELEGATE',
 }
 export declare const ORDER_DEFAULT_ACTIONS: {
-  APPROVE: 'approve',
-  FREEZE: 'freeze',
-  BURN: 'burn',
-  DELEGATE: 'delegate',
-  UNDELEGATE: 'un-delegate',
-  REDELEGATE: 're-delegate',
-  CLAIM_REWARD: 'claim-reward',
+	/** 执行UTXO打散 */
+	UTXO_SCATTER: 'utxo-scatter',
+	/** 授权转币 */
+	APPROVE: 'approve',
+	/** 冻结 */
+	FREEZE: 'freeze',
+	/** 烧掉token */
+	BURN: 'burn',
+	/** 代理 */
+	DELEGATE: 'delegate',
+	/** 取消代理 */
+	UNDELEGATE: 'un-delegate',
+	/** 转代理 */
+	REDELEGATE: 're-delegate',
+	/** 申请奖励 */
+	CLAIM_REWARD: 'claim-reward',
+	/** 设置奖励地址 */
   SET_REWARD_ADDRESS: 'set-reward-address'
 }
 export declare const DELEGATION_STATE: {
