@@ -16,12 +16,12 @@ class ApiEndpoint {
     this.updateEndPoints(endpoints)
     this._timeout = opts.timeout || 10000
     this._current = 0
-    this._isconnected = false
+    this._connected = false
   }
   /**
    * Accessors
    */
-  get connected () { return this._isconnected }
+  get connected () { return this._connected }
   get endpointUrl () { return this._endpoints[this._current] }
   /**
    * 更新API节点

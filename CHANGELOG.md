@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.8.1
+
+Fixes:
+
+* 修复ApiEndpoint.connected错误
+
 ## V0.8.0
 
 Feature:

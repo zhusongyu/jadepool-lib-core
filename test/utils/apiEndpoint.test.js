@@ -34,11 +34,13 @@ describe('Utils: apiEndpoint', () => {
   it('request Normal', async () => {
     const endpoint = utils.api.createApiEndpoint('test1', [testUrlOk])
     const data = await endpoint.get('')
+    assert.isTrue(endpoint.connected)
     assert.isString(data)
   })
   it('request Index 2 ok', async () => {
     const endpoint = utils.api.createApiEndpoint('test2', [testUrlFailed, testUrlOk], { timeout: 2000 })
     const data = await endpoint.get('')
+    assert.isTrue(endpoint.connected)
     assert.isString(data)
     assert.equal(endpoint.endpointUrl, testUrlOk)
   })
@@ -49,20 +51,24 @@ describe('Utils: apiEndpoint', () => {
     } catch (err) {
       assert.isNotEmpty(err)
     }
+    assert.isFalse(endpoint.connected)
   })
   it('request With ChainKey 1', async () => {
     const endpoint = await utils.api.getChainNodeEndpoint('BTC')
     const data = await endpoint.get('')
+    assert.isTrue(endpoint.connected)
     assert.isString(data)
   })
   it('request With ChainKey 2', async () => {
     const endpoint = await utils.api.getChainNodeEndpoint('BTC', 'USDT')
     const data = await endpoint.get('')
+    assert.isTrue(endpoint.connected)
     assert.isString(data)
   })
   it('request With ChainKey 3', async () => {
     const endpoint = await utils.api.getChainNodeEndpoint('ETH')
     const data = await endpoint.get('')
+    assert.isTrue(endpoint.connected)
     assert.isString(data)
   })
 })
