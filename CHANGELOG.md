@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.8.0
+
+Feature:
+
+* 新增工具类 utils.api 可用于对多个节点地址进行restapi或jsonrpc请求。
+
 ## V0.7.11
 
 Improvement:
