@@ -48,15 +48,15 @@ const schema = new Schema({
         enum: _.values(consts.ASYNC_PLAN_CATEGORY),
         required: true
       },
-      // 该字段必须设置，即为该任务执行的具体内容
-      method: {
-        type: String,
-        required: true
-      },
       // 该字段为选填，即该任务执行的名字空间，通常为区块链Key
       namespace: {
         type: String,
         required: false
+      },
+      // 该字段必须设置，即为该任务执行的具体内容
+      method: {
+        type: String,
+        required: true
       },
       // 该字段为选填，即为该任务执行内容的参数
       params: Schema.Types.Mixed,
@@ -65,18 +65,14 @@ const schema = new Schema({
       // INTERNAL_ORDER类型完成条件：order done
       order: {
         type: Schema.Types.ObjectId,
-        ref: 'order'
+        ref: consts.MODEL_NAMES.ORDER
       }
     }
   ],
   // 时间记录相关
-  run_at: { // 执行计划
-    type: Date,
-    default: Date.now,
-    required: true
-  },
-  started_at: Date, // 运行时间
-  finished_at: Date // 完成时间
+  run_at: Date, // 执行计划, 不为null时为新任务
+  started_at: Date, // 开始运行时间
+  finished_at: Date // 结束运行时间
 }, {
   timestamps: { createdAt: 'create_at', updatedAt: 'update_at' }
 })
@@ -85,7 +81,7 @@ const schema = new Schema({
 schema.index({ source: 1, source_id: 1, mode: 1, result: 1 }, { name: 'planSources' })
 // 代码查询
 schema.index({ started_at: 1, status: 1, finished_at: 1 }, { name: 'planResult' })
-schema.index({ run_at: 1 }, { name: 'planRunAt' })
+schema.index({ run_at: 1 }, { name: 'planRunAt', sparse: true })
 
 const Model = fetchConnection().model(consts.MODEL_NAMES.ASYNC_PLAN, schema)
 

@@ -13,7 +13,7 @@ const schema = new mongoose.Schema({
   jobtype: {
     type: String,
     enum: _.values(consts.JOB_TYPES),
-    default: 'every',
+    default: consts.JOB_TYPES.EVERY,
     required: true
   },
   autoRunAmount: {
