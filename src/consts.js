@@ -25,15 +25,26 @@ const PROCESS = {
   }
 }
 const SERVICE_NAMES = {
-  ERROR_CODE: 'error.code', // 默认错误信息
-  AGENDA: 'agenda', // 后台任务服务
-  APP: 'express', // HTTP/HTTPS服务
-  SCRIPT: 'script', // 根据生命周期运行脚本的服务
-  CHILD_PROCESS: 'child.process', // 子进程管理服务
-  JSONRPC: 'jsonrpc.client', // 基于ws的通用jsonrpc发送和接收服务
-  JSONRPC_SERVER: 'jsonrpc.server', // 基于ws的通用jsonrpc服务端
-  SOCKET_IO: 'socket.io', // Socket.io服务
-  SIO_WORKER: 'socket.io.worker' // Socket.io的worker服务中心
+  /** 默认错误信息 */
+  ERROR_CODE: 'error.code',
+  /** 后台任务服务 */
+  AGENDA: 'agenda',
+  /** HTTP/HTTPS服务 */
+  APP: 'express',
+  /** 根据生命周期运行脚本的服务 */
+  SCRIPT: 'script',
+  /** 子进程管理服务 */
+  CHILD_PROCESS: 'child.process',
+  /** 异步计划任务服务 */
+  ASYNC_PLAN: 'async.plan',
+  /** 基于ws的通用jsonrpc发送和接收服务 */
+  JSONRPC: 'jsonrpc.client',
+  /** 基于ws的通用jsonrpc服务端 */
+  JSONRPC_SERVER: 'jsonrpc.server',
+  /** Socket.io服务 */
+  SOCKET_IO: 'socket.io',
+  /** Socket.io的worker服务中心 */
+  SIO_WORKER: 'socket.io.worker'
 }
 const SIO_EVENTS = {
   INVOKE_METHOD: 'invokeMethod'
@@ -79,6 +90,7 @@ const MODEL_NAMES = {
   ADDRESS: 'address',
   ORDER: 'order',
   DELEGATION: 'delegation',
+  ASYNC_PLAN: 'asyncplan',
   SCAN_TASK: 'scantask',
   TASK_CONFIG: 'admintaskcfg',
   ETH_BATCH: 'ethbatch',
@@ -166,6 +178,24 @@ const DELEGATION_STATE = {
   UNSTAKED: 0,
   UNSTAKING: 1,
   STAKED: 2
+}
+const ASYNC_PLAN_MODES = {
+  SERIES: 'series',
+  PARALLEL: 'parallel'
+}
+const ASYNC_PLAN_SOURCES = {
+  SYSTEM: 'system',
+  ADMIN: 'admin',
+  APP: 'application'
+}
+const ASYNC_PLAN_STATUS = {
+  COMPLETED: 'completed',
+  FAILED: 'failed',
+  ABORTED: 'aborted'
+}
+const ASYNC_PLAN_CATEGORY = {
+  INTERNAL_ORDER: 'internalOrder',
+  EXECUTE_ACTION: 'executeAction'
 }
 const ORDER_DEFAULT_ACTIONS = {
   // UTXO类行为
@@ -297,6 +327,10 @@ module.exports = {
   ORDER_BIZTYPES_ASSET_FLOW,
   ORDER_DEFAULT_ACTIONS,
   DELEGATION_STATE,
+  ASYNC_PLAN_MODES,
+  ASYNC_PLAN_SOURCES,
+  ASYNC_PLAN_STATUS,
+  ASYNC_PLAN_CATEGORY,
   BATCH_STATE,
   ISSUE_TYPES,
   ISSUE_STATE,

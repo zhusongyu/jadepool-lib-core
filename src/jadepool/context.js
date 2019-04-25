@@ -55,6 +55,7 @@ class JadePoolContext {
   get models () {
     const result = {}
     result[consts.MODEL_NAMES.APPLICATION] = result.AppConfig = require('../models/app')
+    result[consts.MODEL_NAMES.ASYNC_PLAN] = result.AsyncPlan = require('../models/asyncPlan')
     result[consts.MODEL_NAMES.CONFIG_DATA] = result.ConfigDat = require('../models/configdat')
     result[consts.MODEL_NAMES.TASK_CONFIG] = result.TaskConfig = require('../models/taskConfig')
     result[consts.MODEL_NAMES.WARNING] = result.Warning = require('../models/warning')
@@ -113,6 +114,9 @@ class JadePoolContext {
           break
         case consts.SERVICE_NAMES.CHILD_PROCESS:
           ClassToRegister = require('../services/process.service')
+          break
+        case consts.SERVICE_NAMES.ASYNC_PLAN:
+          ClassToRegister = require('../services/asyncplan.service')
           break
         default:
           logger.warn(`failed to registerService: ${serviceClass}`)
