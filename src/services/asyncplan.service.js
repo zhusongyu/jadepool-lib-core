@@ -1,3 +1,4 @@
+const _ = require('lodash')
 const BaseService = require('./core')
 const consts = require('../consts')
 const NBError = require('../NBError')
@@ -29,7 +30,7 @@ class Service extends BaseService {
     const taskName = 'async-plan-service-tick'
     agendaNative.define(taskName, { priority: 'high', concurrency: 1 }, async (job, done) => {
       try {
-        await this.everyHandler()
+        await this._everyHandler()
       } catch (err) {
         logger.error(`unexpected`, err)
       }
@@ -50,7 +51,7 @@ class Service extends BaseService {
   /**
    * 运行时
    */
-  async everyHandler () {
+  async _everyHandler () {
     const AsyncPlan = jadepool.getModel(consts.MODEL_NAMES.ASYNC_PLAN)
     let plan
 
@@ -62,11 +63,84 @@ class Service extends BaseService {
       ]
     }).cursor()
     while ((plan = await cursor.next()) !== null) {
-      // plan.run_at = null
-      // plan.started_at = new Date()
+      plan.run_at = null
+      plan.started_at = new Date()
+      logger.tag('Started').log(`plan=${plan._id}`)
+      await plan.save()
     }
 
-    // Step.2 继续老任务
+    // Step.2 检测并执行老任务
+    cursor = AsyncPlan.find({
+      started_at: { $exists: true },
+      status: { $exists: false },
+      finished_at: { $exists: false }
+    }).sort({ started_at: 1 }).cursor()
+    while ((plan = await cursor.next()) !== null) {
+      // 加载refer
+      if (plan.refer) {
+        await plan.populate('refer').execPopulate()
+      }
+      const updateObj = { $set: {} }
+      if (plan.mode === consts.ASYNC_PLAN_MODES.PARALLEL) {
+        // 并行任务
+        const updates = await Promise.all(_.map(plan.plans, this._updatePlanData.bind(this, plan, plan.refer)))
+        updateObj.$set = Object.assign({}, ...updates)
+      } else {
+        // 串行任务
+        const currPlanData = plan.plans[plan.finished_steps]
+        updateObj.$set = await this._updatePlanData(plan, plan.refer, currPlanData, plan.finished_steps)
+      }
+      // 判断是否全局完成任务
+      let finishedSteps = 0 // 已完成
+      let anyError = false // 是否存在错误
+      for (let i = 0; i < plan.plans.length; i++) {
+        const planData = plan.plans
+        finishedSteps = finishedSteps + (!planData.finished_at ? 0 : 1)
+        // 已完成
+        if (!planData.finished_at) {
+          anyError = anyError || !(await this._checkPlanSuccess(planData))
+        }
+      }
+      updateObj.$set.finished_steps = finishedSteps
+      if (finishedSteps === plan.plans.length) {
+        updateObj.$set.finished_at = new Date()
+        const status = anyError ? consts.ASYNC_PLAN_STATUS.FAILED : consts.ASYNC_PLAN_STATUS.COMPLETED
+        updateObj.$set.status = status
+        logger.tag('Finished').log(`plan=${plan._id},status=${status}`)
+      }
+      // 保存订单
+      await AsyncPlan.updateOne({ _id: plan._id }, updateObj).exec()
+    } // end while
+  }
+
+  /**
+   * 更新任务状态，返回mongo update对象
+   * @param {AsyncPlan} plan
+   * @param {AsyncPlan} refer
+   * @param {any} planData
+   * @param {number} idx
+   */
+  async _updatePlanData (plan, refer, planData, idx) {
+    let update = {}
+    // 没启动则需要启动
+    if (!planData.started_at) {
+      update.started_at = new Date()
+      Object.assign(update, await this._execNewPlan(planData, refer && refer.plans[idx]))
+      logger.tag('One Excuted').log(`plan=${plan._id},index=${idx},data=${JSON.stringify(planData)}`)
+      // 更新本地数据
+      Object.assign(planData, update)
+    }
+    // 已启动需要检测是否完成
+    if (!planData.finished_at) {
+      const isCompleted = await this._checkPlanFinished(planData)
+      if (isCompleted) {
+        logger.tag('One Finished').log(`plan=${plan._id},index=${idx}`)
+        update.finished_at = new Date()
+        // 更新本地数据
+        Object.assign(planData, update)
+      }
+    }
+    return _.mapKeys(update, (value, key) => `plans.${idx}.${key}`)
   }
 
   /**
@@ -77,21 +151,83 @@ class Service extends BaseService {
    * @param {string} planData.method 方法名
    * @param {string} planData.params 方法参数
    */
-  async runNewPlan (planData) {
+  async _execNewPlan (planData, referPlanData) {
+    // 检查referPlanData, 若成功则不需要再次执行
+    if (referPlanData) {
+      const isSuccess = await this._checkPlanSuccess(referPlanData)
+      if (isSuccess) {
+        return _.pick(referPlanData, ['result', 'order', 'started_at', 'finished_at'])
+      }
+    }
     // 执行method先
-    const result = await jadepool.invokeMethod(planData.method, planData.namespace, planData.paramsx)
-    // 普通任务直接记录
-    const ret = { result, order: undefined }
+    let result
+    let error
+    try {
+      result = await jadepool.invokeMethod(planData.method, planData.namespace, planData.paramsx)
+    } catch (err) {
+      error = JSON.stringify({ code: err && err.code, message: err && err.message, response: err && err.response })
+      logger.tag('failed-to-exec-plan').warn(error)
+    }
     // Order任务记录订单
+    let orderObjId
     if (planData.category === consts.ASYNC_PLAN_CATEGORY.INTERNAL_ORDER) {
       const Order = jadepool.getModel(consts.MODEL_NAMES.ORDER)
       // 可记录订单
       if (Order && result._id) {
         const order = await Order.findById(result._id).exec()
-        ret.order = order && order._id
+        orderObjId = order && order._id
       }
     }
-    return ret
+    return {
+      result: result && JSON.stringify(result),
+      error,
+      order: orderObjId
+    }
+  }
+
+  /**
+   * 运行新任务
+   * @param {object} planData 计划任务数据
+   * @param {string} planData.category 类别
+   * @param {string} planData.result 结果
+   * @param {string} planData.error 错误
+   * @param {string} planData.order 订单_id
+   */
+  async _checkPlanFinished (planData) {
+    if (planData.category === consts.ASYNC_PLAN_CATEGORY.INTERNAL_ORDER) {
+      const Order = jadepool.getModel(consts.MODEL_NAMES.ORDER)
+      if (Order && planData.order) {
+        const order = await Order.findById(planData.order).exec()
+        return order ? order.state === consts.ORDER_STATE.DONE || order.state === consts.ORDER_STATE.FAILED : false
+      } else {
+        return false
+      }
+    } else {
+      // 普通plan，只要有结果就行了
+      return planData.result || planData.error
+    }
+  }
+  /**
+   * 运行新任务
+   * @param {object} planData 计划任务数据
+   * @param {string} planData.category 类别
+   * @param {string} planData.result 结果
+   * @param {string} planData.error 错误
+   * @param {string} planData.order 订单_id
+   */
+  async _checkPlanSuccess (planData) {
+    if (planData.category === consts.ASYNC_PLAN_CATEGORY.INTERNAL_ORDER) {
+      const Order = jadepool.getModel(consts.MODEL_NAMES.ORDER)
+      if (Order && planData.order) {
+        const order = await Order.findById(planData.order).exec()
+        return order ? order.state === consts.ORDER_STATE.DONE : false
+      } else {
+        return false
+      }
+    } else {
+      // 普通plan
+      return planData.result && !planData.error
+    }
   }
 }
 

@@ -110,6 +110,14 @@ declare class ScriptService extends BaseService {
   runScript (name: string): Promise<any>
 }
 
+/**
+ * 该services依赖agendaService
+ */
+declare class AsyncPlanService extends BaseService {
+  constructor (services : any);
+  initialize (opts: undefined): Promise<void>;
+}
+
 declare class ProcessService extends BaseService {
   constructor (services : any);
   initialize (opts: undefined): Promise<void>;
