@@ -225,6 +225,8 @@ export declare const ORDER_BIZTYPES: {
 export declare const ORDER_DEFAULT_ACTIONS: {
   /** 执行UTXO打散 */
   UTXO_SCATTER: 'utxo-scatter',
+  /** 通用ABI调用 */
+  ABI_METHOD: 'abi-method',
   /** 授权转币 */
   APPROVE: 'approve',
   /** 冻结 */

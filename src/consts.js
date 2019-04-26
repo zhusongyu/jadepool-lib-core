@@ -198,17 +198,25 @@ const ASYNC_PLAN_CATEGORY = {
   EXECUTE_ACTION: 'executeAction'
 }
 const ORDER_DEFAULT_ACTIONS = {
-  // UTXO类行为
+  /** 执行UTXO打散 */
   UTXO_SCATTER: 'utxo-scatter',
-  // ERC20 and asset related
+  /** 通用ABI调用 */
+  ABI_METHOD: 'abi-method',
+  /** 授权转币 */
   APPROVE: 'approve',
+  /** 冻结 */
   FREEZE: 'freeze',
+  /** 烧掉token */
   BURN: 'burn',
-  // Staking
+  /** 代理 */
   DELEGATE: 'delegate',
+  /** 取消代理 */
   UNDELEGATE: 'un-delegate',
+  /** 转代理 */
   REDELEGATE: 're-delegate',
+  /** 申请奖励 */
   CLAIM_REWARD: 'claim-reward',
+  /** 设置奖励地址 */
   SET_REWARD_ADDRESS: 'set-reward-address'
 }
 const BATCH_STATE = {
