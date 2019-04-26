@@ -22,6 +22,7 @@ class Service extends BaseService {
   /**
    * 初始化
    * @param {Object} opts
+   * @param {number} [opts.processEvery=30] 检测间隔
    */
   async initialize (opts) {
     const agendaSrv = jadepool.getService(consts.SERVICE_NAMES.AGENDA)
@@ -37,7 +38,8 @@ class Service extends BaseService {
       // 完成任务
       done()
     })
-    await agendaNative.every('30 seconds', taskName)
+    const sec = opts.processEvery || 30
+    await agendaNative.every(`${sec} seconds`, taskName)
   }
 
   /**
@@ -94,10 +96,10 @@ class Service extends BaseService {
       let finishedSteps = 0 // 已完成
       let anyError = false // 是否存在错误
       for (let i = 0; i < plan.plans.length; i++) {
-        const planData = plan.plans
+        const planData = plan.plans[i]
         finishedSteps = finishedSteps + (!planData.finished_at ? 0 : 1)
         // 已完成
-        if (!planData.finished_at) {
+        if (planData.finished_at) {
           anyError = anyError || !(await this._checkPlanSuccess(planData))
         }
       }
@@ -125,8 +127,8 @@ class Service extends BaseService {
     // 没启动则需要启动
     if (!planData.started_at) {
       update.started_at = new Date()
+      logger.tag('one-exec').log(`plan=${plan._id},index=${idx},data=${JSON.stringify(planData)}`)
       Object.assign(update, await this._execNewPlan(planData, refer && refer.plans[idx]))
-      logger.tag('One Excuted').log(`plan=${plan._id},index=${idx},data=${JSON.stringify(planData)}`)
       // 更新本地数据
       Object.assign(planData, update)
     }
@@ -134,7 +136,7 @@ class Service extends BaseService {
     if (!planData.finished_at) {
       const isCompleted = await this._checkPlanFinished(planData)
       if (isCompleted) {
-        logger.tag('One Finished').log(`plan=${plan._id},index=${idx}`)
+        logger.tag('one-finished').log(`plan=${plan._id},index=${idx}`)
         update.finished_at = new Date()
         // 更新本地数据
         Object.assign(planData, update)
@@ -163,7 +165,7 @@ class Service extends BaseService {
     let result
     let error
     try {
-      result = await jadepool.invokeMethod(planData.method, planData.namespace, planData.paramsx)
+      result = await jadepool.invokeMethod(planData.method, planData.namespace, planData.params)
     } catch (err) {
       error = JSON.stringify({ code: err && err.code, message: err && err.message, response: err && err.response })
       logger.tag('failed-to-exec-plan').warn(error)

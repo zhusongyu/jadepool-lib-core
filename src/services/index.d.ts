@@ -6,6 +6,7 @@ import { ProcessRunner } from '../utils';
 export as namespace services
 
 declare interface AgendaOptions {
+  processEvery: number
   tasks: {
     name: string,
     fileName: string,
@@ -110,12 +111,15 @@ declare class ScriptService extends BaseService {
   runScript (name: string): Promise<any>
 }
 
+declare interface AsyncPlanOptions {
+  processEvery: number;
+}
 /**
  * 该services依赖agendaService
  */
 declare class AsyncPlanService extends BaseService {
   constructor (services : any);
-  initialize (opts: undefined): Promise<void>;
+  initialize (opts: AsyncPlanOptions): Promise<void>;
 }
 
 declare class ProcessService extends BaseService {

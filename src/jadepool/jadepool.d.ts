@@ -64,8 +64,7 @@ declare class JadepoolSingleton {
 	registerService(name: 'socket.io', opts: services.SocketIOOptions): Promise<services.SocketIOService>;
 	registerService(name: 'socket.io.worker', opts: services.SocketIOWorkerOptions): Promise<services.SocketIOWorkerService>;
 	registerService(name: 'child.process', opts: any): Promise<services.ProcessService>;
-	registerService(name: 'async.plan', opts: any): Promise<services.AsyncPlanService>;
-	registerService(name: string | BaseService, opts: any): Promise<BaseService>;
+	registerService(name: 'async.plan', opts: services.AsyncPlanOptions): Promise<services.AsyncPlanService>;
 
 	/**
 	 * 获取服务
@@ -81,7 +80,6 @@ declare class JadepoolSingleton {
 	getService(name: 'socket.io.worker'): services.SocketIOWorkerService;
 	getService(name: 'child.process'): services.ProcessService;
 	getService(name: 'async.plan'): services.AsyncPlanService;
-	getService(name: string): BaseService;
 
 	/**
 	 * 获取模型
