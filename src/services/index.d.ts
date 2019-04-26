@@ -73,6 +73,11 @@ declare class JSONRpcService extends BaseService {
   constructor (services : any);
   initialize (opts: JSONRPCServerOptions): Promise<void>
   /**
+   * 设置可接受rpc方法
+   * @param acceptMethods 方法名
+   */
+  setAcceptMethods(acceptMethods: string[]): void;
+  /**
    * 请求RPC地址
    * @param ws 请求的客户端
    * @param methodName 方法名
