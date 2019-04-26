@@ -52,23 +52,28 @@ class JadePoolContext {
   get config () { return this._config }
 
   /**
-   * Models
-   */
-  get models () {
-    const result = {}
-    result[consts.MODEL_NAMES.APPLICATION] = result.AppConfig = require('../models/app')
-    result[consts.MODEL_NAMES.ASYNC_PLAN] = result.AsyncPlan = require('../models/asyncPlan')
-    result[consts.MODEL_NAMES.CONFIG_DATA] = result.ConfigDat = require('../models/configdat')
-    result[consts.MODEL_NAMES.TASK_CONFIG] = result.TaskConfig = require('../models/taskConfig')
-    result[consts.MODEL_NAMES.WARNING] = result.Warning = require('../models/warning')
-    return result
-  }
-
-  /**
    * @param {string} name
    */
   getModel (name) {
-    return this.models[name]
+    let model
+    switch (name) {
+      case consts.MODEL_NAMES.APPLICATION:
+        model = require('../models/app')
+        break
+      case consts.MODEL_NAMES.ASYNC_PLAN:
+        model = require('../models/asyncPlan')
+        break
+      case consts.MODEL_NAMES.CONFIG_DATA:
+        model = require('../models/configdat')
+        break
+      case consts.MODEL_NAMES.TASK_CONFIG:
+        model = require('../models/taskConfig')
+        break
+      case consts.MODEL_NAMES.WARNING:
+        model = require('../models/warning')
+        break
+    }
+    return model
   }
 
   /**

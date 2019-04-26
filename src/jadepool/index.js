@@ -31,10 +31,6 @@ class JadePool {
    */
   get config () { return this.ctx.config }
   /**
-   * Models
-   */
-  get models () { return this.ctx.models }
-  /**
    * Context
    */
   get Context () { return Context }

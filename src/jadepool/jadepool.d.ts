@@ -49,7 +49,6 @@ declare interface EnvObject {
 declare class JadepoolSingleton {
 	public env: EnvObject
 	public config: {}
-	public models: {}
   
 	/**
 	 * 注册服务
