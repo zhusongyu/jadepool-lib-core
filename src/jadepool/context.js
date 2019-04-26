@@ -1,8 +1,10 @@
 const _ = require('lodash')
 const consts = require('../consts')
+const NBError = require('../NBError')
 const buildEnvObject = require('./env')
 const ServiceLib = require('./serviceLib')
 const Logger = require('@jadepool/logger')
+
 const logger = Logger.of('JadePool')
 
 class JadePoolContext {
@@ -76,6 +78,36 @@ class JadePoolContext {
   async fetchAppConfig (id) {
     const AppConfig = this.getModel(consts.MODEL_NAMES.APPLICATION)
     return AppConfig.findOne({ id }).exec()
+  }
+
+  /**
+   * 发起async plan
+   * @param {{category: string, namespace?: string, method: string, params: any}[]} plans 计划任务
+   * @param {'series'|'parallel'} mode 运行模式
+   * @param {'system'|'admin'|'application'} source 来源
+   * @param {string} sourceId 来源id
+   * @param {Date} runAt 运行时机
+   * @param {ObjectId} referPlan 引用plan
+   */
+  async createAsyncPlan (plans, mode, source, sourceId = undefined, runAt = new Date(), referPlan = undefined) {
+    const hasWrongPlan = _.some(plans, p => !_.includes(_.values(consts.ASYNC_PLAN_CATEGORY), p.category) || !p.method)
+    if (hasWrongPlan) {
+      throw new NBError(10001, `wrong plans=${JSON.stringify(plans)}`)
+    }
+    const AsyncPlan = this.getModel(consts.MODEL_NAMES.ASYNC_PLAN)
+    const plan = new AsyncPlan({
+      // 基础信息
+      mode,
+      source,
+      sourceId,
+      // 设置计划
+      plans: plans.map(p => _.pick(p, ['category', 'namespace', 'method', 'params'])),
+      run_at: runAt,
+      // 参考
+      refer: referPlan
+    })
+    await plan.save()
+    return plan
   }
 
   /**

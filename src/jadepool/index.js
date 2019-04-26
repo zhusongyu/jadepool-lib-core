@@ -50,7 +50,7 @@ class JadePool {
    * @returns {BaseService}
    */
   async registerService (serviceClass, opts) {
-    return this.ctx.registerService(serviceClass, opts)
+    return this.ctx.registerService.apply(this.ctx, arguments)
   }
   /**
    * 获取服务
@@ -58,7 +58,7 @@ class JadePool {
    * @returns {BaseService}
    */
   getService (name) {
-    return this.ctx.getService(name)
+    return this.ctx.getService.apply(this.ctx, arguments)
   }
 
   /**
@@ -66,7 +66,7 @@ class JadePool {
    * @param {string} name
    */
   getModel (name) {
-    return this.ctx.getModel(name)
+    return this.ctx.getModel.apply(this.ctx, arguments)
   }
 
   /**
@@ -74,7 +74,14 @@ class JadePool {
    * @param {string} id
    */
   fetchAppConfig (id) {
-    return this.ctx.fetchAppConfig(id)
+    return this.ctx.fetchAppConfig.apply(this.ctx, arguments)
+  }
+
+  /**
+   * 发起async plan
+   */
+  async createAsyncPlan () {
+    return this.ctx.createAsyncPlan.apply(this.ctx, arguments)
   }
 
   /**

@@ -1,11 +1,9 @@
-import mongoose from 'mongoose'
-import BaseService = require('../services/core')
-import { AppDocument } from '../models'
+import { JadepoolSingleton } from './jadepool'
 
 /**
  * Jadepool上下文
  */
-declare class JadePoolContext {
+declare class JadePoolContext extends JadepoolSingleton {
 	/**
 	 * 上下文构造函数
 	 * @param serverType 服务类型名
@@ -14,31 +12,6 @@ declare class JadePoolContext {
 	 * @param configObj 配置文件对象
 	 */
 	constructor (serverType: string, version: string, invokeMethodFunc: Function, configObj : object);
-		
-	/**
-	 * 注册服务
-	 * @param serviceClass 
-	 * @param opts 
-	 */
-	registerService(serviceClass : string | BaseService, opts : any): Promise<BaseService>;
-		
-	/**
-	 * 获取服务
-	 * @param name
-	 */
-	getService(name: string): BaseService;
-
-	/**
-	 * 获取模型
-	 * @param name
-	 */
-	getModel(name: string): mongoose.Model<mongoose.Document>;
-
-	/**
-	 * 获取应用信息
-	 * @param id
-	 */
-	fetchAppConfig (id: string): Promise<AppDocument>;
 
 	/**
 	 * Jadepool初始化
@@ -58,14 +31,6 @@ declare class JadePoolContext {
 	 * @param plugin 
 	 */
 	protected hookPluginUnmounted(jadepool: any, plugin : any): void;
-
-	/**
-	 * 进行Methods调用
-	 * @param methodName 
-	 * @param namespace 
-	 * @param args
-	 */
-	invokeMethod(methodName: string, namespace: string | null, ...args: any): Promise<void>;
 }
 
 export = JadePoolContext;
