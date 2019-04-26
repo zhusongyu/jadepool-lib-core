@@ -17,7 +17,7 @@ const schema = new Schema({
   },
   parent: { // 该配置内容的核心父级，通常为大类别例如区块链分类等
     type: Schema.Types.ObjectId,
-    ref: 'configdat'
+    ref: consts.MODEL_NAMES.CONFIG_DATA
   },
   customized: { // 判断该字段是否为客户自定义配置
     type: Boolean,
