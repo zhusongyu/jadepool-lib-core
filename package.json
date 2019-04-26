@@ -3,6 +3,11 @@
   "version": "0.8.1",
   "description": "Jadepool core library",
   "main": "index.js",
+  "files": [
+    "src",
+    "index.d.ts",
+    "index.js"
+  ],
   "scripts": {
     "test": "mocha test/**/*.test.js"
   },
