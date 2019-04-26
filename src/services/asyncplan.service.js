@@ -196,18 +196,19 @@ class Service extends BaseService {
    * @param {string} planData.order 订单_id
    */
   async _checkPlanFinished (planData) {
+    // 普通plan，只要有结果就行了
+    let isFinished = planData.result || planData.error
     if (planData.category === consts.ASYNC_PLAN_CATEGORY.INTERNAL_ORDER) {
       const Order = jadepool.getModel(consts.MODEL_NAMES.ORDER)
       if (Order && planData.order) {
         const order = await Order.findById(planData.order).exec()
-        return order ? order.state === consts.ORDER_STATE.DONE || order.state === consts.ORDER_STATE.FAILED : false
+        isFinished = isFinished && (order ? order.state === consts.ORDER_STATE.DONE || order.state === consts.ORDER_STATE.FAILED : false)
       } else {
-        return false
+        // 没有order? 那肯定错了
+        isFinished = true
       }
-    } else {
-      // 普通plan，只要有结果就行了
-      return planData.result || planData.error
     }
+    return isFinished
   }
   /**
    * 运行新任务
@@ -218,18 +219,18 @@ class Service extends BaseService {
    * @param {string} planData.order 订单_id
    */
   async _checkPlanSuccess (planData) {
+    // 普通plan
+    let isSucceed = planData.result && !planData.error
     if (planData.category === consts.ASYNC_PLAN_CATEGORY.INTERNAL_ORDER) {
       const Order = jadepool.getModel(consts.MODEL_NAMES.ORDER)
       if (Order && planData.order) {
         const order = await Order.findById(planData.order).exec()
-        return order ? order.state === consts.ORDER_STATE.DONE : false
+        isSucceed = isSucceed && (order ? order.state === consts.ORDER_STATE.DONE : false)
       } else {
-        return false
+        isSucceed = false
       }
-    } else {
-      // 普通plan
-      return planData.result && !planData.error
     }
+    return isSucceed
   }
 }
 
