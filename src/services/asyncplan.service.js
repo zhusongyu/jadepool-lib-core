@@ -11,7 +11,7 @@ class Service extends BaseService {
    * @param {Object} services 服务列表
    */
   constructor (services) {
-    super(consts.SERVICE_NAMES.CHILD_PROCESS, services)
+    super(consts.SERVICE_NAMES.ASYNC_PLAN, services)
     // check required
     const agendaSrv = jadepool.getService(consts.SERVICE_NAMES.AGENDA)
     if (!agendaSrv) {
