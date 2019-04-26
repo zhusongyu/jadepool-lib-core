@@ -114,7 +114,7 @@ class JSONRPCService extends BaseService {
 
   /**
    * 设置可接受rpc方法
-   * @param {string[]} opts.acceptMethods
+   * @param {string[]} acceptMethods
    */
   setAcceptMethods (acceptMethods) {
     // 定义acceptMethods

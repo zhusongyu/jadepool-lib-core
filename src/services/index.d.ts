@@ -94,7 +94,21 @@ declare interface RequestOptions {
 declare class JSONRpcClientService extends BaseService {
   constructor (services : any);
   initialize (opts: JSONRPCOptions): Promise<void>
+  /**
+   * 设置可接受rpc方法
+   * @param acceptMethods 方法名
+   */
+  setAcceptMethods(acceptMethods: string[]): void;
+  /**
+   * 加入ws RPC服务器
+   * @param url
+   * @param opts
+   */
   joinRPCServer (url: string, opts?: RequestOptions): Promise<void>
+  /**
+   * 关闭ws RPC服务器
+   * @param url
+   */
   closeRPCServer (url: string): Promise<void>
   getClientReadyState (url: string): number
   /**
