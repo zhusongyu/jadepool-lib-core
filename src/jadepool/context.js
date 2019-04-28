@@ -325,6 +325,12 @@ class JadePoolContext {
       return this._invokeMethodFunc.apply(null, arguments)
     }
   }
+  /**
+   * 该方法是否可调用
+   */
+  async invokeMethodValid (methodName, namespace = null) {
+    return true
+  }
 }
 
 module.exports = JadePoolContext

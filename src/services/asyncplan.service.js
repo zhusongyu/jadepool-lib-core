@@ -128,11 +128,15 @@ class Service extends BaseService {
     let update = {}
     // 没启动则需要启动
     if (!planData.started_at) {
-      update.started_at = new Date()
-      logger.tag('one-exec').log(`plan=${plan._id},index=${idx},data=${JSON.stringify(planData)}`)
-      Object.assign(update, await this._execNewPlan(planData, refer && refer.plans[idx]))
-      // 更新本地数据
-      Object.assign(planData, update)
+      const methodValid = await jadepool.invokeMethodValid(planData.method, planData.namespace)
+      // 仅该方法可用时进行调用
+      if (methodValid) {
+        update.started_at = new Date()
+        logger.tag('one-exec').log(`plan=${plan._id},index=${idx},data=${JSON.stringify(planData)}`)
+        Object.assign(update, await this._execNewPlan(planData, refer && refer.plans[idx]))
+        // 更新本地数据
+        Object.assign(planData, update)
+      }
     }
     // 已启动需要检测是否完成
     if (!planData.finished_at) {

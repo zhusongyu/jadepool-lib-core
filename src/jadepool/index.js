@@ -86,6 +86,12 @@ class JadePool {
   async invokeMethod () {
     return this.ctx.invokeMethod.apply(this.ctx, arguments)
   }
+  /**
+   * 方法检测
+   */
+  async invokeMethodValid () {
+    return this.ctx.invokeMethodValid.apply(this.ctx, arguments)
+  }
 
   /**
    * 加载全部插件

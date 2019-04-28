@@ -93,7 +93,7 @@ declare class JadepoolSingleton {
 	 * 获取应用信息
 	 * @param id
 	 */
-	fetchAppConfig (id: string): Promise<AppDocument>;
+	fetchAppConfig(id: string): Promise<AppDocument>;
 
   /**
 	 * 发起async plan
@@ -104,7 +104,7 @@ declare class JadepoolSingleton {
 	 * @param runAt 运行时机
 	 * @param referPlan 引用plan
 	 */
-  createAsyncPlan (plans: OnePlan[], mode: 'series'|'parallel', source: 'system'|'admin'|'application', sourceId?: string, runAt?: Date, referPlan?: AsyncPlanDocument): Promise<AsyncPlanDocument>
+  createAsyncPlan(plans: OnePlan[], mode: 'series'|'parallel', source: 'system'|'admin'|'application', sourceId?: string, runAt?: Date, referPlan?: AsyncPlanDocument): Promise<AsyncPlanDocument>
 	
 	/**
 	 * 进行Methods调用
@@ -113,4 +113,11 @@ declare class JadepoolSingleton {
 	 * @param args
 	 */
 	invokeMethod(methodName: string, namespace: string | null, ...args: any): Promise<void>;
+
+	/**
+	 * 该方法是否可调用
+	 * @param methodName 方法名
+	 * @param namespace namespace
+	 */
+	invokeMethodValid(methodName: string, namespace: string | null): Promise<boolean>;
 }
