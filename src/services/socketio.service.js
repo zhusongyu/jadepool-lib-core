@@ -208,6 +208,22 @@ class SocketService extends BaseService {
   }
 
   /**
+   * 为result补充namespace和sid参数
+   * @param {object|array} result 仅Object和Array可补充
+   * @param {string} namespace
+   * @param {string} sid
+   */
+  _resultPostHandler (result, namespace, sid) {
+    const resultBasicInfo = { namespace, sid }
+    if (_.isArray(result)) {
+      result = _.map(result, one => _.isObject(one) ? Object.assign(one, resultBasicInfo) : one)
+    } else if (_.isObject(result)) {
+      result = Object.assign(result, resultBasicInfo)
+    }
+    return result
+  }
+
+  /**
    * 调用内部跨进程方法
    * @param {String} namespace inteneralKey,通常为chain的Key
    * @param {String} methodName 方法名
@@ -225,9 +241,7 @@ class SocketService extends BaseService {
     // 执行远程调用
     logger.tag(`Invoke:${namespace}/Worker.${worker.sid}/${methodName}`).logObj(args)
     let result = await _invokeInternalMethod(worker.socket, methodName, args)
-    result.namespace = namespace
-    result.sid = worker.sid
-    return result
+    return this._resultPostHandler(result, namespace, worker.sid)
   }
 
   /**
@@ -251,9 +265,7 @@ class SocketService extends BaseService {
     // 执行远程调用
     logger.tag(`Invoke:${namespace}/Worker.${worker.sid}/${methodName}`).logObj(args)
     let result = await _invokeInternalMethod(worker.socket, methodName, args)
-    result.namespace = namespace
-    result.sid = worker.sid
-    return result
+    return this._resultPostHandler(result, namespace, worker.sid)
   }
 
   /**
@@ -274,13 +286,8 @@ class SocketService extends BaseService {
     const errors = []
     socketMap.forEach(worker => {
       allPromises.push(_invokeInternalMethod(worker.socket, methodName, args)
-        .then(res => {
-          res = res || {}
-          res.namespace = namespace
-          res.sid = worker.sid
-          return res
-        })
-        .catch(err => errors.push(err.message)))
+        .then(res => this._resultPostHandler(res || {}, namespace, worker.sid))
+        .catch(err => errors.push(err && err.message)))
     })
     let result = (await Promise.all(allPromises)).filter(res => res !== undefined && res !== null)
     if (errors.length > 0) {
