@@ -45,25 +45,13 @@ class Service extends BaseService {
   async initialize (opts) {
     /** 是否需要验证 */
     this.noAuth = !!opts.noAuth
-    // methods设置
-    let methods = []
-    if (opts.acceptMethods) {
-      if (typeof opts.acceptMethods === 'string') {
-        methods = opts.acceptMethods.split(',')
-      } else if (Array.isArray(opts.acceptMethods)) {
-        methods = opts.acceptMethods
-      }
-    }
-    /**
-     * 可接受的方法调用
-     * @type {String[]}
-     */
-    this.acceptMethods = methods
     /**
      * 过期时间
      * @type {number}
      */
     this.timeout = opts.timeout || 120
+    // 设置acceptMethods
+    this.setAcceptMethods(opts.acceptMethods)
   }
 
   async onDestroy () {
@@ -71,6 +59,27 @@ class Service extends BaseService {
       socket.removeAllListeners()
       socket.terminate()
     })
+  }
+
+  /**
+   * 设置可接受rpc方法
+   * @param {string[]} acceptMethods
+   */
+  setAcceptMethods (acceptMethods) {
+    // methods设置
+    let methods = []
+    if (acceptMethods) {
+      if (typeof acceptMethods === 'string') {
+        methods = acceptMethods.split(',')
+      } else if (Array.isArray(acceptMethods)) {
+        methods = acceptMethods
+      }
+    }
+    /**
+     * 可接受的方法调用
+     * @type {String[]}
+     */
+    this.acceptMethods = methods
   }
 
   /**

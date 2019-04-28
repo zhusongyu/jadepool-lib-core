@@ -98,16 +98,9 @@ class JSONRPCService extends BaseService {
     })
     this.wss.once('listening', () => { logger.log(`JSONRPC Service listen to ${host}:${port}`) })
 
-    // 定义acceptMethods
-    let methods = []
-    if (opts.acceptMethods) {
-      if (typeof opts.acceptMethods === 'string') {
-        methods = opts.acceptMethods.split(',')
-      } else if (Array.isArray(opts.acceptMethods)) {
-        methods = opts.acceptMethods
-      }
-    }
-    this.acceptMethods = methods
+    // 设置acceptMethods
+    this.setAcceptMethods(opts.acceptMethods)
+
     // 设置Websocket.Server的事件监听
     this.wss.on('connection', (client) => {
       client.addListener('close', (code, reason) => {
@@ -118,6 +111,24 @@ class JSONRPCService extends BaseService {
       })
     })
   }
+
+  /**
+   * 设置可接受rpc方法
+   * @param {string[]} acceptMethods
+   */
+  setAcceptMethods (acceptMethods) {
+    // 定义acceptMethods
+    let methods = []
+    if (acceptMethods) {
+      if (typeof acceptMethods === 'string') {
+        methods = acceptMethods.split(',')
+      } else if (Array.isArray(acceptMethods)) {
+        methods = acceptMethods
+      }
+    }
+    this.acceptMethods = methods
+  }
+
   /**
    * 请求RPC地址
    * @param {WebSocket} client 请求的客户端

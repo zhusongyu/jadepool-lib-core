@@ -36,6 +36,7 @@ class AgendaService extends BaseService {
   /**
    * 初始化
    * @param {Object} opts 传入的初始化参数
+   * @param {number} opts.processEvery 扫描db间隔秒数
    * @param {{fileName: String, name: String, chainKey: String}[]} [opts.tasks=undefined] 任务配置
    */
   async initialize (opts) {
@@ -64,7 +65,7 @@ class AgendaService extends BaseService {
     // Ageneda实例
     this._agenda = new Agenda({
       mongo: mongoConn.db,
-      processEvery: '10 seconds',
+      processEvery: `${opts.processEvery || 10} seconds`,
       maxConcurrency: 30,
       defaultConcurrency: 1
     })
