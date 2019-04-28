@@ -1,8 +1,10 @@
 const _ = require('lodash')
 const consts = require('../consts')
+const NBError = require('../NBError')
 const buildEnvObject = require('./env')
 const ServiceLib = require('./serviceLib')
 const Logger = require('@jadepool/logger')
+
 const logger = Logger.of('JadePool')
 
 class JadePoolContext {
@@ -50,22 +52,18 @@ class JadePoolContext {
   get config () { return this._config }
 
   /**
-   * Models
-   */
-  get models () {
-    const result = {}
-    result[consts.MODEL_NAMES.APPLICATION] = result.AppConfig = require('../models/app')
-    result[consts.MODEL_NAMES.CONFIG_DATA] = result.ConfigDat = require('../models/configdat')
-    result[consts.MODEL_NAMES.TASK_CONFIG] = result.TaskConfig = require('../models/taskConfig')
-    result[consts.MODEL_NAMES.WARNING] = result.Warning = require('../models/warning')
-    return result
-  }
-
-  /**
    * @param {string} name
    */
   getModel (name) {
-    return this.models[name]
+    // 预设初始化数个默认Models, 瑶池任意进程均需要
+    const models = {
+      [consts.MODEL_NAMES.APPLICATION]: require('../models/app'),
+      [consts.MODEL_NAMES.ASYNC_PLAN]: require('../models/asyncPlan'),
+      [consts.MODEL_NAMES.CONFIG_DATA]: require('../models/configdat'),
+      [consts.MODEL_NAMES.TASK_CONFIG]: require('../models/taskConfig'),
+      [consts.MODEL_NAMES.WARNING]: require('../models/warning')
+    }
+    return models[name]
   }
 
   /**
@@ -75,6 +73,36 @@ class JadePoolContext {
   async fetchAppConfig (id) {
     const AppConfig = this.getModel(consts.MODEL_NAMES.APPLICATION)
     return AppConfig.findOne({ id }).exec()
+  }
+
+  /**
+   * 发起async plan
+   * @param {{category: string, namespace?: string, method: string, params: any}[]} plans 计划任务
+   * @param {'series'|'parallel'} mode 运行模式
+   * @param {'system'|'admin'|'application'} source 来源
+   * @param {string} sourceId 来源id
+   * @param {Date} runAt 运行时机
+   * @param {ObjectId} referPlan 引用plan
+   */
+  async createAsyncPlan (plans, mode, source, sourceId = undefined, runAt = new Date(), referPlan = undefined) {
+    const hasWrongPlan = _.some(plans, p => !_.includes(_.values(consts.ASYNC_PLAN_CATEGORY), p.category) || !p.method)
+    if (hasWrongPlan) {
+      throw new NBError(10001, `wrong plans=${JSON.stringify(plans)}`)
+    }
+    const AsyncPlan = this.getModel(consts.MODEL_NAMES.ASYNC_PLAN)
+    const plan = new AsyncPlan({
+      // 基础信息
+      mode,
+      source,
+      sourceId,
+      // 设置计划
+      plans: plans.map(p => _.pick(p, ['category', 'namespace', 'method', 'params'])),
+      run_at: runAt,
+      // 参考
+      refer: referPlan
+    })
+    await plan.save()
+    return plan
   }
 
   /**
@@ -113,6 +141,9 @@ class JadePoolContext {
           break
         case consts.SERVICE_NAMES.CHILD_PROCESS:
           ClassToRegister = require('../services/process.service')
+          break
+        case consts.SERVICE_NAMES.ASYNC_PLAN:
+          ClassToRegister = require('../services/asyncplan.service')
           break
         default:
           logger.warn(`failed to registerService: ${serviceClass}`)
@@ -293,6 +324,12 @@ class JadePoolContext {
       // 含有namespace的调用将不进行MethodWrapper
       return this._invokeMethodFunc.apply(null, arguments)
     }
+  }
+  /**
+   * 该方法是否可调用
+   */
+  async invokeMethodValid (methodName, namespace = null) {
+    return true
   }
 }
 

@@ -6,6 +6,7 @@ import { ProcessRunner } from '../utils';
 export as namespace services
 
 declare interface AgendaOptions {
+  processEvery: number
   tasks: {
     name: string,
     fileName: string,
@@ -72,6 +73,11 @@ declare class JSONRpcService extends BaseService {
   constructor (services : any);
   initialize (opts: JSONRPCServerOptions): Promise<void>
   /**
+   * 设置可接受rpc方法
+   * @param acceptMethods 方法名
+   */
+  setAcceptMethods(acceptMethods: string[]): void;
+  /**
    * 请求RPC地址
    * @param ws 请求的客户端
    * @param methodName 方法名
@@ -88,7 +94,21 @@ declare interface RequestOptions {
 declare class JSONRpcClientService extends BaseService {
   constructor (services : any);
   initialize (opts: JSONRPCOptions): Promise<void>
+  /**
+   * 设置可接受rpc方法
+   * @param acceptMethods 方法名
+   */
+  setAcceptMethods(acceptMethods: string[]): void;
+  /**
+   * 加入ws RPC服务器
+   * @param url
+   * @param opts
+   */
   joinRPCServer (url: string, opts?: RequestOptions): Promise<void>
+  /**
+   * 关闭ws RPC服务器
+   * @param url
+   */
   closeRPCServer (url: string): Promise<void>
   getClientReadyState (url: string): number
   /**
@@ -108,6 +128,17 @@ declare class ScriptService extends BaseService {
    * 运行脚本
    */
   runScript (name: string): Promise<any>
+}
+
+declare interface AsyncPlanOptions {
+  processEvery: number;
+}
+/**
+ * 该services依赖agendaService
+ */
+declare class AsyncPlanService extends BaseService {
+  constructor (services : any);
+  initialize (opts: AsyncPlanOptions): Promise<void>;
 }
 
 declare class ProcessService extends BaseService {

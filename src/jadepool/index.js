@@ -31,10 +31,6 @@ class JadePool {
    */
   get config () { return this.ctx.config }
   /**
-   * Models
-   */
-  get models () { return this.ctx.models }
-  /**
    * Context
    */
   get Context () { return Context }
@@ -50,7 +46,7 @@ class JadePool {
    * @returns {BaseService}
    */
   async registerService (serviceClass, opts) {
-    return this.ctx.registerService(serviceClass, opts)
+    return this.ctx.registerService.apply(this.ctx, arguments)
   }
   /**
    * 获取服务
@@ -58,7 +54,7 @@ class JadePool {
    * @returns {BaseService}
    */
   getService (name) {
-    return this.ctx.getService(name)
+    return this.ctx.getService.apply(this.ctx, arguments)
   }
 
   /**
@@ -66,7 +62,7 @@ class JadePool {
    * @param {string} name
    */
   getModel (name) {
-    return this.ctx.getModel(name)
+    return this.ctx.getModel.apply(this.ctx, arguments)
   }
 
   /**
@@ -74,7 +70,14 @@ class JadePool {
    * @param {string} id
    */
   fetchAppConfig (id) {
-    return this.ctx.fetchAppConfig(id)
+    return this.ctx.fetchAppConfig.apply(this.ctx, arguments)
+  }
+
+  /**
+   * 发起async plan
+   */
+  async createAsyncPlan () {
+    return this.ctx.createAsyncPlan.apply(this.ctx, arguments)
   }
 
   /**
@@ -82,6 +85,12 @@ class JadePool {
    */
   async invokeMethod () {
     return this.ctx.invokeMethod.apply(this.ctx, arguments)
+  }
+  /**
+   * 方法检测
+   */
+  async invokeMethodValid () {
+    return this.ctx.invokeMethodValid.apply(this.ctx, arguments)
   }
 
   /**
