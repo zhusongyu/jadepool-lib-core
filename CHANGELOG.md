@@ -1,5 +1,25 @@
 # Change Logs
 
+## V0.9.0
+
+Feature:
+
+* 新增通用Model: AsyncPlan 用于记录异步队列任务，在默认context中已加载
+* 新增Service：asyncplan.service 用于监控和运行异步任务
+* consts中新增AsyncPlan相关常量
+* jadepool新增方法：createAsyncPlan 可用于创建新的异步队列任务
+* jadepool新增方法可用性检验函数：invokeMethodValid
+* 新增asyncplan相关测试用例
+
+Improvement:
+
+* agenda.service添加参数opts.processEvery
+* jsonrpc.service和rpclient.service导出方法setAcceptMethods，可自行设置acceptMethods
+
+Fixes:
+
+* socketio.service在调用分发调用的result为数组时，依然可以自动添加namespace和sid
+
 ## V0.8.1
 
 Fixes:
