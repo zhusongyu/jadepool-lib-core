@@ -175,7 +175,7 @@ class Service extends BaseService {
     if (planData.category === consts.ASYNC_PLAN_CATEGORY.INTERNAL_ORDER) {
       const Order = jadepool.getModel(consts.MODEL_NAMES.ORDER)
       // 可记录订单
-      if (Order && result._id) {
+      if (Order && result && result._id) {
         const order = await Order.findById(result._id).exec()
         orderObjId = order && order._id
       }
