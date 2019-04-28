@@ -58,6 +58,12 @@ const schema = new Schema({
       },
       // 该字段为选填，即为该任务执行内容的参数
       params: Schema.Types.Mixed,
+      // 当此值大于0时，会根据refer order记录快速设置result
+      fastRetries: {
+        type: Number,
+        default: 3,
+        required: false
+      },
       // EXECUTE_ACTION类型完成条件: result/error被设置
       result: String, // JSON.stringify
       error: String, // JSON.stringify

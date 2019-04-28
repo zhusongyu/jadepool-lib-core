@@ -90,7 +90,9 @@ class Service extends BaseService {
       } else {
         // 串行任务
         const currPlanData = plan.plans[plan.finished_steps]
-        updateObj.$set = await this._updatePlanData(plan, plan.refer, currPlanData, plan.finished_steps)
+        if (currPlanData) {
+          updateObj.$set = await this._updatePlanData(plan, plan.refer, currPlanData, plan.finished_steps)
+        }
       }
       // 判断是否全局完成任务
       let finishedSteps = 0 // 已完成
@@ -157,8 +159,11 @@ class Service extends BaseService {
     // 检查referPlanData, 若成功则不需要再次执行
     if (referPlanData) {
       const isSuccess = await this._checkPlanSuccess(referPlanData)
-      if (isSuccess) {
-        return _.pick(referPlanData, ['result', 'order', 'started_at', 'finished_at'])
+      // 一次success最多3次自动重试
+      if (isSuccess && referPlanData.fastRetries) {
+        const result = _.pick(referPlanData, ['result', 'order', 'started_at', 'finished_at'])
+        result.fastRetries = (referPlanData.fastRetries || 1) - 1
+        return result
       }
     }
     // 执行method先

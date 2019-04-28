@@ -55,25 +55,15 @@ class JadePoolContext {
    * @param {string} name
    */
   getModel (name) {
-    let model
-    switch (name) {
-      case consts.MODEL_NAMES.APPLICATION:
-        model = require('../models/app')
-        break
-      case consts.MODEL_NAMES.ASYNC_PLAN:
-        model = require('../models/asyncPlan')
-        break
-      case consts.MODEL_NAMES.CONFIG_DATA:
-        model = require('../models/configdat')
-        break
-      case consts.MODEL_NAMES.TASK_CONFIG:
-        model = require('../models/taskConfig')
-        break
-      case consts.MODEL_NAMES.WARNING:
-        model = require('../models/warning')
-        break
+    // 预设初始化数个默认Models, 瑶池任意进程均需要
+    const models = {
+      [consts.MODEL_NAMES.APPLICATION]: require('../models/app'),
+      [consts.MODEL_NAMES.ASYNC_PLAN]: require('../models/asyncPlan'),
+      [consts.MODEL_NAMES.CONFIG_DATA]: require('../models/configdat'),
+      [consts.MODEL_NAMES.TASK_CONFIG]: require('../models/taskConfig'),
+      [consts.MODEL_NAMES.WARNING]: require('../models/warning')
     }
-    return model
+    return models[name]
   }
 
   /**
