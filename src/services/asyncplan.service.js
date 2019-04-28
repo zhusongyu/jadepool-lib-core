@@ -139,7 +139,7 @@ class Service extends BaseService {
       }
     }
     // 已启动需要检测是否完成
-    if (!planData.finished_at) {
+    if (planData.started_at && !planData.finished_at) {
       const isCompleted = await this._checkPlanFinished(planData)
       if (isCompleted) {
         logger.tag('one-finished').log(`plan=${plan._id},index=${idx}`)
@@ -214,7 +214,7 @@ class Service extends BaseService {
         isFinished = isFinished && (order ? order.state === consts.ORDER_STATE.DONE || order.state === consts.ORDER_STATE.FAILED : false)
       } else {
         // 没有order? 那肯定错了
-        isFinished = true
+        isFinished = false
       }
     }
     return isFinished
