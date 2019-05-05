@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.9.1
+
+Fixes:
+
+* 当执行plan时有error，也应该算作完成
+
 ## V0.9.0
 
 Feature:

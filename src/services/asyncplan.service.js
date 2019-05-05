@@ -213,8 +213,13 @@ class Service extends BaseService {
         const order = await Order.findById(planData.order).exec()
         isFinished = isFinished && (order ? order.state === consts.ORDER_STATE.DONE || order.state === consts.ORDER_STATE.FAILED : false)
       } else {
-        // 没有order? 那肯定错了
-        isFinished = false
+        if (planData.error) {
+          // 有error说明完成了额
+          isFinished = true
+        } else {
+          // 没有order? 估计代码有问题hold住吧
+          isFinished = false
+        }
       }
     }
     return isFinished
