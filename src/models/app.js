@@ -1,12 +1,17 @@
 const _ = require('lodash')
 const mongoose = require('mongoose')
 const consts = require('../consts')
+const jp = require('../jadepool')
 const { fetchConnection } = require('../utils/db')
 const Schema = mongoose.Schema
 
 const schema = new Schema({
   id: { type: String, required: true, unique: true },
   desc: String,
+  wallet: { // 指向钱包
+    type: Schema.Types.ObjectId,
+    ref: consts.MODEL_NAMES.WALLET
+  },
   // 应用权限信息
   resouces: [
     {
@@ -46,8 +51,37 @@ const schema = new Schema({
 })
 
 schema.index({ id: 1 }, { name: 'uniqueIndex', unique: true })
+schema.index({ wallet: 1 }, { name: 'walletIndex' })
 
 const AppConfig = fetchConnection(consts.DB_KEYS.CONFIG).model(consts.MODEL_NAMES.APPLICATION, schema)
+
+/**
+ * 设置wallet
+ */
+AppConfig.prototype.setWallet = async function (wallet) {
+  const walletId = wallet._id || Schema.Types.ObjectId(wallet)
+  const Wallet = jp.getModel(consts.MODEL_NAMES.WALLET)
+  const w = await Wallet.findById(walletId).exec()
+  if (!w) return this
+  // set and save
+  this.wallet = walletId
+  await this.save()
+  return this
+}
+
+/**
+ * 获取该app指向的Wallet信息
+ */
+AppConfig.prototype.getWallet = async function () {
+  const Wallet = jp.getModel(consts.MODEL_NAMES.WALLET)
+  let wallet
+  if (this.wallet) {
+    wallet = await Wallet.findById(wallet).exec()
+  } else {
+    wallet = await Wallet.findOne({ name: consts.DEFAULT_KEY }).exec()
+  }
+  return wallet
+}
 
 /**
  * 验证是否具有某权限

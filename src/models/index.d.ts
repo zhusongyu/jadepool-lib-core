@@ -18,6 +18,8 @@ declare interface AppDocument extends mongoose.Document {
   id: string
   /** 应用描述 */
   desc?: string
+  /** 指向wallet */
+  wallet?: mongoose.Schema.Types.ObjectId
   /** RESTFUL权限 */
   resouces: Rule[]
   /** 验签公钥 */
@@ -26,6 +28,15 @@ declare interface AppDocument extends mongoose.Document {
   callbacks: Object
   /** 额外信息 */
   data: Object
+  /**
+   * 设置该app使用的wallet
+   * @param WalletDocument 
+   */
+  setWallet (wallet: WalletDocument | mongoose.Schema.Types.ObjectId | string): Promise<AppDocument>
+  /**
+   * 获取该app指向的Wallet信息
+   */
+  getWallet (): Promise<WalletDocument>
   /**
    * 验证是否具有某权限
    * @param action 权限名
