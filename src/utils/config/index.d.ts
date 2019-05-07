@@ -1,16 +1,18 @@
+import { WalletSourceType, WalletSourceConfig, WalletCoinInfo } from "../../models";
+
 interface CoinConfig {
-  name: string,
-  chain: string,
-  chainKey: string,
+  name: string
+  chain: string
+  chainKey: string
   /** 该币种是否启用 */
-  tokenEnabled: boolean,
+  tokenEnabled: boolean
   /** 该币种充提是否启用 */
-  depositWithdrawEnabled: boolean,
-  type: string,
-  rate: number,
+  depositWithdrawEnabled: boolean
+  type: string
+  rate: number
   basic: {
     Rate: number
-  },
+  }
   jadepool: {
     RescanMode: string
     /** 高水位 */
@@ -30,54 +32,63 @@ interface CoinConfig {
     MergedBalance?: boolean
     AvailableUtxoCap?: number
     MaxInputsInOneTx?: number
-  },
+  }
   /** @deprecated */
-  enabled?: boolean,
+  enabled?: boolean
   /** @deprecated */
-  disabled?: boolean,
+  disabled?: boolean
+}
+
+interface WalletDefaultsConfig {
+  hotSource: WalletSourceType,
+  coldSource: WalletSourceType,
+  data: WalletSourceConfig,
+  coins: WalletCoinInfo[]
 }
 
 interface ChainConfig {
   // 基础参数
   /** 数据表记录的_id */
-  id: string,
+  id: string
   /** 该链是否被启用 */
-  disabled: boolean,
+  disabled: boolean
   /** 区块链显示名 */
-  key: string,
+  key: string
   /** 区块链显示名 */
-  Chain:string,
+  Chain:string
   /** 衍生路径中的chainIndex */
-  ChainIndex: number,
+  ChainIndex: number
   /** 衍生路径中的accountIndex offset */
-  MainIndexOffset?: number,
+  MainIndexOffset?: number
+  /** 钱包的默认Source配置 */
+  WalletDefaults: WalletDefaultsConfig
   /** 主要货币名，通常为费用币 */
-  CoreType: string,
+  CoreType: string
   /** 区块链实现的形式 */
-  ledgerMode: string,
+  ledgerMode: string
   ledgerOptions: {
     file?: string,
     rpc?: string
-  },
-  generalOptions: object,
+  }
+  generalOptions: object
   /** 是否支持扩展代币 */
-  tokenExtendsEnabled: boolean,
-  tokenTypes: string[],
-  tokenTemplate: object,
+  tokenExtendsEnabled: boolean
+  tokenTypes: string[]
+  tokenTemplate: object
   /** 是否需要在线验证地址 */
-  addressOnline: boolean,
+  addressOnline: boolean
   /** 地址模型 */
-  addressMode: string,
+  addressMode: string
   /** 支持的地址业务模型 */
-  addressBizModes?: string[],
-  stakeEnabled?: boolean,
+  addressBizModes?: string[]
+  stakeEnabled?: boolean
   stakeOptions?: {
     stakeToken: string
-  },
+  }
   // 细节参数
-  tokens: object,
-  node: object,
-  agenda?: object,
+  tokens: object
+  node: object
+  agenda?: object
   closer: object
 }
 

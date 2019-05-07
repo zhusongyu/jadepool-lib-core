@@ -34,7 +34,8 @@ const schema = new Schema({
       // 钱包中的币种状态信息
       coins: [
         {
-          coinName: { type: String, required: true }, // 币种简称
+          type: String, // 币种模式类别, 二选一
+          name: String, // 币种简称, 二选一
           // 私钥源可选配置，将覆盖chain默认config
           data: SourceData
         }
@@ -71,14 +72,13 @@ Wallet.prototype.nextAddressIndex = async function () {
  * @param {string} coldSource cold wallet private key source
  * @param {{seedKey?: string, hsmKey?: string}} sourceData source config
  */
-Wallet.prototype.setSourceType = async function (chainKey, hotSource, coldSource, sourceData = undefined) {
+Wallet.prototype.setSources = async function (chainKey, hotSource, coldSource, sourceData = undefined) {
   // ensure sourceType available
   const eumTypes = _.values(consts.PRIVKEY_SOURCES)
   if (eumTypes.indexOf(hotSource) === -1) throw new NBError(10002, `invalid parameter hotSource`)
   if (eumTypes.indexOf(coldSource) === -1) throw new NBError(10002, `invalid parameter coldSource`)
   // build save object
   const dataToSave = { chainKey, hotSource, coldSource }
-  sourceData = _.pick(sourceData || {}, ['seedKey', 'hsmKey'])
   if (!_.isEmpty(sourceData)) {
     dataToSave.data = sourceData
   }
@@ -96,17 +96,17 @@ Wallet.prototype.setSourceType = async function (chainKey, hotSource, coldSource
 /**
  * set SourceData in exists chainData
  * @param {string} chainKey blockchain key
- * @param {string|undefined} coinName specific coin scope or chain scope
+ * @param {string|undefined} coin specific coin scope or chain scope
  * @param {any} sourceData all data of private key source including caching data
  */
 Wallet.prototype.setSourceData = async function (chainKey, coinName, sourceData) {
   const i = _.findIndex(this.chains || [], { chainKey })
   if (i === -1) throw new NBError(40410, `chain: ${chainKey}`)
-  sourceData = _.pick(sourceData || {}, ['seedKey', 'hsmKey', 'hotAddress', 'coldAddress'])
+  sourceData = sourceData || {}
   sourceData.cachedAt = new Date()
   let coinIdx = -1
   if (coinName !== undefined) {
-    coinIdx = _.findIndex(this.chains[i].coins || [], { coinName })
+    coinIdx = _.findIndex(this.chains[i].coins || [], c => c.name === coinName || c.type === coinName)
   }
   // set source data
   let pathKey = `chains.${i}`
@@ -118,6 +118,20 @@ Wallet.prototype.setSourceData = async function (chainKey, coinName, sourceData)
   this.set(pathKey, Object.assign({}, this.get(pathKey), sourceData))
   await this.save()
   return this
+}
+
+/**
+ * 获取币种相关的钱包信息
+ */
+Wallet.prototype.getSourceData = function (chainKey, coinName) {
+  const chainData = _.find(this.chains || [], { chainKey })
+  if (!chainData) return null
+  let sourceData = Object.assign({
+    hotSource: chainData.hotSource,
+    coldSource: chainData.coldSource
+  }, chainData.data)
+  const coinData = _.find(chainKey.coins || [], c => c.name === coinName || c.type === coinName)
+  return Object.assign(sourceData, coinData ? coinData.data : {})
 }
 
 /**
@@ -147,20 +161,6 @@ Wallet.prototype.getAddressDerivativePath = function (chainIndex, addrIndex = un
   if (typeof chainIndex !== 'number' || typeof addrIndex !== 'number') throw new NBError(10002, `wrong parameters`)
   const accountIndex = this.mainIndex * 100 + accountOffset
   return `m/44'/${chainIndex}'/${accountIndex}'/0/${addrIndex}`
-}
-
-/**
- * 获取币种相关的钱包信息
- */
-Wallet.prototype.getSourceData = function (chainKey, coinName) {
-  const chainData = _.find(this.chains || [], { chainKey })
-  if (!chainData) return null
-  let sourceData = Object.assign({
-    hotSource: chainData.hotSource,
-    coldSource: chainData.coldSource
-  }, chainData.data)
-  const coinData = _.find(chainKey.coins || [], { coinName })
-  return Object.assign(sourceData, coinData ? coinData.data : {})
 }
 
 module.exports = Wallet

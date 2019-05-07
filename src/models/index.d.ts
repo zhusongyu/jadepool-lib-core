@@ -108,11 +108,16 @@ declare interface AsyncPlanDocument extends mongoose.Document {
   finished_at?: Date
 }
 
-declare interface WalletSourceData {
+declare interface WalletSourceConfig {
   /** 当source为seed时，需要设置 */
   seedKey: string
   /** 当source为hsm时，需要设置 */
   hsmKey?: string
+  /** 额外参数 */
+  [key: string]: string
+}
+
+declare interface WalletSourceData implements WalletSourceConfig {
   // 缓存，可供比较变化，最后一次设置进去
   hotAddress?: string
   coldAddress?: string
@@ -120,10 +125,12 @@ declare interface WalletSourceData {
 }
 
 declare interface WalletCoinInfo {
-  /** 币种简称 */
-  coinName: string
+  /** 币种模式类别, 二选一 */
+  type?: string
+  /** 币种简称, 二选一 */
+  name?: string
   /** 私钥源可选配置，将覆盖chain默认config */
-  data?: WalletSourceData
+  data: WalletSourceData
 }
 
 type WalletSourceType = 'seed' | 'hsm_pure' | 'hsm_deep'
@@ -161,20 +168,20 @@ declare interface WalletDocument extends mongoose.Document {
    * @param coldSource cold wallet private key source
    * @param sourceData source config
    */
-  setSourceType (chainKey: string, hotSource: WalletSourceType, coldSource: WalletSourceType, sourceData?: WalletSourceData): Promise<WalletDocument>
+  setSources (chainKey: string, hotSource: WalletSourceType, coldSource: WalletSourceType, sourceData?: WalletSourceConfig): Promise<WalletDocument>
   /**
    * set SourceData in exists chainData
    * @param chainKey blockchain key
-   * @param coinName specific coin scope or chain scope
+   * @param coin specific coin scope or chain scope
    * @param sourceData all data of private key source including caching data
    */
-  setSourceData (chainKey: string, coinName: string | undefined, sourceData: WalletSourceData): Promise<WalletDocument>
+  setSourceData (chainKey: string, coin: string | undefined, sourceData: WalletSourceData): Promise<WalletDocument>
   /**
    * get SourceData
    * @param chainKey blockchain key
-   * @param coinName specific coin scope or chain scope
+   * @param coin specific coin scope or chain scope
    */
-  getSourceData (chainKey: string, coinName?: string): { hotSource: WalletSourceType, coldSource: WalletSourceType } | WalletSourceData
+  getSourceData (chainKey: string, coin?: string): { hotSource: WalletSourceType, coldSource: WalletSourceType } | WalletSourceData
   /**
    * 获取热主地址的衍生路径
    * 衍生路径规则为 m/44'/{chainIndex}'/{accountIndex}'/1/{hotIndex}
