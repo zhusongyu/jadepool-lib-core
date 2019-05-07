@@ -1,5 +1,7 @@
 import mongoose from 'mongoose'
 
+export as namespace models
+
 interface Rule {
   action: string
   permission: '' | 'r' | 'rw'
@@ -11,7 +13,7 @@ interface KeyData {
   encode: string
 }
 
-export declare interface AppDocument extends mongoose.Document {
+declare interface AppDocument extends mongoose.Document {
   /** 唯一ID */
   id: string
   /** 应用描述 */
@@ -70,7 +72,7 @@ declare interface OnePlanData extends OnePlan {
   finished_at?: Date
 }
 
-export declare interface AsyncPlanDocument extends mongoose.Document {
+declare interface AsyncPlanDocument extends mongoose.Document {
   /** ID */
   _id: mongoose.Schema.Types.ObjectId
   /** 类型 */
@@ -93,4 +95,89 @@ export declare interface AsyncPlanDocument extends mongoose.Document {
   started_at?: Date
   /** 结束运行时间 */
   finished_at?: Date
+}
+
+declare interface WalletSourceData {
+  /** 当source为seed时，需要设置 */
+  seedKey: string
+  /** 当source为hsm时，需要设置 */
+  hsmKey?: string
+  // 缓存，可供比较变化，最后一次设置进去
+  hotAddress?: string
+  coldAddress?: string
+  cachedAt?: Date
+}
+
+declare interface WalletCoinInfo {
+  /** 币种简称 */
+  coinName: string
+  /** 私钥源可选配置，将覆盖chain默认config */
+  data?: WalletSourceData
+}
+
+type WalletSourceType = 'seed' | 'hsm_pure' | 'hsm_deep'
+
+declare interface WalletChainInfo  {
+  chainKey: string
+  hotSource: WalletSourceType
+  coldSource: WalletSourceType
+  // 私钥源必选配置
+  data: WalletSourceData
+  // 钱包中的币种状态信息
+  coins: WalletCoinInfo[]
+}
+
+declare interface WalletDocument extends mongoose.Document {
+  /** unique name */
+  name: string
+  /** description */
+  desc: string
+  /** 钱包index */
+  mainIndex: number
+  /** 可用账号index */
+  addrIndex: number
+  /** blockchain infos */
+  chains: WalletChainInfo[]
+
+  /**
+   * 设置并获取下一个Address的index
+   */
+  nextAddressIndex (): Promise<number>
+  /**
+   * set SourceType and data
+   * @param chainKey blockchain key
+   * @param hotSource hot wallet private key source
+   * @param coldSource cold wallet private key source
+   * @param sourceData source config
+   */
+  setSourceType (chainKey: string, hotSource: WalletSourceType, coldSource: WalletSourceType, sourceData?: WalletSourceData): Promise<WalletDocument>
+  /**
+   * set SourceData in exists chainData
+   * @param chainKey blockchain key
+   * @param coinName specific coin scope or chain scope
+   * @param sourceData all data of private key source including caching data
+   */
+  setSourceData (chainKey: string, coinName: string | undefined, sourceData: WalletSourceData): Promise<WalletDocument>
+  /**
+   * get SourceData
+   * @param chainKey blockchain key
+   * @param coinName specific coin scope or chain scope
+   */
+  getSourceData (chainKey: string, coinName?: string): { hotSource: WalletSourceType, coldSource: WalletSourceType } | WalletSourceData
+  /**
+   * 获取热主地址的衍生路径
+   * 衍生路径规则为 m/44'/{chainIndex}'/{accountIndex}'/1/{hotIndex}
+   * @param chainIndex 区块链Index
+   * @param [hotIndex=0] 热主地址的序号
+   * @param [accountOffset=0] 当该coin占用了相同的chainIndex，则需要使用offset来错开位置。取值范围为[0-99]
+   */
+  getHotDerivativePath (chainIndex: number, hotIndex?: number, accountOffset?: number): string
+  /**
+   * 获取外部地址的衍生路径
+   * 衍生路径规则为 m/44'/{chainIndex}'/{accountIndex}'/0/{addrIndex}
+   * @param chainIndex 区块链Index
+   * @param [addrIndex=undefined] 地址序号
+   * @param [accountOffset=0] 当该coin占用了相同的chainIndex，则需要使用offset来错开位置
+   */
+  getAddressDerivativePath (chainIndex: number, addrIndex?: number, accountOffset?: number): string
 }

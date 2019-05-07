@@ -118,6 +118,7 @@ export declare const MODEL_NAMES: {
   CONFIG_DATA: 'configdat',
   CONFIG_REV: 'configrev',
   APPLICATION: 'app',
+  WALLET: 'wallet',
   // Busines Models
   ADDRESS: 'address',
   ORDER: 'order',

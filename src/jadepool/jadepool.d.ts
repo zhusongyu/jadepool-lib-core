@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import services from '../services'
-import { AppDocument, OnePlan, AsyncPlanDocument } from '../models'
+import models from '../models'
 import BaseService = require('../services/core')
 
 declare interface EnvObject {
@@ -85,15 +85,16 @@ declare class JadepoolSingleton {
 	 * 获取模型
 	 * @param name
 	 */
-	getModel(name: 'app'): mongoose.Model<AppDocument>;
-	getModel(name: 'asyncplan'): mongoose.Model<AsyncPlanDocument>;
+	getModel(name: 'app'): mongoose.Model<models.AppDocument>;
+	getModel(name: 'asyncplan'): mongoose.Model<models.AsyncPlanDocument>;
+	getModel(name: 'wallet'): mongoose.Model<models.WalletDocument>;
 	getModel(name: string): mongoose.Model<mongoose.Document>;
 
 	/**
 	 * 获取应用信息
 	 * @param id
 	 */
-	fetchAppConfig(id: string): Promise<AppDocument>;
+	fetchAppConfig(id: string): Promise<models.AppDocument>;
 
   /**
 	 * 发起async plan
@@ -104,7 +105,7 @@ declare class JadepoolSingleton {
 	 * @param runAt 运行时机
 	 * @param referPlan 引用plan
 	 */
-  createAsyncPlan(plans: OnePlan[], mode: 'series'|'parallel', source: 'system'|'admin'|'application', sourceId?: string, runAt?: Date, referPlan?: AsyncPlanDocument): Promise<AsyncPlanDocument>
+  createAsyncPlan(plans: models.OnePlan[], mode: 'series'|'parallel', source: 'system'|'admin'|'application', sourceId?: string, runAt?: Date, referPlan?: models.AsyncPlanDocument): Promise<models.AsyncPlanDocument>
 	
 	/**
 	 * 进行Methods调用

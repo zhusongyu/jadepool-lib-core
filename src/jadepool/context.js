@@ -58,6 +58,7 @@ class JadePoolContext {
     // 预设初始化数个默认Models, 瑶池任意进程均需要
     const models = {
       [consts.MODEL_NAMES.APPLICATION]: require('../models/app'),
+      [consts.MODEL_NAMES.WALLET]: require('../models/wallet'),
       [consts.MODEL_NAMES.ASYNC_PLAN]: require('../models/asyncPlan'),
       [consts.MODEL_NAMES.CONFIG_DATA]: require('../models/configdat'),
       [consts.MODEL_NAMES.TASK_CONFIG]: require('../models/taskConfig'),
