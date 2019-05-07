@@ -20,9 +20,9 @@ const schema = new Schema({
   name: { type: String, required: true, unique: true }, // 钱包的唯一名称
   desc: String, // 钱包描述，辅助信息
   // 核心信息
-  mainIndex: { type: Number, required: true, min: 0 },
+  mainIndex: { type: Number, required: true, default: 0, min: 0 },
   // 充值地址衍生路径为 m/44'/{chainIndex}'/{mainIndex}'/0/{addressIndex}
-  addrIndex: { type: Number, required: true, default: 1, min: 1 },
+  addrIndex: { type: Number, required: true, default: 0, min: 0 },
   // 钱包中的区块链状态信息
   chains: [
     {
