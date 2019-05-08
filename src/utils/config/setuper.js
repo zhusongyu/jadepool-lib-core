@@ -4,7 +4,6 @@ const {
   loadConfigKeys,
   setAutoSaveWhenLoad
 } = require('./loader')
-const { fetchAllCoinNames } = require('./index')
 const consts = require('../../consts')
 const jp = require('../../jadepool')
 
@@ -214,23 +213,6 @@ const configSetupMethods = {
       jp.config.chain[key] = chainCfg
     }
   },
-  'callback': async () => {
-    await configSetupDefault('callback')
-    // 设置debugCallback打补丁
-    jp.config.debugCallback = _.get(jp.config, `callback.debug`)
-  },
-  'configMods': async () => {
-    await configSetupDefault('configMods')
-    // 补充设置
-    let coinNames = fetchAllCoinNames()
-    const ERC20N = jp.config.coin.ERC20 ? _.range(jp.config.coin.ERC20.length) : []
-    _.forEach(jp.config.configMods, (val, key) => {
-      if (!_.isArray(val)) return
-      val = replaceStrings(val, '{cointype}', coinNames)
-      if (ERC20N.length > 0) val = replaceStrings(val, '{erc20n}', ERC20N)
-      jp.config.configMods[key] = val
-    })
-  },
   'mods': async () => {
     // 直接加载mods修改
     const modsDat = await loadConfig('mods')
@@ -287,22 +269,6 @@ const configSetupMethods = {
       }) // end watchers
     }) // end chains
   }
-}
-
-// 进行configMods调整
-const replaceStrings = (strArr, searchStr, valueArray) => {
-  let result = []
-  for (let i = 0; i < strArr.length; i++) {
-    const str = strArr[i]
-    if (str.indexOf(searchStr) !== -1) {
-      _.forEach(valueArray, cointype => {
-        result.push(_.replace(str, searchStr, cointype))
-      })
-    } else {
-      result.push(str)
-    }
-  }
-  return result
 }
 
 /**
