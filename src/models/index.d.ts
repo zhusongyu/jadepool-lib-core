@@ -206,10 +206,8 @@ declare interface TokenConfig {
 }
 
 declare interface WalletCoinInfo {
-  /** 币种模式类别, 二选一 */
-  type?: string
-  /** 币种简称, 二选一 */
-  name?: string
+  /** 币种简称 */
+  name: string
   /** 私钥源可选配置，将覆盖chain默认config */
   data: WalletSourceData
   config: TokenConfig

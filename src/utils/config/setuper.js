@@ -47,9 +47,6 @@ const configSetupMethods = {
     jp.config.jadepool = {}
     jp.config.node = {}
     jp.config.closer = {}
-    // 设置默认配置
-    const taskCfg = (await loadConfig('task')).toMerged()
-    const configWatchers = _.values((await loadConfig('configWatchers')).toMerged())
     // 获取defaultwallet
     const Wallet = jp.getModel(consts.MODEL_NAMES.WALLET)
     const defaultWallet = await Wallet.findOne({ name: consts.DEFAULT_KEY }).exec()
@@ -186,14 +183,6 @@ const configSetupMethods = {
       })
       // 设置closer数据
       jp.config.closer[key] = chainCfg.closer
-      // 设置task数据
-      if (!chainCfg.agenda || _.isEmpty(chainCfg.agenda)) {
-        // 若cfg.agenda不存在，则赋予默认值
-        chainCfg.agenda = taskCfg.chainsDefault
-      }
-      _.set(jp.config, `task.chains.${key}`, chainCfg.agenda)
-      // 设置tokenWatchers
-      chainCfg.tokenWatchers = _.concat(chainCfg.tokenWatchers || [], configWatchers)
 
       // --- 读取tokens
       const tokenCfgDat = await loadConfig('tokens', '', chainCfgDat)
@@ -212,62 +201,6 @@ const configSetupMethods = {
       // 设置到config
       jp.config.chain[key] = chainCfg
     }
-  },
-  'mods': async () => {
-    // 直接加载mods修改
-    const modsDat = await loadConfig('mods')
-    if (modsDat) {
-      const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
-      ConfigDat.mergeConfigObj(jp.config, modsDat.toMerged(), undefined, true)
-      logger.tag('Dynamic Mods').log('applied')
-    }
-    // 根据watchers的条件修改config
-    _.forIn(jp.config.chain, chainCfg => {
-      const chainTokenWatchers = chainCfg.tokenWatchers || []
-      const tokenCfg = chainCfg.tokens
-      // 按币种检测
-      _.forEach(chainTokenWatchers, watcherCfg => {
-        if (['coin', 'jadepool'].indexOf(watcherCfg.path) === -1) return
-        const rootCfg = jp.config[watcherCfg.path]
-        // 列举全部的代币
-        let targets
-        if (tokenCfg.build.extends) {
-          targets = rootCfg[tokenCfg.build.extends[watcherCfg.path]] || []
-        } else {
-          targets = _.map(tokenCfg.enabled, tokenName => rootCfg[tokenName])
-        }
-        // 找到需要修改的目标
-        switch (true) {
-          case (typeof watcherCfg.where === 'string'):
-            targets = _.filter(targets, one => one.name === watcherCfg.where)
-            break
-          case (typeof watcherCfg.where === 'object'):
-            targets = _.filter(targets, watcherCfg.where)
-            break
-        }
-        // 根据conds进行参数修改
-        _.forIn(watcherCfg.cond, (valueArr, key) => {
-          const method = valueArr[0]
-          if (!method) return
-          _.forEach(targets, targetObj => {
-            if (targetObj[key] === undefined) return
-            if (method === '$min' && typeof targetObj[key] === 'number') {
-              const compVal = typeof valueArr[1] === 'number' ? (valueArr[1] || 0)
-                : (typeof valueArr[1] === 'string' ? _.get(targetObj, valueArr[1], 0) : 0)
-              targetObj[key] = Math.max(targetObj[key], compVal)
-            } else if (method === '$max' && typeof targetObj[key] === 'number') {
-              const compVal = typeof valueArr[1] === 'number' ? (valueArr[1] || Number.MAX_VALUE)
-                : (typeof valueArr[1] === 'string' ? _.get(targetObj, valueArr[1], Number.MAX_VALUE) : Number.MAX_VALUE)
-              targetObj[key] = Math.min(targetObj[key], compVal)
-            } else if (method === '$toLower' && typeof targetObj[key] === 'string') {
-              targetObj[key] = _.toLower(targetObj[key])
-            } else if (method === '$toUpper' && typeof targetObj[key] === 'string') {
-              targetObj[key] = _.toUpper(targetObj[key])
-            }
-          }) // end targets forEach
-        }) // end conds forIn
-      }) // end watchers
-    }) // end chains
   }
 }
 

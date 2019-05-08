@@ -1,5 +1,6 @@
 const _ = require('lodash')
 const mongoose = require('mongoose')
+const jp = require('../jadepool')
 const consts = require('../consts')
 const NBError = require('../NBError')
 const { fetchConnection, AutoIncrement } = require('../utils/db')
@@ -35,8 +36,7 @@ const schema = new Schema({
       // 钱包中的币种状态信息
       coins: [
         {
-          type: { type: String, required: false }, // 币种模式类别, 二选一
-          name: { type: String, required: false }, // 币种简称, 二选一
+          name: { type: String, required: true }, // 币种简称, 唯一
           // 私钥源可选配置，将覆盖chain默认config
           data: SourceData,
           // 动态调整的配置
@@ -116,7 +116,7 @@ Wallet.prototype.setSourceData = async function (chainKey, coinName, sourceData)
   sourceData.cachedAt = new Date()
   let coinIdx = -1
   if (coinName !== undefined) {
-    coinIdx = _.findIndex(this.chains[i].coins || [], c => c.name === coinName || c.type === coinName)
+    coinIdx = _.findIndex(this.chains[i].coins || [], c => c.name === coinName)
   }
   // set source data
   let pathKey = `chains.${i}`
@@ -136,12 +136,65 @@ Wallet.prototype.setSourceData = async function (chainKey, coinName, sourceData)
 Wallet.prototype.getSourceData = function (chainKey, coinName) {
   const chainData = _.find(this.chains || [], { chainKey })
   if (!chainData) return null
-  let sourceData = Object.assign({
+  const coinData = _.find(chainKey.coins || [], c => c.name === coinName)
+  return Object.assign({
     hotSource: chainData.hotSource,
     coldSource: chainData.coldSource
-  }, chainData.data)
-  const coinData = _.find(chainKey.coins || [], c => c.name === coinName || c.type === coinName)
-  return Object.assign(sourceData, coinData ? coinData.data : {})
+  }, chainData.data, coinData ? coinData.data : {})
+}
+
+/**
+ * 获取币种相关的配置信息
+ */
+Wallet.prototype.loadConfig = async function (chainKey, coinName) {
+  const chainData = _.find(this.chains || [], { chainKey })
+  if (!chainData) return null
+  const result = {
+    name: coinName,
+    hotSource: chainData.hotSource,
+    coldSource: chainData.coldSource,
+    data: _.clone(chainData.data)
+  }
+  const coinData = _.find(chainKey.coins || [], c => c.name === coinName)
+  if (coinData) {
+    result.data = Object.assign(result.data, coinData.data || {})
+  }
+  const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
+  const chain = await ConfigDat.findOne({ path: 'chain', key: chainKey, parent: { $exists: false } }).exec()
+  const token = await ConfigDat.findOne({ path: 'tokens', key: coinName, parent: chain._id }).exec()
+  let cfg = ConfigDat.mergeConfigObj(token.toMerged(), coinData && coinData.config ? coinData.config : {})
+  // 通过全局条件修改config
+  if (jp.config.configWatchers) {
+    _.forEach(jp.config.configWatchers, watcherCfg => {
+      if (['coin', 'jadepool'].indexOf(watcherCfg.path) === -1) return
+      const targetObj = cfg[watcherCfg.path]
+      // 找到需要修改的目标
+      if (typeof watcherCfg.where === 'string' && coinName !== watcherCfg.where) return
+      if (typeof watcherCfg.where === 'object' && watcherCfg.where !== null && _.filter([targetObj], watcherCfg.where).length === 0) return
+      // 根据conds进行参数修改
+      _.forIn(watcherCfg.cond, (valueArr, key) => {
+        const method = valueArr[0]
+        if (!method) return
+        if (targetObj[key] === undefined) return
+        if (method === '$min' && typeof targetObj[key] === 'number') {
+          const compVal = typeof valueArr[1] === 'number' ? (valueArr[1] || 0)
+            : (typeof valueArr[1] === 'string' ? _.get(targetObj, valueArr[1], 0) : 0)
+          targetObj[key] = Math.max(targetObj[key], compVal)
+        } else if (method === '$max' && typeof targetObj[key] === 'number') {
+          const compVal = typeof valueArr[1] === 'number' ? (valueArr[1] || Number.MAX_VALUE)
+            : (typeof valueArr[1] === 'string' ? _.get(targetObj, valueArr[1], Number.MAX_VALUE) : Number.MAX_VALUE)
+          targetObj[key] = Math.min(targetObj[key], compVal)
+        } else if (method === '$toLower' && typeof targetObj[key] === 'string') {
+          targetObj[key] = _.toLower(targetObj[key])
+        } else if (method === '$toUpper' && typeof targetObj[key] === 'string') {
+          targetObj[key] = _.toUpper(targetObj[key])
+        }
+      }) // end conds forIn
+    }) // end watchers
+  }
+  // 设置为最终config
+  result.config = cfg
+  return result
 }
 
 /**

@@ -131,7 +131,7 @@ const loadConfig = async (cfgPath, key = '', parent = null, forceSelf = false) =
   }
 
   const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
-  let cfgDat = await ConfigDat.findOne(query).populate('parent').exec()
+  let cfgDat = await ConfigDat.findOne(query).exec()
   if ((enableAutoSaveWhenLoad && (!cfgDat || semver.gt(jp.env.version, cfgDat.version))) ||
     (!jp.env.isProd && cfgDat && cfgDat.dirty)) {
     // 读取文件配置
@@ -142,6 +142,7 @@ const loadConfig = async (cfgPath, key = '', parent = null, forceSelf = false) =
       if (!cfgDat) return null
       // 若为自定义配置且存在parent，则说明origin为parent的template
       if (cfgDat.customized && cfgDat.parent) {
+        await cfgDat.populate('parent').execPopulate()
         // 重置origin为parent的template
         const templateJson = await geneTemplate(cfgDat.parent)
         if (templateJson) {
