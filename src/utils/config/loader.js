@@ -65,11 +65,59 @@ const getConfigPaths = (cfgPath, key, parent = null) => {
 }
 
 /**
+ * 获取Template
+ */
+const geneTemplate = async (parent) => {
+  const mergedCfg = parent.toMerged()
+  if (!mergedCfg) return null
+  let template = {}
+  if (mergedCfg.tokenTemplates) {
+    const templateDat = await loadConfig('tokenTemplates', '')
+    if (!templateDat) {
+      logger.warn(`failed to load tokenTemplates`)
+      return null
+    }
+    const tokenTemplateDefs = templateDat.toMerged()
+    _.forEach(mergedCfg.tokenTemplates, value => {
+      if (_.isString(value)) {
+        template[value] = _.clone(tokenTemplateDefs[value])
+      } else if (_.isObject(value) && value.path && value.rule) {
+        template[value.path] = _.clone(value.rule)
+      }
+    })
+  } else if (mergedCfg.template) {
+    template = mergedCfg.template
+  } else {
+    template = mergedCfg
+  }
+  if (_.isEmpty(template)) return null
+  const cfgJson = {}
+  _.forEach(template, (value, key) => {
+    let defaultVal
+    if (typeof value.default !== 'undefined') {
+      defaultVal = value.default
+    } else if (value.json === true) {
+      defaultVal = {}
+    } else if (value.type === 'number') {
+      defaultVal = 0
+    } else if (value.type === 'string') {
+      defaultVal = ''
+    } else if (value.type === 'boolean') {
+      defaultVal = false
+    } else {
+      defaultVal = null
+    }
+    _.set(cfgJson, key, defaultVal)
+  })
+  return cfgJson
+}
+
+/**
  * 从数据库中读取配置，若该配置不存在，则从文件中读取并保存到数据库
  * @param {String} cfgPath 目录名
  * @param {String} key 子目录名
  * @param {any} parent
- * @returns {Promise<{toMerged: Function, geneTemplate: Function, applyModify: Function, save: Function}>}
+ * @returns {Promise<{toMerged: Function, applyModify: Function, save: Function}>}
  */
 const loadConfig = async (cfgPath, key = '', parent = null, forceSelf = false) => {
   const query = { path: cfgPath, key }
@@ -95,7 +143,7 @@ const loadConfig = async (cfgPath, key = '', parent = null, forceSelf = false) =
       // 若为自定义配置且存在parent，则说明origin为parent的template
       if (cfgDat.customized && cfgDat.parent) {
         // 重置origin为parent的template
-        const templateJson = cfgDat.parent.geneTemplate()
+        const templateJson = await geneTemplate(cfgDat.parent)
         if (templateJson) {
           // 设置配置内容
           cfgDat.origin = JSON.stringify(templateJson)
@@ -169,7 +217,7 @@ const loadConfigKeys = async (cfgPath, parent = null) => {
  * @param {Object} modJson 配置修改Json，需Merge
  * @param {Object} disabled 是否禁用
  * @param {any} parent
- * @returns {Promise<{toMerged: Function, geneTemplate: Function, applyModify: Function, save: Function}>}
+ * @returns {Promise<{toMerged: Function, applyModify: Function, save: Function}>}
  */
 const saveConfig = async (cfgPath, key, modJson, disabled = undefined, parent = null) => {
   let needSave = false
@@ -189,7 +237,7 @@ const saveConfig = async (cfgPath, key, modJson, disabled = undefined, parent = 
     if (parent) {
       cfgDat.parent = parent
       // 设置origin为parent的template
-      const templateJson = parent.geneTemplate()
+      const templateJson = await geneTemplate(parent)
       if (templateJson) {
         // 设置配置内容
         cfgDat.origin = JSON.stringify(templateJson)

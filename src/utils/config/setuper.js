@@ -74,12 +74,12 @@ const configSetupMethods = {
       const sourceData = defaultWallet.getSourceData(chainCfg.key)
       // coin对象上，打上补丁
       const basicCfg = _.defaults(coinCfg.coin, {
-        name: coinCfg.name || coinName,
+        name: coinName,
         disabled: coinCfg.disabled,
         Chain: chainCfg.Chain
       })
       const jpCfg = _.defaults(coinCfg.jadepool, {
-        name: coinCfg.name || coinName
+        name: coinName
       })
       let coinPath
       let jpPath

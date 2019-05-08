@@ -75,32 +75,6 @@ ConfigDat.prototype.toMerged = function () {
   return cfgJson
 }
 
-ConfigDat.prototype.geneTemplate = function () {
-  const mergecCfg = this.toMerged()
-  if (!mergecCfg) return null
-  const template = mergecCfg.template || mergecCfg.tokenTemplate
-  if (!template) return null
-  const cfgJson = {}
-  _.forEach(template, (value, key) => {
-    let defaultVal
-    if (typeof value.default !== 'undefined') {
-      defaultVal = value.default
-    } else if (value.json === true) {
-      defaultVal = {}
-    } else if (value.type === 'number') {
-      defaultVal = 0
-    } else if (value.type === 'string') {
-      defaultVal = ''
-    } else if (value.type === 'boolean') {
-      defaultVal = false
-    } else {
-      defaultVal = null
-    }
-    _.set(cfgJson, key, defaultVal)
-  })
-  return cfgJson
-}
-
 /**
  * 优化并处理修改对象
  * @param {Object} configObj config对象

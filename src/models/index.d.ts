@@ -27,8 +27,6 @@ declare interface ConfigDatDocument extends mongoose.Document  {
   applyModify(jsonToSave: string): ConfigDatDocument
   /** merge config */
   toMerged(): object
-  /** generate config template */
-	geneTemplate(): object
 }
 
 interface Rule {

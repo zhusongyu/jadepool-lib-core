@@ -14,7 +14,6 @@ interface CoinConfig {
     Rate: number
   }
   jadepool: {
-    RescanMode: string
     /** 高水位 */
     HighWaterLevel: number
     /** 高水位转出后目标 */
@@ -70,7 +69,13 @@ interface ChainConfig {
     file?: string,
     rpc?: string
   }
-  generalOptions: object
+  generalOptions: {
+    RescanMode: string
+    AffirmativeConfirmation: number
+    FailedAffirmativeConfirmation: number
+    sendOrdersInterval: number
+    waitingSendOrdersOnline: boolean
+  }
   /** 是否支持扩展代币 */
   tokenExtendsEnabled: boolean
   tokenTypes: string[]
