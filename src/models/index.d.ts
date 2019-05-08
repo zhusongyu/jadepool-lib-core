@@ -151,6 +151,60 @@ declare interface WalletSourceData extends WalletSourceConfig {
   cachedAt?: Date
 }
 
+declare interface TokenConfigBasic {
+  Rate: number
+  Type: string
+  GasLimit?: number
+  GasPrice?: number
+  GasPrices?: string
+  GasCoefficient?: number
+  FeeSelector?: number
+  FeeForWithdraw?: number
+  ActivateBalance?: number
+  Expiration?: number
+  MinThreshold?: number
+  Dust?: number
+  PropertyId?: number
+  TokenName?: string
+  Contract?: string
+}
+
+declare interface TokenConfigJadepool {
+  /** 高水位 */
+  HighWaterLevel: number
+  /** 高水位转出后目标 */
+  SweepTo: number
+  /** 低水位 */
+  LowWaterLevel: number
+  /** 自动重发设置阈值 */
+  SendAgainCap: number
+  /** 自动汇总阈值 */
+  SweepToHotCap: number
+  /** 一批sendOrder的数量(二选一,作用相同仅显示不同) */
+  BatchCount?: number
+  /** 一批sendOrder的数量(二选一,作用相同仅显示不同) */
+  MaxOrdersInOneTx?: number
+  // 自动汇总的地址类
+  SweepToHotCap?: number
+  SendAgainCap?: number
+  // UTXO类
+  MergedBalance?: boolean
+  AvailableUtxoCap?: number
+  MaxInputsInOneTx?: number
+  // 空投
+  Airdrop: {
+    enabled: boolean
+    Address: string
+  }
+}
+
+declare interface TokenConfig {
+  depositDisabled?: Boolean
+  withdrawDisabled?: Boolean
+  basic?: TokenConfigBasic
+  jadepool?: TokenConfigJadepool
+}
+
 declare interface WalletCoinInfo {
   /** 币种模式类别, 二选一 */
   type?: string
@@ -158,6 +212,7 @@ declare interface WalletCoinInfo {
   name?: string
   /** 私钥源可选配置，将覆盖chain默认config */
   data: WalletSourceData
+  config: TokenConfig
 }
 
 type WalletSourceType = 'seed' | 'hsm_pure' | 'hsm_deep'

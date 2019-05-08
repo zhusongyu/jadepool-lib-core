@@ -38,7 +38,14 @@ const schema = new Schema({
           type: { type: String, required: false }, // 币种模式类别, 二选一
           name: { type: String, required: false }, // 币种简称, 二选一
           // 私钥源可选配置，将覆盖chain默认config
-          data: SourceData
+          data: SourceData,
+          // 动态调整的配置
+          config: {
+            depositDisabled: Boolean,
+            withdrawDisabled: Boolean,
+            basic: Schema.Types.Mixed,
+            jadepool: Schema.Types.Mixed
+          }
         }
       ]
     }
