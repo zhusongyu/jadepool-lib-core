@@ -11,96 +11,6 @@ const jp = require('../../jadepool')
 const logger = require('@jadepool/logger').of('Configure')
 
 /**
- * 为配置添加token
- * @param {ConfigDat} parentDat
- * @param {ConfigObject} chainCfg
- * @param {ConfigObject} tokenCfg
- * @param {String} folderName
- * @param {String} baseKey 可选, 同时用于标示是否为基础信息初始化
- */
-const addToken = async (parentDat, chainCfg, tokenCfg, folderName, baseKey) => {
-  const coinCfgDat = await loadConfig('tokens', folderName, parentDat)
-  if (!coinCfgDat) return
-  // Token信息初始化需enabled的token，则直接返回不加载到内存
-  if (!baseKey && tokenCfg.enabled.indexOf(folderName) === -1) return
-
-  let coinCfg = coinCfgDat.toMerged()
-  const coinName = baseKey || folderName
-
-  const basicCfg = _.defaults(coinCfg.coin, {
-    name: coinCfg.name || coinName,
-    disabled: coinCfg.disabled,
-    Chain: chainCfg.Chain
-  })
-  const jpCfg = _.defaults(coinCfg.jadepool, {
-    name: coinCfg.name || coinName
-  })
-  let coinPath
-  let jpPath
-  // 恢复旧版本的config.coin和config.jadepool
-  if (!tokenCfg.build.extends || baseKey) {
-    if (coinCfg.coin) {
-      jp.config.coin[coinName] = jp.config.coin[coinName] || {}
-      _.assign(jp.config.coin[coinName], basicCfg)
-    }
-    if (coinCfg.jadepool) {
-      jp.config.jadepool[coinName] = jp.config.jadepool[coinName] || {}
-      _.assign(jp.config.jadepool[coinName], jpCfg)
-    }
-    coinPath = `coin.${coinName}`
-    jpPath = `jadepool.${coinName}`
-  } else {
-    const basicKey = tokenCfg.build.extends.coin
-    const walletKey = tokenCfg.build.extends.jadepool
-    let coinArr = jp.config.coin[basicKey] || []
-    let jpArr = jp.config.jadepool[walletKey] || []
-    if (coinCfg.coin) {
-      let coinIdx = _.findIndex(coinArr, { name: coinCfg.name })
-      if (coinIdx === -1) {
-        coinIdx = coinArr.length
-        coinArr.push(basicCfg)
-      } else {
-        _.assign(coinArr[coinIdx], basicCfg)
-      }
-      coinPath = `coin.${basicKey}[${coinIdx}]`
-    }
-    if (coinCfg.jadepool) {
-      let coinIdx = _.findIndex(jpArr, { name: coinCfg.name })
-      if (coinIdx === -1) {
-        coinIdx = jpArr.length
-        jpArr.push(jpCfg)
-      } else {
-        _.assign(jpArr[coinIdx], jpCfg)
-      }
-      jpPath = `jadepool.${walletKey}[${coinIdx}]`
-    }
-    jp.config.coin[basicKey] = coinArr
-    jp.config.jadepool[walletKey] = jpArr
-  }
-
-  // 当设置tokenCfg.enabled时，即baseKey添加到可用coins
-  if (!baseKey) {
-    const baseTokenKey = tokenCfg.build.baseKey || tokenCfg.build.base
-    const baseCoinPath = `coin.${baseTokenKey}`
-    const baseJpPath = `jadepool.${baseTokenKey}`
-    const parsedCfg = {}
-    parsedCfg.name = coinCfg.name || coinName
-    parsedCfg.chain = parsedCfg.Chain = chainCfg.Chain
-    parsedCfg.chainKey = chainCfg.key
-    parsedCfg.coinCfgPath = [ baseCoinPath ]
-    parsedCfg.jpCfgPath = [ baseJpPath ]
-    if (coinPath && coinPath !== baseCoinPath) {
-      parsedCfg.coinCfgPath.push(coinPath)
-    }
-    if (jpPath && jpPath !== baseJpPath) {
-      parsedCfg.jpCfgPath.push(jpPath)
-    }
-    jp.config.coins.push(parsedCfg)
-  }
-  return coinCfg
-}
-
-/**
  * 默认配置加载函数
  * @param {String} moduleName
  * @param {Boolean} needSetConfig 是否需要保持到config中
@@ -141,7 +51,122 @@ const configSetupMethods = {
     // 设置默认配置
     const taskCfg = (await loadConfig('task')).toMerged()
     const configWatchers = _.values((await loadConfig('configWatchers')).toMerged())
+    // 获取defaultwallet
+    const Wallet = jp.getModel(consts.MODEL_NAMES.WALLET)
+    const defaultWallet = await Wallet.findOne({ name: consts.DEFAULT_KEY }).exec()
+    /**
+     * 为配置添加token
+     * @param {ConfigDat} parentDat
+     * @param {ConfigObject} chainCfg
+     * @param {ConfigObject} tokenCfg
+     * @param {String} folderName
+     * @param {String} baseKey 可选, 同时用于标示是否为基础信息初始化
+     */
+    const addToken = async (parentDat, chainCfg, tokenCfg, folderName, baseKey) => {
+      const coinCfgDat = await loadConfig('tokens', folderName, parentDat)
+      if (!coinCfgDat) return
+      // Token信息初始化需enabled的token，则直接返回不加载到内存
+      if (!baseKey && tokenCfg.enabled.indexOf(folderName) === -1) return
 
+      let coinCfg = coinCfgDat.toMerged()
+      const coinName = baseKey || folderName
+
+      const sourceData = defaultWallet.getSourceData(chainCfg.key)
+      // coin对象上，打上补丁
+      const basicCfg = _.defaults(coinCfg.coin, {
+        name: coinCfg.name || coinName,
+        disabled: coinCfg.disabled,
+        Chain: chainCfg.Chain
+      })
+      const jpCfg = _.defaults(coinCfg.jadepool, {
+        name: coinCfg.name || coinName
+      })
+      let coinPath
+      let jpPath
+      // 恢复旧版本的config.coin和config.jadepool
+      if (!tokenCfg.build.extends || baseKey) {
+        // 为早期coin配置制作的补丁
+        const DerivativeRoot = defaultWallet.getAddressDerivativePath(chainCfg.ChainIndex, 0, chainCfg.MainIndexOffset || 0)
+        jp.config.coin[coinName] = jp.config.coin[coinName] || {}
+        _.assign(jp.config.coin[coinName], basicCfg, {
+          DerivativeRoot: DerivativeRoot.substring(0, DerivativeRoot.lastIndexOf('/0'))
+        })
+        coinPath = `coin.${coinName}`
+        // 为早期jadepool配置制作的补丁
+        jp.config.jadepool[coinName] = jp.config.jadepool[coinName] || {}
+        _.assign(jp.config.jadepool[coinName], jpCfg, {
+          HotWallet: {
+            DerivativePath: defaultWallet.getHotDerivativePath(chainCfg.ChainIndex, 0, chainCfg.MainIndexOffset || 0),
+            Source: sourceData.hotSource,
+            Mode: sourceData.hotMode,
+            Bin: sourceData.hotBin,
+            Address: sourceData.hotAddress || ''
+          },
+          ColdWallet: {
+            Source: sourceData.coldSource,
+            SeedKey: sourceData.seedKey,
+            HSMKey: sourceData.hsmKey,
+            Address: sourceData.coldAddress || ''
+          }
+        })
+        jpPath = `jadepool.${coinName}`
+      } else {
+        // 为早期jadepool配置制作的补丁
+        const coinSourceData = defaultWallet.getSourceData(chainCfg.key, coinCfg.name)
+        Object.assign(jpCfg, {
+          ColdWallet: {
+            SeedKey: coinSourceData.seedKey
+          }
+        })
+        const basicKey = tokenCfg.build.extends.coin
+        const walletKey = tokenCfg.build.extends.jadepool
+        let coinArr = jp.config.coin[basicKey] || []
+        let jpArr = jp.config.jadepool[walletKey] || []
+        if (coinCfg.coin) {
+          let coinIdx = _.findIndex(coinArr, { name: coinCfg.name })
+          if (coinIdx === -1) {
+            coinIdx = coinArr.length
+            coinArr.push(basicCfg)
+          } else {
+            _.assign(coinArr[coinIdx], basicCfg)
+          }
+          coinPath = `coin.${basicKey}[${coinIdx}]`
+        }
+        if (coinCfg.jadepool) {
+          let coinIdx = _.findIndex(jpArr, { name: coinCfg.name })
+          if (coinIdx === -1) {
+            coinIdx = jpArr.length
+            jpArr.push(jpCfg)
+          } else {
+            _.assign(jpArr[coinIdx], jpCfg)
+          }
+          jpPath = `jadepool.${walletKey}[${coinIdx}]`
+        }
+        jp.config.coin[basicKey] = coinArr
+        jp.config.jadepool[walletKey] = jpArr
+      }
+
+      // 当设置tokenCfg.enabled时，即baseKey添加到可用coins
+      if (!baseKey) {
+        const baseTokenKey = tokenCfg.build.baseKey || tokenCfg.build.base
+        const baseCoinPath = `coin.${baseTokenKey}`
+        const baseJpPath = `jadepool.${baseTokenKey}`
+        const parsedCfg = {}
+        parsedCfg.name = coinCfg.name || coinName
+        parsedCfg.chain = parsedCfg.Chain = chainCfg.Chain
+        parsedCfg.chainKey = chainCfg.key
+        parsedCfg.coinCfgPath = [ baseCoinPath ]
+        parsedCfg.jpCfgPath = [ baseJpPath ]
+        if (coinPath && coinPath !== baseCoinPath) {
+          parsedCfg.coinCfgPath.push(coinPath)
+        }
+        if (jpPath && jpPath !== baseJpPath) {
+          parsedCfg.jpCfgPath.push(jpPath)
+        }
+        jp.config.coins.push(parsedCfg)
+      }
+      return coinCfg
+    }
     // Step.2 加载chains目录
     const fileKeys = await loadConfigKeys('chain')
     for (let i = 0; i < fileKeys.length; i++) {

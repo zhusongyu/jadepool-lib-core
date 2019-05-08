@@ -19,6 +19,7 @@ const SourceData = new Schema({
 const schema = new Schema({
   name: { type: String, required: true, unique: true }, // 钱包的唯一名称
   desc: String, // 钱包描述，辅助信息
+  version: String, // default wallet可设置版本，自动更新也将按照版本号来
   // 核心信息
   mainIndex: { type: Number, required: true, default: 0, min: 0 },
   // 充值地址衍生路径为 m/44'/{chainIndex}'/{mainIndex}'/0/{addressIndex}
@@ -34,8 +35,8 @@ const schema = new Schema({
       // 钱包中的币种状态信息
       coins: [
         {
-          type: String, // 币种模式类别, 二选一
-          name: String, // 币种简称, 二选一
+          type: { type: String, required: false }, // 币种模式类别, 二选一
+          name: { type: String, required: false }, // 币种简称, 二选一
           // 私钥源可选配置，将覆盖chain默认config
           data: SourceData
         }
@@ -68,20 +69,20 @@ Wallet.prototype.nextAddressIndex = async function () {
 /**
  * set SourceType and data
  * @param {string} chainKey blockchain key
- * @param {string} hotSource hot wallet private key source
- * @param {string} coldSource cold wallet private key source
- * @param {{seedKey?: string, hsmKey?: string}} sourceData source config
+ * @param {object} walletDefaults 默认配置
+ * @param {string} walletDefaults.hotSource hot wallet private key source
+ * @param {string} walletDefaults.coldSource cold wallet private key source
+ * @param {{seedKey?: string, hsmKey?: string}} walletDefaults.data source config
+ * @param {any[]} walletDefaults.coins coins
+ * @param {boolean} isSave save or not
  */
-Wallet.prototype.setSources = async function (chainKey, hotSource, coldSource, sourceData = undefined) {
+Wallet.prototype.setSources = async function (chainKey, walletDefaults, isSave = true) {
   // ensure sourceType available
   const eumTypes = _.values(consts.PRIVKEY_SOURCES)
-  if (eumTypes.indexOf(hotSource) === -1) throw new NBError(10002, `invalid parameter hotSource`)
-  if (eumTypes.indexOf(coldSource) === -1) throw new NBError(10002, `invalid parameter coldSource`)
+  if (eumTypes.indexOf(walletDefaults.hotSource) === -1) throw new NBError(10002, `invalid parameter hotSource`)
+  if (eumTypes.indexOf(walletDefaults.coldSource) === -1) throw new NBError(10002, `invalid parameter coldSource`)
   // build save object
-  const dataToSave = { chainKey, hotSource, coldSource }
-  if (!_.isEmpty(sourceData)) {
-    dataToSave.data = sourceData
-  }
+  const dataToSave = Object.assign({ chainKey }, walletDefaults)
   const i = _.findIndex(this.chains || [], { chainKey })
   if (i === -1) {
     this.chains.push(dataToSave)
@@ -89,7 +90,9 @@ Wallet.prototype.setSources = async function (chainKey, hotSource, coldSource, s
     this.chains.set(i, dataToSave)
   }
   // 保存
-  await this.save()
+  if (isSave) {
+    await this.save()
+  }
   return this
 }
 

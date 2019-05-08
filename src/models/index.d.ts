@@ -2,6 +2,35 @@ import mongoose from 'mongoose'
 
 export as namespace models
 
+declare interface ConfigDatDocument extends mongoose.Document  {
+  /** 服务端名称 */
+  server: string
+  /** 当前配置适用的版本，新版配置将根据该字段来刷新origin字段 */
+  version: string
+  /** 该配置内容的核心父级，通常为大类别例如区块链分类等 */
+  parent?: mongoose.Schema.Types.ObjectId
+  /** 判断该字段是否为客户自定义配置 */
+  customized?: boolean
+  /** 设置true将强制加载origin数据 */
+  dirty: boolean
+  /** 该配置内容在配置文件中的父路径。若存在parent，则是相对parent所在的文件夹路径 */
+  path: string
+  /** 该配置内容在配置文件中的key，同时也是配置文件的文件夹名，为空即为当前path */
+  key: string
+  /** 保存JSON.stringify，从原始配置文件中读取的config数据 */
+  origin: string
+  /** 可修改选项，保存JSON.stringify，被修改的配置 */
+  modified: string
+  /** 可选，可修改选项，该配置内容是否被禁用 */
+  disabled: boolean
+  /** apply mod */
+  applyModify(jsonToSave: string): ConfigDatDocument
+  /** merge config */
+  toMerged(): object
+  /** generate config template */
+	geneTemplate(): object
+}
+
 interface Rule {
   action: string
   permission: '' | 'r' | 'rw'
@@ -117,7 +146,7 @@ declare interface WalletSourceConfig {
   [key: string]: string
 }
 
-declare interface WalletSourceData implements WalletSourceConfig {
+declare interface WalletSourceData extends WalletSourceConfig {
   // 缓存，可供比较变化，最后一次设置进去
   hotAddress?: string
   coldAddress?: string
@@ -149,7 +178,9 @@ declare interface WalletDocument extends mongoose.Document {
   /** unique name */
   name: string
   /** description */
-  desc: string
+  desc?: string
+  /** version */
+  version?: string
   /** 钱包index */
   mainIndex: number
   /** 可用账号index */
@@ -164,11 +195,10 @@ declare interface WalletDocument extends mongoose.Document {
   /**
    * set SourceType and data
    * @param chainKey blockchain key
-   * @param hotSource hot wallet private key source
-   * @param coldSource cold wallet private key source
-   * @param sourceData source config
+   * @param walletDefaults wallet config defaults
+   * @param isSave save or not
    */
-  setSources (chainKey: string, hotSource: WalletSourceType, coldSource: WalletSourceType, sourceData?: WalletSourceConfig): Promise<WalletDocument>
+  setSources (chainKey: string, walletDefaults: WalletChainInfo, isSave?: boolean): Promise<WalletDocument>
   /**
    * set SourceData in exists chainData
    * @param chainKey blockchain key
