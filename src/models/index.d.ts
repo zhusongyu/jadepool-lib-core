@@ -199,10 +199,13 @@ declare interface TokenConfigJadepool {
 }
 
 declare interface TokenConfig {
-  depositDisabled?: Boolean
-  withdrawDisabled?: Boolean
-  basic?: TokenConfigBasic
+  coin?: TokenConfigBasic
   jadepool?: TokenConfigJadepool
+}
+
+declare interface TokenStatus {
+  depositDisabled: Boolean
+  withdrawDisabled: Boolean
 }
 
 declare interface WalletCoinInfo {
@@ -210,8 +213,31 @@ declare interface WalletCoinInfo {
   name: string
   /** 私钥源可选配置，将覆盖chain默认config */
   data: WalletSourceData
+  status: TokenStatus
   /** 配置加载 */
   config?: TokenConfig
+}
+
+declare interface TokenShortCut {
+  /** 相关区块链显示名 */
+  chain: string
+  /** 相关区块链Key */
+  chainKey: string
+  /** 相关核心币 */
+  coreType: string
+  /** 该币种是否启用 */
+  tokenEnabled: boolean
+  /** 该币种充提是否启用 */
+  depositWithdrawEnabled: boolean
+  /** 该币种类别 */
+  type: string
+  /** 该币种兑换率 */
+  rate: number
+}
+
+declare interface TokenInfo extends WalletCoinInfo {
+  /** 快捷参数 */
+  shortcut: TokenShortCut
 }
 
 declare interface ChainConfig {
@@ -274,16 +300,22 @@ declare interface ChainConfig {
 
 type WalletSourceType = 'seed' | 'hsm_pure' | 'hsm_deep'
 
-declare interface WalletChainInfo {
-  chainKey: string
+declare interface WalletChainStatus {
   /** 在该钱包内是否被禁用 */
-  disabled: boolean
-  hotSource: WalletSourceType
-  coldSource: WalletSourceType
-  // 私钥源必选配置
-  data: WalletSourceData
+  enabled: boolean
   // 状态参数
   coinsEnabled: string[]
+}
+
+declare interface WalletChainInfo {
+  chainKey: string
+  source: {
+    hot: WalletSourceType
+    cold: WalletSourceType
+  }
+  // 私钥源必选配置
+  data: WalletSourceData
+  status: WalletChainStatus
   /** 配置加载 */
   config?: ChainConfig
 }
@@ -317,7 +349,21 @@ declare interface WalletDocument extends mongoose.Document {
    * @param walletDefaults wallet config defaults
    * @param isSave save or not
    */
-  setSources (chainKey: string, walletDefaults: WalletChainInfo, isSave?: boolean): Promise<WalletDocument>
+  updateWalletData (chainKey: string, walletDefaults: WalletChainInfo, isSave?: boolean): Promise<WalletDocument>
+  /**
+   * set chain's enabled coins
+   * @param chainKey blockchain key
+   * @param status 状态配置
+   */
+  setChainStatus (chainKey: string, status: WalletChainStatus): Promise<WalletDocument>
+  /**
+   * set token enabled status
+   * @param chainKey blockchain key
+   * @param coinName coin unique name
+   * @param status 状态配置
+   * @param isSave save or not
+   */
+  setTokenStatus (chainKey: string, coinName: string, status: TokenStatus): Promise<WalletDocument>
   /**
    * set SourceData in exists chainData
    * @param chainKey blockchain key
@@ -330,7 +376,7 @@ declare interface WalletDocument extends mongoose.Document {
    * @param chainKey blockchain key
    * @param coin specific coin scope or chain scope
    */
-  getSourceData (chainKey: string, coin?: string): { hotSource: WalletSourceType, coldSource: WalletSourceType } | WalletSourceData
+  getSourceData (chainKey: string, coin?: string): WalletSourceData
   /**
    * load chain information
    * @param chainKey
@@ -341,7 +387,7 @@ declare interface WalletDocument extends mongoose.Document {
    * @param chainKey
    * @param coinName
    */
-  loadTokenInfo (chainKey: string, coinName: string): Promise<WalletCoinInfo>
+  loadTokenInfo (chainKey: string, coinName: string): Promise<TokenInfo>
   /**
    * 获取热主地址的衍生路径
    * 衍生路径规则为 m/44'/{chainIndex}'/{accountIndex}'/1/{hotIndex}

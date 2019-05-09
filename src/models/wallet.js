@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const jp = require('../jadepool')
 const consts = require('../consts')
 const NBError = require('../NBError')
+const cfgloader = require('../utils/config/loader')
 const { fetchConnection, AutoIncrement } = require('../utils/db')
 const Schema = mongoose.Schema
 
@@ -17,6 +18,42 @@ const SourceData = new Schema({
   cachedAt: Date
 })
 
+const CoinData = new Schema({
+  name: { type: String, required: true }, // 币种简称, 区块链唯一
+  // 私钥源可选配置，将覆盖chain默认config
+  data: SourceData,
+  // 状态配置
+  status: {
+    depositDisabled: { type: Boolean, default: false },
+    withdrawDisabled: { type: Boolean, default: false }
+  },
+  // 动态调整的配置
+  config: {
+    coin: Schema.Types.Mixed,
+    jadepool: Schema.Types.Mixed
+  }
+})
+
+const ChainData = new Schema({
+  chainKey: { type: String, required: true }, // 区块链Key
+  // 私钥源
+  source: {
+    hot: { type: String, required: true, enum: _.values(consts.PRIVKEY_SOURCES), default: consts.PRIVKEY_SOURCES.SEED },
+    cold: { type: String, required: true, enum: _.values(consts.PRIVKEY_SOURCES), default: consts.PRIVKEY_SOURCES.SEED }
+  },
+  // 必选配置
+  data: SourceData,
+  // 状态配置
+  status: {
+    /** 该区块链是否被禁用 */
+    enabled: { type: Boolean, default: true },
+    /** 可用的coinNames */
+    coinsEnabled: [ String ]
+  },
+  // 钱包中的币种状态信息
+  coins: [ CoinData ]
+})
+
 const schema = new Schema({
   name: { type: String, required: true, unique: true }, // 钱包的唯一名称
   desc: String, // 钱包描述，辅助信息
@@ -26,34 +63,7 @@ const schema = new Schema({
   // 充值地址衍生路径为 m/44'/{chainIndex}'/{mainIndex}'/0/{addressIndex}
   addrIndex: { type: Number, required: true, default: 0, min: 0 },
   // 钱包中的区块链状态信息
-  chains: [
-    {
-      chainKey: { type: String, required: true }, // 区块链Key
-      hotSource: { type: String, required: true, enum: _.values(consts.PRIVKEY_SOURCES), default: consts.PRIVKEY_SOURCES.SEED },
-      coldSource: { type: String, required: true, enum: _.values(consts.PRIVKEY_SOURCES), default: consts.PRIVKEY_SOURCES.SEED },
-      // 私钥源必选配置
-      data: SourceData,
-      /** 该区块链是否被禁用 */
-      disabled: Boolean,
-      /** 可用的coinNames */
-      coinsEnabled: [ String ],
-      // 钱包中的币种状态信息
-      coins: [
-        {
-          name: { type: String, required: true }, // 币种简称, 唯一
-          // 私钥源可选配置，将覆盖chain默认config
-          data: SourceData,
-          // 动态调整的配置
-          config: {
-            depositDisabled: Boolean,
-            withdrawDisabled: Boolean,
-            basic: Schema.Types.Mixed,
-            jadepool: Schema.Types.Mixed
-          }
-        }
-      ]
-    }
-  ] // end chains
+  chains: [ ChainData ] // end chains
 }, {
   timestamps: { createdAt: 'create_at', updatedAt: 'update_at' }
 })
@@ -78,27 +88,44 @@ Wallet.prototype.nextAddressIndex = async function () {
 }
 
 /**
- * set SourceType and data
+ * set data with defaults
  * @param {string} chainKey blockchain key
- * @param {object} walletDefaults 默认配置
- * @param {string} walletDefaults.hotSource hot wallet private key source
- * @param {string} walletDefaults.coldSource cold wallet private key source
- * @param {{seedKey?: string, hsmKey?: string}} walletDefaults.data source config
- * @param {any[]} walletDefaults.coins coins
+ * @param {object} walletData 默认配置
  * @param {boolean} isSave save or not
  */
-Wallet.prototype.setSources = async function (chainKey, walletDefaults, isSave = true) {
+Wallet.prototype.updateWalletData = async function (chainKey, walletData, isSave = true) {
   // ensure sourceType available
   const eumTypes = _.values(consts.PRIVKEY_SOURCES)
-  if (eumTypes.indexOf(walletDefaults.hotSource) === -1) throw new NBError(10002, `invalid parameter hotSource`)
-  if (eumTypes.indexOf(walletDefaults.coldSource) === -1) throw new NBError(10002, `invalid parameter coldSource`)
+  const hotSource = [_.get(walletData, 'source.hot')].filter(v => eumTypes.indexOf(v) !== -1)[0]
+  const coldSource = [_.get(walletData, 'source.cold')].filter(v => eumTypes.indexOf(v) !== -1)[0]
   // build save object
-  const dataToSave = Object.assign({ chainKey }, walletDefaults)
   const i = _.findIndex(this.chains || [], { chainKey })
   if (i === -1) {
-    this.chains.push(dataToSave)
+    this.chains.push({
+      chainKey,
+      source: {
+        hot: hotSource || consts.PRIVKEY_SOURCES.SEED,
+        cold: coldSource || consts.PRIVKEY_SOURCES.SEED
+      },
+      data: walletData.data,
+      status: {
+        enabled: true,
+        coinsEnabled: walletData.coinsEnabled || []
+      },
+      coins: walletData.coins || []
+    })
   } else {
-    this.chains.set(i, dataToSave)
+    const objToSave = _.clone(this.chains[i])
+    if (hotSource) _.set(objToSave, 'source.hot', hotSource)
+    if (coldSource) _.set(objToSave, 'source.cold', coldSource)
+    if (walletData.data) _.set(objToSave, 'data', walletData.data)
+    _.forEach(walletData.coins || [], defaultsCoinData => {
+      const saveCoinData = _.find(objToSave.coins || [], { name: defaultsCoinData.name })
+      if (saveCoinData) {
+        saveCoinData.data = defaultsCoinData.data
+      }
+    })
+    this.chains.set(i, objToSave)
   }
   // 保存
   if (isSave) {
@@ -108,30 +135,63 @@ Wallet.prototype.setSources = async function (chainKey, walletDefaults, isSave =
 }
 
 /**
+ * set any data
+ * @param {string} chainKey blockchain key
+ * @param {string} coinName coin unique name
+ * @param {string} field
+ * @param {object} data
+ * @param {boolean} isSave
+ */
+Wallet.prototype.setAnyData = async function (chainKey, coinName, field, data) {
+  const i = _.findIndex(this.chains || [], { chainKey })
+  if (i === -1) throw new NBError(40410, `chain: ${chainKey}`)
+  if (coinName !== undefined) {
+    const chainData = this.chains[i]
+    let coinIdx = -1
+    coinIdx = _.findIndex(chainData.coins || [], c => c.name === coinName)
+    if (coinIdx !== -1) {
+      const pathKey = `chains.${i}.coins.${coinIdx}.${field}`
+      this.set(pathKey, Object.assign({}, this.get(pathKey), data))
+    } else {
+      chainData.coins.push({ name: coinName, [field]: data })
+    }
+  } else {
+    const pathKey = `chains.${i}.${field}`
+    this.set(pathKey, Object.assign({}, this.get(pathKey), data))
+  }
+  // save to db
+  await this.save()
+  return this
+}
+
+/**
+ * set chain's enabled coins
+ * @param {string} chainKey blockchain key
+ * @param {object} status 状态配置
+ */
+Wallet.prototype.setChainStatus = async function (chainKey, status) {
+  return this.setAnyData(chainKey, undefined, 'status', status)
+}
+/**
+ * set token enabled status
+ * @param {string} chainKey blockchain key
+ * @param {string} coinName coin unique name
+ * @param {object} status 状态配置
+ */
+Wallet.prototype.setTokenStatus = async function (chainKey, coinName, status) {
+  return this.setAnyData(chainKey, coinName, 'status', status)
+}
+
+/**
  * set SourceData in exists chainData
  * @param {string} chainKey blockchain key
  * @param {string|undefined} coin specific coin scope or chain scope
  * @param {any} sourceData all data of private key source including caching data
  */
 Wallet.prototype.setSourceData = async function (chainKey, coinName, sourceData) {
-  const i = _.findIndex(this.chains || [], { chainKey })
-  if (i === -1) throw new NBError(40410, `chain: ${chainKey}`)
   sourceData = sourceData || {}
   sourceData.cachedAt = new Date()
-  let coinIdx = -1
-  if (coinName !== undefined) {
-    coinIdx = _.findIndex(this.chains[i].coins || [], c => c.name === coinName)
-  }
-  // set source data
-  let pathKey = `chains.${i}`
-  if (coinIdx !== -1) {
-    pathKey += `.coins.${coinIdx}`
-  }
-  pathKey += '.data'
-  // overrid latest
-  this.set(pathKey, Object.assign({}, this.get(pathKey), sourceData))
-  await this.save()
-  return this
+  return this.setAnyData(chainKey, coinName, 'data', sourceData)
 }
 
 /**
@@ -142,8 +202,7 @@ Wallet.prototype.getSourceData = function (chainKey, coinName) {
   if (!chainData) return null
   const coinData = _.find(chainKey.coins || [], c => c.name === coinName)
   return Object.assign({
-    hotSource: chainData.hotSource,
-    coldSource: chainData.coldSource
+    source: chainData.source
   }, chainData.data, coinData ? coinData.data : {})
 }
 
@@ -153,17 +212,13 @@ Wallet.prototype.getSourceData = function (chainKey, coinName) {
 Wallet.prototype.loadChainInfo = async function (chainKey) {
   const chainData = _.find(this.chains || [], { chainKey })
   if (!chainData) return null
-  const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
-  const chain = await ConfigDat.findOne({ path: 'chain', key: chainKey, parent: { $exists: false } }).exec()
-  return {
-    chainKey,
-    disabled: chainData.disabled,
-    hotSource: chainData.hotSource,
-    coldSource: chainData.coldSource,
-    coinsEnabled: chainData.coinsEnabled,
-    data: _.clone(chainData.data),
-    config: chain.toMerged()
-  }
+  const chain = await cfgloader.loadConfig('chain', chainKey)
+  return Object.assign({
+    config: Object.assign({
+      id: chain._id,
+      key: chainKey
+    }, chain.toMerged())
+  }, _.pick(chainData, ['chainKey', 'source', 'data', 'status']))
 }
 
 /**
@@ -174,15 +229,18 @@ Wallet.prototype.loadTokenInfo = async function (chainKey, coinName) {
   if (!chainData) return null
   const result = {
     name: coinName,
-    data: _.clone(chainData.data)
+    data: _.clone(chainData.data),
+    status: {}
   }
   const coinData = _.find(chainKey.coins || [], c => c.name === coinName)
   if (coinData) {
     result.data = Object.assign(result.data, coinData.data || {})
+    result.status = _.clone(coinData.status || {})
   }
   const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
-  const chain = await ConfigDat.findOne({ path: 'chain', key: chainKey, parent: { $exists: false } }).exec()
-  const token = await ConfigDat.findOne({ path: 'tokens', key: coinName, parent: chain._id }).exec()
+  const chain = await cfgloader.loadConfig('chain', chainKey)
+  const token = await cfgloader.loadConfig('tokens', coinName, chain)
+  if (!chain || !token) return null
   let cfg = ConfigDat.mergeConfigObj(token.toMerged(), coinData && coinData.config ? coinData.config : {})
   // 通过全局条件修改config
   if (jp.config.configWatchers) {
@@ -215,6 +273,17 @@ Wallet.prototype.loadTokenInfo = async function (chainKey, coinName) {
   }
   // 设置为最终config
   result.config = cfg
+  // 设置shortcut
+  const chainCfg = chain.toMerged()
+  result.shortcut = {
+    chainKey: chainKey,
+    chain: chainCfg.Chain,
+    coreType: chainCfg.CoreType,
+    tokenEnabled: chainData.status.coinsEnabled.indexOf(coinName) !== -1,
+    depositWithdrawEnabled: !result.status.withdrawDisabled && !result.status.depositDisabled,
+    type: cfg.coin && cfg.coin.Type,
+    rate: cfg.coin && cfg.coin.Rate
+  }
   return result
 }
 
