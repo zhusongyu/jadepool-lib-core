@@ -91,9 +91,10 @@ Wallet.prototype.nextAddressIndex = async function () {
  * set data with defaults
  * @param {string} chainKey blockchain key
  * @param {object} walletData 默认配置
+ * @param {boolean} enabled
  * @param {boolean} isSave save or not
  */
-Wallet.prototype.updateWalletData = async function (chainKey, walletData, isSave = true) {
+Wallet.prototype.updateWalletData = async function (chainKey, walletData, enabled, isSave = true) {
   // ensure sourceType available
   const eumTypes = _.values(consts.PRIVKEY_SOURCES)
   const hotSource = [_.get(walletData, 'source.hot')].filter(v => eumTypes.indexOf(v) !== -1)[0]
@@ -109,23 +110,22 @@ Wallet.prototype.updateWalletData = async function (chainKey, walletData, isSave
       },
       data: walletData.data,
       status: {
-        enabled: true,
+        enabled: enabled,
         coinsEnabled: walletData.coinsEnabled || []
       },
       coins: walletData.coins || []
     })
   } else {
-    const objToSave = _.clone(this.chains[i])
-    if (hotSource) _.set(objToSave, 'source.hot', hotSource)
-    if (coldSource) _.set(objToSave, 'source.cold', coldSource)
-    if (walletData.data) _.set(objToSave, 'data', walletData.data)
+    if (hotSource) this.chains[i].set('source.hot', hotSource)
+    if (coldSource) this.chains[i].set('source.cold', coldSource)
+    if (walletData.data) this.chains[i].set('data', walletData.data)
+    if (enabled !== undefined) this.chains[i].set('status.enabled', enabled)
     _.forEach(walletData.coins || [], defaultsCoinData => {
-      const saveCoinData = _.find(objToSave.coins || [], { name: defaultsCoinData.name })
+      const saveCoinData = _.find(this.chains[i].coins || [], { name: defaultsCoinData.name })
       if (saveCoinData) {
         saveCoinData.data = defaultsCoinData.data
       }
     })
-    this.chains.set(i, objToSave)
   }
   // 保存
   if (isSave) {
