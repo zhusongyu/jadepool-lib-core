@@ -210,17 +210,85 @@ declare interface WalletCoinInfo {
   name: string
   /** 私钥源可选配置，将覆盖chain默认config */
   data: WalletSourceData
-  config: TokenConfig
+  /** 配置加载 */
+  config?: TokenConfig
+}
+
+declare interface ChainConfig {
+  // 基础参数
+  /** 数据表记录的_id */
+  id: string
+  /** 区块链Key */
+  key: string
+  /** 该链是否被完整禁用 */
+  disabled: boolean
+  /** 主要货币名，通常为费用币 */
+  CoreType: string
+  /** 区块链显示名 */
+  Chain:string
+  /** 衍生路径中的chainIndex */
+  ChainIndex: number
+  /** 衍生路径中的accountIndex offset */
+  MainIndexOffset?: number
+  /** 钱包的默认Source配置 */
+  WalletDefaults: WalletChainInfo
+  /** 区块链实现的形式 */
+  ledgerMode: 'local' | 'rpc'
+  ledgerOptions: {
+    file?: string,
+    rpc?: string
+  }
+  generalOptions: {
+    RescanMode: string
+    AffirmativeConfirmation: number
+    FailedAffirmativeConfirmation: number
+    sendOrdersInterval: number
+    waitingSendOrdersOnline: boolean
+  }
+  closer: {
+    softForkIgnoreCap: number
+    previousBlocks: number
+    scanBlockTaskCap: number
+    scanAddressTaskCap: number
+  }
+  /** 是否支持扩展代币 */
+  tokenExtendsEnabled: boolean
+  tokenTypes: string[]
+  tokenTemplates?: string[]
+  /** 是否需要在线验证地址 */
+  addressOnline: boolean
+  /** 地址模型 */
+  addressMode: 'multi' | 'single'
+  /** 支持的地址业务模型 */
+  addressBizModes?: string[]
+  /** stake */
+  stakeEnabled?: boolean
+  stakeOptions?: {
+    stakeToken: string
+  }
+  /** explorers config */
+  explorers: string[] | { type: string, name: string, url: string }[]
+  /** 节点配置 */
+  endpoints: string[] | { type: string, name: string, url?: string, [key: string]: string }[]
 }
 
 type WalletSourceType = 'seed' | 'hsm_pure' | 'hsm_deep'
 
-declare interface WalletChainInfo  {
+declare interface WalletChainInfo {
   chainKey: string
+  /** 在该钱包内是否被禁用 */
+  disabled: boolean
   hotSource: WalletSourceType
   coldSource: WalletSourceType
   // 私钥源必选配置
   data: WalletSourceData
+  // 状态参数
+  coinsEnabled: string[]
+  /** 配置加载 */
+  config?: ChainConfig
+}
+
+declare interface WalletChain extends WalletChainInfo  {
   // 钱包中的币种状态信息
   coins: WalletCoinInfo[]
 }
@@ -237,7 +305,7 @@ declare interface WalletDocument extends mongoose.Document {
   /** 可用账号index */
   addrIndex: number
   /** blockchain infos */
-  chains: WalletChainInfo[]
+  chains: WalletChain[]
 
   /**
    * 设置并获取下一个Address的index
@@ -263,6 +331,17 @@ declare interface WalletDocument extends mongoose.Document {
    * @param coin specific coin scope or chain scope
    */
   getSourceData (chainKey: string, coin?: string): { hotSource: WalletSourceType, coldSource: WalletSourceType } | WalletSourceData
+  /**
+   * load chain information
+   * @param chainKey
+   */
+  loadChainInfo (chainKey: string): Promise<WalletChainInfo>
+  /**
+   * load token information
+   * @param chainKey
+   * @param coinName
+   */
+  loadTokenInfo (chainKey: string, coinName: string): Promise<WalletCoinInfo>
   /**
    * 获取热主地址的衍生路径
    * 衍生路径规则为 m/44'/{chainIndex}'/{accountIndex}'/1/{hotIndex}

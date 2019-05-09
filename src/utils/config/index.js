@@ -4,16 +4,6 @@ const consts = require('../../consts')
 const jp = require('../../jadepool')
 const { mongoose } = require('../db')
 
-/**
- * @deprecated
- */
-const fetchCallbackUrl = (category, customUrl) => {
-  let url = _.get(jp.config, `callback.${category}`)
-  let debugUrl = _.get(jp.config, `callback.debug`)
-  url = (url || customUrl) || debugUrl
-  return url
-}
-
 const applyIgnoreKeys = (types, jsonObj) => {
   let typeArr = types.split(',')
   typeArr = _.intersection(_.keys(jp.config.configMods), typeArr)
@@ -185,7 +175,6 @@ const loadAllChainNames = async () => {
 
 module.exports = {
   applyIgnoreKeys,
-  fetchCallbackUrl,
   fetchCoinCfg,
   fetchChainCfg,
   fetchAllCoinNames,

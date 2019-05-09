@@ -3,7 +3,8 @@ import {
   WalletSourceConfig,
   WalletCoinInfo,
   TokenConfigBasic,
-  TokenConfigJadepool
+  TokenConfigJadepool,
+  ChainConfig
 } from "../../models";
 
 interface CoinConfig {
@@ -23,73 +24,6 @@ interface CoinConfig {
   /** @deprecated */
   disabled?: boolean
 }
-
-interface WalletDefaultsConfig {
-  hotSource: WalletSourceType,
-  coldSource: WalletSourceType,
-  data: WalletSourceConfig,
-  coins: WalletCoinInfo[]
-}
-
-interface ChainConfig {
-  // 基础参数
-  /** 数据表记录的_id */
-  id: string
-  /** 该链是否被启用 */
-  disabled: boolean
-  /** 区块链显示名 */
-  key: string
-  /** 区块链显示名 */
-  Chain:string
-  /** 衍生路径中的chainIndex */
-  ChainIndex: number
-  /** 衍生路径中的accountIndex offset */
-  MainIndexOffset?: number
-  /** 钱包的默认Source配置 */
-  WalletDefaults: WalletDefaultsConfig
-  /** 主要货币名，通常为费用币 */
-  CoreType: string
-  /** 区块链实现的形式 */
-  ledgerMode: string
-  ledgerOptions: {
-    file?: string,
-    rpc?: string
-  }
-  generalOptions: {
-    RescanMode: string
-    AffirmativeConfirmation: number
-    FailedAffirmativeConfirmation: number
-    sendOrdersInterval: number
-    waitingSendOrdersOnline: boolean
-  }
-  /** 是否支持扩展代币 */
-  tokenExtendsEnabled: boolean
-  tokenTypes: string[]
-  tokenTemplate: object
-  /** 是否需要在线验证地址 */
-  addressOnline: boolean
-  /** 地址模型 */
-  addressMode: string
-  /** 支持的地址业务模型 */
-  addressBizModes?: string[]
-  stakeEnabled?: boolean
-  stakeOptions?: {
-    stakeToken: string
-  }
-  // 细节参数
-  tokens: object
-  node: object
-  agenda?: object
-  closer: object
-}
-
-/**
- * 获取callbackUrl
- * @deprecated
- * @param category 回调地址类型
- * @param customUrl 自定义的URL
- */
-export function fetchCallbackUrl(category: string, customUrl?: string): string
 
 /**
  * 根据config.configMods.{type} 将对象进行unset

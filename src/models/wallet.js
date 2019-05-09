@@ -33,6 +33,10 @@ const schema = new Schema({
       coldSource: { type: String, required: true, enum: _.values(consts.PRIVKEY_SOURCES), default: consts.PRIVKEY_SOURCES.SEED },
       // 私钥源必选配置
       data: SourceData,
+      /** 该区块链是否被禁用 */
+      disabled: Boolean,
+      /** 可用的coinNames */
+      coinsEnabled: [ String ],
       // 钱包中的币种状态信息
       coins: [
         {
@@ -144,15 +148,32 @@ Wallet.prototype.getSourceData = function (chainKey, coinName) {
 }
 
 /**
+ * 获取区块链相关的配置信息
+ */
+Wallet.prototype.loadChainInfo = async function (chainKey) {
+  const chainData = _.find(this.chains || [], { chainKey })
+  if (!chainData) return null
+  const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
+  const chain = await ConfigDat.findOne({ path: 'chain', key: chainKey, parent: { $exists: false } }).exec()
+  return {
+    chainKey,
+    disabled: chainData.disabled,
+    hotSource: chainData.hotSource,
+    coldSource: chainData.coldSource,
+    coinsEnabled: chainData.coinsEnabled,
+    data: _.clone(chainData.data),
+    config: chain.toMerged()
+  }
+}
+
+/**
  * 获取币种相关的配置信息
  */
-Wallet.prototype.loadConfig = async function (chainKey, coinName) {
+Wallet.prototype.loadTokenInfo = async function (chainKey, coinName) {
   const chainData = _.find(this.chains || [], { chainKey })
   if (!chainData) return null
   const result = {
     name: coinName,
-    hotSource: chainData.hotSource,
-    coldSource: chainData.coldSource,
     data: _.clone(chainData.data)
   }
   const coinData = _.find(chainKey.coins || [], c => c.name === coinName)
