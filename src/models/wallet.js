@@ -250,7 +250,9 @@ Wallet.prototype.populateTokenConfig = async function (chainKey, coinName) {
  */
 Wallet.prototype.getChainInfo = function (chainKey) {
   const chainData = _.find(this.chains || [], { chainKey })
-  if (!chainData) return null
+  if (!chainData) {
+    throw new NBError(10001, `failed to find chain: ${chainKey}`)
+  }
   return Object.assign({
     config: this._chainInfoCache && this._chainInfoCache.get(chainKey)
   }, _.pick(chainData, ['chainKey', 'source', 'data', 'status']))
@@ -261,7 +263,9 @@ Wallet.prototype.getChainInfo = function (chainKey) {
  */
 Wallet.prototype.getTokenInfo = function (chainKey, coinName) {
   const chainData = _.find(this.chains || [], { chainKey })
-  if (!chainData) return null
+  if (!chainData) {
+    throw new NBError(10001, `failed to find chain: ${chainKey}`)
+  }
   const result = {
     name: coinName,
     data: _.clone(chainData.data),
@@ -275,7 +279,9 @@ Wallet.prototype.getTokenInfo = function (chainKey, coinName) {
   const chainCfg = this._chainInfoCache && this._chainInfoCache.get(chainKey)
   const tokenCfg = this._tokenInfoCache && this._tokenInfoCache.get(coinName)
   // 缺少配置则返回残缺版tokenInfo
-  if (!chainCfg || !tokenCfg) return result
+  if (!chainCfg || !tokenCfg) {
+    throw new NBError(10001, `token config without population`)
+  }
 
   const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
   let cfg = ConfigDat.mergeConfigObj(_.clone(tokenCfg), coinData && coinData.config ? coinData.config : {})
