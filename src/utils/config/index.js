@@ -59,9 +59,11 @@ const loadChainCfg = async (chainKey) => {
 const loadAllChainNames = async () => {
   // Config in DB
   const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
-
-  const query = { path: 'chain', key: { $ne: '' } }
-  const cfgs = (await ConfigDat.find(query).exec()) || []
+  const cfgs = (await ConfigDat.find({
+    path: 'chain',
+    key: { $ne: '' },
+    parent: { $exists: false }
+  }).exec()) || []
   return cfgs.filter(cfg => !cfg.disabled).map(cfg => cfg.key)
 }
 

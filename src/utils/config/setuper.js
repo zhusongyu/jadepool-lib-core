@@ -51,7 +51,8 @@ const configSetupMethods = {
     const fileKeys = await loadConfigKeys('chain')
     for (let i = 0; i < fileKeys.length; i++) {
       const key = fileKeys[i]
-      const chainInfo = await defaultWallet.loadChainInfo(key)
+      await defaultWallet.populateChainConfig(key)
+      const chainInfo = defaultWallet.getChainInfo(key)
       if (!chainInfo) continue
       // 跳过区块链已被禁用的货币
       if (chainInfo.config.disabled) continue
@@ -62,7 +63,8 @@ const configSetupMethods = {
       allTokens = allTokens.filter(tokenName => tokenName !== '_')
       for (let i = 0; i < allTokens.length; i++) {
         const coinName = allTokens[i]
-        const tokenInfo = await defaultWallet.loadTokenInfo(key, coinName)
+        await defaultWallet.populateTokenConfig(key, coinName)
+        const tokenInfo = defaultWallet.getTokenInfo(key, coinName)
         if (!tokenInfo) continue
         if (chainInfo.status.coinsEnabled.indexOf(coinName) === -1) continue
 

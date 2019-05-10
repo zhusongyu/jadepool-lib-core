@@ -142,7 +142,7 @@ Wallet.prototype.updateWalletData = async function (chainKey, walletData, enable
  * @param {object} data
  * @param {boolean} isSave
  */
-Wallet.prototype.setAnyData = async function (chainKey, coinName, field, data) {
+Wallet.prototype._setAnyData = async function (chainKey, coinName, field, data) {
   const i = _.findIndex(this.chains || [], { chainKey })
   if (i === -1) throw new NBError(40410, `chain: ${chainKey}`)
   if (coinName !== undefined) {
@@ -170,7 +170,7 @@ Wallet.prototype.setAnyData = async function (chainKey, coinName, field, data) {
  * @param {object} status 状态配置
  */
 Wallet.prototype.setChainStatus = async function (chainKey, status) {
-  return this.setAnyData(chainKey, undefined, 'status', status)
+  return this._setAnyData(chainKey, undefined, 'status', status)
 }
 /**
  * set token enabled status
@@ -179,7 +179,7 @@ Wallet.prototype.setChainStatus = async function (chainKey, status) {
  * @param {object} status 状态配置
  */
 Wallet.prototype.setTokenStatus = async function (chainKey, coinName, status) {
-  return this.setAnyData(chainKey, coinName, 'status', status)
+  return this._setAnyData(chainKey, coinName, 'status', status)
 }
 
 /**
@@ -191,7 +191,7 @@ Wallet.prototype.setTokenStatus = async function (chainKey, coinName, status) {
 Wallet.prototype.setSourceData = async function (chainKey, coinName, sourceData) {
   sourceData = sourceData || {}
   sourceData.cachedAt = new Date()
-  return this.setAnyData(chainKey, coinName, 'data', sourceData)
+  return this._setAnyData(chainKey, coinName, 'data', sourceData)
 }
 
 /**
@@ -207,24 +207,59 @@ Wallet.prototype.getSourceData = function (chainKey, coinName) {
 }
 
 /**
+ * 加载区块链相关的配置信息
+ */
+Wallet.prototype.populateChainConfig = async function (chainKey) {
+  const chainData = _.find(this.chains || [], { chainKey })
+  if (chainData) {
+    if (!this._chainInfoCache) this._chainInfoCache = new Map()
+    const chain = await cfgloader.loadConfig('chain', chainKey)
+    if (chain) {
+      this._chainInfoCache.set(chainKey, Object.assign({
+        id: chain._id,
+        key: chainKey
+      }, chain.toMerged()))
+    }
+  }
+  return this
+}
+
+/**
+ * 加载币种相关的配置信息
+ */
+Wallet.prototype.populateTokenConfig = async function (chainKey, coinName) {
+  const chainData = _.find(this.chains || [], { chainKey })
+  if (chainData) {
+    // load chainInfo first
+    if (!this._chainInfoCache || !this._chainInfoCache.has(chainKey)) {
+      await this.populateChainInfo(chainKey)
+    }
+    const chain = this._chainInfoCache.get(chainKey)
+    // load tokenInfo now
+    if (chain) {
+      if (!this._tokenInfoCache) this._tokenInfoCache = new Map()
+      const tokenDat = await cfgloader.loadConfig('tokens', coinName, chain.id)
+      if (tokenDat) this._tokenInfoCache.set(coinName, tokenDat.toMerged())
+    }
+  }
+  return this
+}
+
+/**
  * 获取区块链相关的配置信息
  */
-Wallet.prototype.loadChainInfo = async function (chainKey) {
+Wallet.prototype.getChainInfo = function (chainKey) {
   const chainData = _.find(this.chains || [], { chainKey })
   if (!chainData) return null
-  const chain = await cfgloader.loadConfig('chain', chainKey)
   return Object.assign({
-    config: Object.assign({
-      id: chain._id,
-      key: chainKey
-    }, chain.toMerged())
+    config: this._chainInfoCache && this._chainInfoCache.get(chainKey)
   }, _.pick(chainData, ['chainKey', 'source', 'data', 'status']))
 }
 
 /**
  * 获取币种相关的配置信息
  */
-Wallet.prototype.loadTokenInfo = async function (chainKey, coinName) {
+Wallet.prototype.getTokenInfo = function (chainKey, coinName) {
   const chainData = _.find(this.chains || [], { chainKey })
   if (!chainData) return null
   const result = {
@@ -237,11 +272,13 @@ Wallet.prototype.loadTokenInfo = async function (chainKey, coinName) {
     result.data = Object.assign(result.data, coinData.data || {})
     result.status = _.clone(coinData.status || {})
   }
+  const chainCfg = this._chainInfoCache && this._chainInfoCache.get(chainKey)
+  const tokenCfg = this._tokenInfoCache && this._tokenInfoCache.get(coinName)
+  // 缺少配置则返回残缺版tokenInfo
+  if (!chainCfg || !tokenCfg) return result
+
   const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
-  const chain = await cfgloader.loadConfig('chain', chainKey)
-  const token = await cfgloader.loadConfig('tokens', coinName, chain)
-  if (!chain || !token) return null
-  let cfg = ConfigDat.mergeConfigObj(token.toMerged(), coinData && coinData.config ? coinData.config : {})
+  let cfg = ConfigDat.mergeConfigObj(_.clone(tokenCfg), coinData && coinData.config ? coinData.config : {})
   // 通过全局条件修改config
   if (jp.config.configWatchers) {
     _.forEach(jp.config.configWatchers, watcherCfg => {
@@ -274,7 +311,6 @@ Wallet.prototype.loadTokenInfo = async function (chainKey, coinName) {
   // 设置为最终config
   result.config = cfg
   // 设置shortcut
-  const chainCfg = chain.toMerged()
   result.shortcut = {
     chainKey: chainKey,
     chain: chainCfg.Chain,

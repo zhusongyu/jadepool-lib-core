@@ -382,13 +382,24 @@ declare interface WalletDocument extends mongoose.Document {
    * load chain information
    * @param chainKey
    */
-  loadChainInfo (chainKey: string): Promise<WalletChainInfo>
+  populateChainConfig (chainKey: string): Promise<WalletDocument>
   /**
    * load token information
    * @param chainKey
    * @param coinName
    */
-  loadTokenInfo (chainKey: string, coinName: string): Promise<TokenInfo>
+  populateTokenConfig (chainKey: string, coinName: string): Promise<WalletDocument>
+  /**
+   * load chain information
+   * @param chainKey
+   */
+  getChainInfo (chainKey: string): WalletChainInfo
+  /**
+   * load token information
+   * @param chainKey
+   * @param coinName
+   */
+  getTokenInfo (chainKey: string, coinName: string): TokenInfo
   /**
    * 获取热主地址的衍生路径
    * 衍生路径规则为 m/44'/{chainIndex}'/{accountIndex}'/1/{hotIndex}
