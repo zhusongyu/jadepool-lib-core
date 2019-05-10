@@ -151,13 +151,15 @@ Wallet.prototype._setAnyData = async function (chainKey, coinName, field, data) 
     coinIdx = _.findIndex(chainData.coins || [], c => c.name === coinName)
     if (coinIdx !== -1) {
       const pathKey = `chains.${i}.coins.${coinIdx}.${field}`
-      this.set(pathKey, Object.assign({}, this.get(pathKey), data))
+      const oldData = _.clone(this.get(pathKey))
+      this.set(pathKey, Object.assign(oldData, data))
     } else {
       chainData.coins.push({ name: coinName, [field]: data })
     }
   } else {
     const pathKey = `chains.${i}.${field}`
-    this.set(pathKey, Object.assign({}, this.get(pathKey), data))
+    const oldData = _.clone(this.get(pathKey))
+    this.set(pathKey, Object.assign(oldData, data))
   }
   // save to db
   await this.save()
@@ -203,7 +205,7 @@ Wallet.prototype.getSourceData = function (chainKey, coinName) {
   const coinData = _.find(chainKey.coins || [], c => c.name === coinName)
   return Object.assign({
     source: chainData.source
-  }, chainData.data, coinData ? coinData.data : {})
+  }, chainData.data.toObject(), coinData ? coinData.data.toObject() : {})
 }
 
 /**
@@ -253,9 +255,13 @@ Wallet.prototype.getChainInfo = function (chainKey) {
   if (!chainData) {
     throw new NBError(10001, `failed to find chain: ${chainKey}`)
   }
-  return Object.assign({
+  return {
+    chainKey,
+    source: chainData.source,
+    status: chainData.status,
+    data: chainData.data.toObject(),
     config: this._chainInfoCache && this._chainInfoCache.get(chainKey)
-  }, _.pick(chainData, ['chainKey', 'source', 'data', 'status']))
+  }
 }
 
 /**
@@ -268,12 +274,12 @@ Wallet.prototype.getTokenInfo = function (chainKey, coinName) {
   }
   const result = {
     name: coinName,
-    data: _.clone(chainData.data),
+    data: chainData.data.toObject(),
     status: {}
   }
   const coinData = _.find(chainKey.coins || [], c => c.name === coinName)
   if (coinData) {
-    result.data = Object.assign(result.data, coinData.data || {})
+    result.data = Object.assign(result.data, coinData.data ? coinData.data.toObject() : {})
     result.status = _.clone(coinData.status || {})
   }
   const chainCfg = this._chainInfoCache && this._chainInfoCache.get(chainKey)
