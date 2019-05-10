@@ -7,21 +7,10 @@ const cfgloader = require('../utils/config/loader')
 const { fetchConnection, AutoIncrement } = require('../utils/db')
 const Schema = mongoose.Schema
 
-const SourceData = new Schema({
-  /** 当source为seed时，需要设置 */
-  seedKey: String,
-  /** 当source为hsm时，需要设置 */
-  hsmKey: String,
-  // 缓存，可供比较变化，最后一次设置进去
-  hotAddress: String,
-  coldAddress: String,
-  cachedAt: Date
-})
-
 const CoinData = new Schema({
   name: { type: String, required: true }, // 币种简称, 区块链唯一
   // 私钥源可选配置，将覆盖chain默认config
-  data: SourceData,
+  data: Schema.Types.Mixed,
   // 状态配置
   status: {
     depositDisabled: { type: Boolean, default: false },
@@ -42,7 +31,7 @@ const ChainData = new Schema({
     cold: { type: String, required: true, enum: _.values(consts.PRIVKEY_SOURCES), default: consts.PRIVKEY_SOURCES.SEED }
   },
   // 必选配置
-  data: SourceData,
+  data: Schema.Types.Mixed,
   // 状态配置
   status: {
     /** 该区块链是否被禁用 */
@@ -116,14 +105,17 @@ Wallet.prototype.updateWalletData = async function (chainKey, walletData, enable
       coins: walletData.coins || []
     })
   } else {
-    if (hotSource) this.chains[i].set('source.hot', hotSource)
-    if (coldSource) this.chains[i].set('source.cold', coldSource)
-    if (walletData.data) this.chains[i].set('data', walletData.data)
-    if (enabled !== undefined) this.chains[i].set('status.enabled', enabled)
+    const chainData = this.chains[i]
+    if (hotSource) chainData.set('source.hot', hotSource)
+    if (coldSource) chainData.set('source.cold', coldSource)
+    if (walletData.data) {
+      chainData.data = Object.assign({}, chainData.data, walletData.data)
+    }
+    if (enabled !== undefined) chainData.set('status.enabled', enabled)
     _.forEach(walletData.coins || [], defaultsCoinData => {
-      const saveCoinData = _.find(this.chains[i].coins || [], { name: defaultsCoinData.name })
+      const saveCoinData = _.find(chainData.coins || [], { name: defaultsCoinData.name })
       if (saveCoinData) {
-        saveCoinData.data = defaultsCoinData.data
+        saveCoinData.data = Object.assign({}, saveCoinData.data, defaultsCoinData.data)
       }
     })
   }
@@ -205,7 +197,7 @@ Wallet.prototype.getSourceData = function (chainKey, coinName) {
   const coinData = _.find(chainKey.coins || [], c => c.name === coinName)
   return Object.assign({
     source: chainData.source
-  }, chainData.data.toObject(), coinData ? coinData.data.toObject() : {})
+  }, chainData.data, coinData ? coinData.data : {})
 }
 
 /**
@@ -257,9 +249,9 @@ Wallet.prototype.getChainInfo = function (chainKey) {
   }
   return {
     chainKey,
-    source: chainData.source,
-    status: chainData.status,
-    data: chainData.data.toObject(),
+    source: _.clone(chainData.source),
+    status: _.clone(chainData.status),
+    data: _.clone(chainData.data),
     config: this._chainInfoCache && this._chainInfoCache.get(chainKey)
   }
 }
@@ -274,12 +266,12 @@ Wallet.prototype.getTokenInfo = function (chainKey, coinName) {
   }
   const result = {
     name: coinName,
-    data: chainData.data.toObject(),
+    data: _.clone(chainData.data),
     status: {}
   }
   const coinData = _.find(chainKey.coins || [], c => c.name === coinName)
   if (coinData) {
-    result.data = Object.assign(result.data, coinData.data ? coinData.data.toObject() : {})
+    result.data = Object.assign(result.data, coinData.data ? coinData.data : {})
     result.status = _.clone(coinData.status || {})
   }
   const chainCfg = this._chainInfoCache && this._chainInfoCache.get(chainKey)
