@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const semver = require('semver')
 const {
   loadConfig,
   loadConfigKeys,
@@ -51,6 +52,16 @@ const configSetupMethods = {
     const fileKeys = await loadConfigKeys('chain')
     for (let i = 0; i < fileKeys.length; i++) {
       const key = fileKeys[i]
+      // 设置WalletDefaults
+      if (!defaultWallet.version || semver.gt(jp.env.version, defaultWallet.version)) {
+        let chainCfgDat = await loadConfig('chain', key)
+        if (!chainCfgDat) continue
+        const chainCfg = chainCfgDat.toMerged()
+        const walletDefaults = chainCfg.WalletDefaults || { data: { seedKey: key } }
+        await defaultWallet.updateWalletData(key, walletDefaults, !chainCfgDat.disabled)
+        logger.tag('Wallet-updated', key).log(JSON.stringify(walletDefaults))
+      }
+
       await defaultWallet.populateChainConfig(key)
       const chainInfo = defaultWallet.getChainInfo(key)
       if (!chainInfo) continue
@@ -97,6 +108,13 @@ const configSetupMethods = {
       jp.config.coin[key] = basicCfgs
       jp.config.jadepool[key] = jadepoolCfgs
       jp.config.chain[key] = chainInfo.config
+    }
+    // 更新版本号
+    if (!defaultWallet.version || semver.gt(jp.env.version, defaultWallet.version)) {
+      defaultWallet.version = jp.env.version
+      // save default wallet
+      await defaultWallet.save()
+      logger.tag('Wallet').log('version updated')
     }
   }
 }
