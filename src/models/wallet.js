@@ -175,7 +175,12 @@ Wallet.prototype.setChainStatus = async function (chainKey, status) {
 Wallet.prototype.setTokenStatus = async function (chainKey, coinName, status) {
   return this._setAnyData(chainKey, coinName, 'status', status)
 }
-
+/**
+ * saet token config mods
+ */
+Wallet.prototype.setConfigMods = async function (chainKey, coinName, mods) {
+  return this._setAnyData(chainKey, coinName, 'config', mods)
+}
 /**
  * set SourceData in exists chainData
  * @param {string} chainKey blockchain key
