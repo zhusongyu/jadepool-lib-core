@@ -404,6 +404,12 @@ declare interface WalletDocument extends mongoose.Document {
    * load token information
    * @param chainKey
    * @param coinName
+   */
+  getTokenInfoWithoutConfigDat (chainKey: string, coinName: string): WalletCoinInfo
+  /**
+   * load token information
+   * @param chainKey
+   * @param coinName
    * @param withPatch 是否打上补丁
    */
   getTokenInfo (chainKey: string, coinName: string, withPatch?: boolean): TokenInfo

@@ -261,24 +261,37 @@ Wallet.prototype.getChainInfo = function (chainKey) {
   }
 }
 
-/**
- * 获取币种相关的配置信息
- */
-Wallet.prototype.getTokenInfo = function (chainKey, coinName, withPatch = false) {
-  const chainData = _.find(this.chains || [], { chainKey })
-  if (!chainData) {
-    throw new NBError(10001, `failed to find chain: ${chainKey}`)
-  }
+Wallet.prototype._getTokenInfo = function (chainData, coinName) {
+  if (!chainData) throw new NBError(10001, `failed to missing chainData, for ${coinName}`)
   const result = {
     name: coinName,
     data: _.clone(chainData.data),
     status: {}
   }
-  const coinData = _.find(chainKey.coins || [], c => c.name === coinName)
+  const coinData = _.find(chainData.coins || [], c => c.name === coinName)
   if (coinData) {
     result.data = Object.assign(result.data, coinData.data ? coinData.data : {})
     result.status = _.clone(coinData.status || {})
+    result.config = coinData.config
   }
+  return result
+}
+
+/**
+ * 获取币种相关基本信息
+ */
+Wallet.prototype.getTokenInfoWithoutConfigDat = function (chainKey, coinName) {
+  const chainData = _.find(this.chains || [], { chainKey })
+  return this._getTokenInfo(chainData, coinName)
+}
+
+/**
+ * 获取币种相关的配置信息
+ */
+Wallet.prototype.getTokenInfo = function (chainKey, coinName, withPatch = false) {
+  const chainData = _.find(this.chains || [], { chainKey })
+  const result = this._getTokenInfo(chainData, coinName)
+
   const chainCfg = this._chainInfoCache && this._chainInfoCache.get(chainKey)
   const tokenCfg = this._tokenInfoCache && this._tokenInfoCache.get(coinName)
   // 缺少配置则返回残缺版tokenInfo
@@ -287,7 +300,7 @@ Wallet.prototype.getTokenInfo = function (chainKey, coinName, withPatch = false)
   }
 
   const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
-  let cfg = ConfigDat.mergeConfigObj(_.clone(tokenCfg), coinData && coinData.config ? coinData.config : {})
+  let cfg = ConfigDat.mergeConfigObj(_.clone(tokenCfg), result.config || {})
   // 通过全局条件修改config
   if (jp.config.configWatchers) {
     _.forEach(jp.config.configWatchers, watcherCfg => {
