@@ -238,7 +238,7 @@ Wallet.prototype.populateTokenConfig = async function (chainKey, coinName) {
     if (chain) {
       if (!this._tokenInfoCache) this._tokenInfoCache = new Map()
       const tokenDat = await cfgloader.loadConfig('tokens', coinName, chain.id)
-      if (tokenDat) this._tokenInfoCache.set(coinName, tokenDat.toMerged())
+      if (tokenDat) this._tokenInfoCache.set(`${chainKey}.${coinName}`, tokenDat.toMerged())
     }
   }
   return this
@@ -254,10 +254,10 @@ Wallet.prototype.getChainInfo = function (chainKey) {
   }
   return {
     chainKey,
-    source: _.clone(chainData.source),
-    status: _.clone(chainData.status),
+    source: chainData.source && chainData.source.toObject(),
+    status: chainData.status && chainData.status.toObject(),
     data: _.clone(chainData.data),
-    config: this._chainInfoCache && this._chainInfoCache.get(chainKey)
+    config: this._chainInfoCache && _.clone(this._chainInfoCache.get(chainKey))
   }
 }
 
@@ -270,9 +270,9 @@ Wallet.prototype._getTokenInfo = function (chainData, coinName) {
   }
   const coinData = _.find(chainData.coins || [], c => c.name === coinName)
   if (coinData) {
-    result.data = Object.assign(result.data, coinData.data ? coinData.data : {})
-    result.status = _.clone(coinData.status || {})
-    result.config = coinData.config
+    result.data = Object.assign(result.data, coinData.data ? _.clone(coinData.data) : {})
+    result.status = coinData.status && coinData.status.toObject()
+    result.config = coinData.config && coinData.config.toObject()
   }
   return result
 }
@@ -293,19 +293,20 @@ Wallet.prototype.getTokenInfo = function (chainKey, coinName, withPatch = false)
   const result = this._getTokenInfo(chainData, coinName)
 
   const chainCfg = this._chainInfoCache && this._chainInfoCache.get(chainKey)
-  const tokenCfg = this._tokenInfoCache && this._tokenInfoCache.get(coinName)
+  const tokenCfg = this._tokenInfoCache && this._tokenInfoCache.get(`${chainKey}.${coinName}`)
   // 缺少配置则返回残缺版tokenInfo
   if (!chainCfg || !tokenCfg) {
     throw new NBError(10001, `token config without population`)
   }
 
   const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
-  let cfg = ConfigDat.mergeConfigObj(_.clone(tokenCfg), result.config || {})
+  const cfg = ConfigDat.mergeConfigObj(_.clone(tokenCfg), result.config)
   // 通过全局条件修改config
   if (jp.config.configWatchers) {
     _.forEach(jp.config.configWatchers, watcherCfg => {
-      if (['coin', 'jadepool'].indexOf(watcherCfg.path) === -1) return
+      if (!_.includes(['coin', 'jadepool'], watcherCfg.path)) return
       const targetObj = cfg[watcherCfg.path]
+      if (!targetObj) return
       // 找到需要修改的目标
       if (typeof watcherCfg.where === 'string' && coinName !== watcherCfg.where) return
       if (typeof watcherCfg.where === 'object' && watcherCfg.where !== null && _.filter([targetObj], watcherCfg.where).length === 0) return

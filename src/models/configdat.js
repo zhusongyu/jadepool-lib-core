@@ -119,9 +119,11 @@ const handleConfigObj = (configObj, obj, path) => {
  */
 const mergeConfigObj = (configObj, modObj, path, onlyMergeExists = false) => {
   for (const key in modObj) {
+    if (!modObj.hasOwnProperty(key)) continue
+    const value = modObj[key]
+    if (typeof type === 'function') continue
     const valuePath = path ? `${path}.${key}` : key
     const isExists = _.has(configObj, valuePath)
-    const value = modObj[key]
     // 还原对象数组
     if (_.isArray(value)) {
       let originTargetArr = _.get(configObj, valuePath)

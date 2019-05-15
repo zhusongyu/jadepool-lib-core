@@ -141,7 +141,7 @@ declare interface WalletSourceConfig {
   /** 当source为hsm时，需要设置 */
   hsmKey?: string
   /** 额外参数 */
-  [key: string]: string
+  [key: string]: any
 }
 
 declare interface WalletSourceData extends WalletSourceConfig {
@@ -176,16 +176,13 @@ declare interface TokenConfigJadepool {
   SweepTo: number
   /** 低水位 */
   LowWaterLevel: number
-  /** 自动重发设置阈值 */
-  SendAgainCap: number
-  /** 自动汇总阈值 */
-  SweepToHotCap: number
   /** 一批sendOrder的数量(二选一,作用相同仅显示不同) */
   BatchCount?: number
   /** 一批sendOrder的数量(二选一,作用相同仅显示不同) */
   MaxOrdersInOneTx?: number
-  // 自动汇总的地址类
+  /** 自动汇总阈值 */
   SweepToHotCap?: number
+  /** 自动重发设置阈值 */
   SendAgainCap?: number
   // UTXO类
   MergedBalance?: boolean
