@@ -75,34 +75,11 @@ const configSetupMethods = {
       for (let i = 0; i < allTokens.length; i++) {
         const coinName = allTokens[i]
         await defaultWallet.populateTokenConfig(key, coinName)
-        const tokenInfo = defaultWallet.getTokenInfo(key, coinName)
+        const tokenInfo = defaultWallet.getTokenInfo(key, coinName, true)
         if (!tokenInfo) continue
         if (chainInfo.status.coinsEnabled.indexOf(coinName) === -1) continue
-
-        const DerivativeRoot = defaultWallet.getAddressDerivativePath(chainInfo.config.ChainIndex, 0, chainInfo.config.MainIndexOffset || 0)
-        // coin对象上，打上补丁
-        basicCfgs.push(_.defaults(tokenInfo.config.coin, {
-          name: coinName,
-          Chain: chainInfo.config.Chain,
-          DerivativeRoot: DerivativeRoot.substring(0, DerivativeRoot.lastIndexOf('/0'))
-        }))
-        // 为早期jadepool配置制作的补丁
-        jadepoolCfgs.push(_.defaults(tokenInfo.config.jadepool, {
-          name: coinName,
-          HotWallet: {
-            DerivativePath: defaultWallet.getHotDerivativePath(chainInfo.config.ChainIndex, 0, chainInfo.config.MainIndexOffset || 0),
-            Source: chainInfo.source.hot,
-            Mode: tokenInfo.data.hotMode,
-            Bin: tokenInfo.data.hotBin,
-            Address: tokenInfo.data.hotAddress || ''
-          },
-          ColdWallet: {
-            Source: chainInfo.source.cold,
-            SeedKey: tokenInfo.data.seedKey,
-            HSMKey: tokenInfo.data.hsmKey,
-            Address: tokenInfo.data.coldAddress || ''
-          }
-        }))
+        basicCfgs.push(tokenInfo.config.coin)
+        jadepoolCfgs.push(tokenInfo.config.jadepool)
       }
       // 设置到config
       jp.config.coin[key] = basicCfgs

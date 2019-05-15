@@ -404,8 +404,9 @@ declare interface WalletDocument extends mongoose.Document {
    * load token information
    * @param chainKey
    * @param coinName
+   * @param withPatch 是否打上补丁
    */
-  getTokenInfo (chainKey: string, coinName: string): TokenInfo
+  getTokenInfo (chainKey: string, coinName: string, withPatch?: boolean): TokenInfo
   /**
    * 获取热主地址的衍生路径
    * 衍生路径规则为 m/44'/{chainIndex}'/{accountIndex}'/1/{hotIndex}

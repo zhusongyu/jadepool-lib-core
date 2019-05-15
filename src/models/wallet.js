@@ -264,7 +264,7 @@ Wallet.prototype.getChainInfo = function (chainKey) {
 /**
  * 获取币种相关的配置信息
  */
-Wallet.prototype.getTokenInfo = function (chainKey, coinName) {
+Wallet.prototype.getTokenInfo = function (chainKey, coinName, withPatch = false) {
   const chainData = _.find(this.chains || [], { chainKey })
   if (!chainData) {
     throw new NBError(10001, `failed to find chain: ${chainKey}`)
@@ -316,6 +316,33 @@ Wallet.prototype.getTokenInfo = function (chainKey, coinName) {
         }
       }) // end conds forIn
     }) // end watchers
+  }
+  // 打上老版的数据补丁
+  if (withPatch) {
+    const DerivativeRoot = this.getAddressDerivativePath(chainCfg.ChainIndex, 0, chainCfg.MainIndexOffset || 0)
+    // coin对象上，打上补丁
+    _.defaults(cfg.coin, {
+      name: coinName,
+      Chain: chainCfg.Chain,
+      DerivativeRoot: DerivativeRoot.substring(0, DerivativeRoot.lastIndexOf('/0'))
+    })
+    // 为早期jadepool配置制作的补丁
+    _.defaults(cfg.jadepool, {
+      name: coinName,
+      HotWallet: {
+        DerivativePath: this.getHotDerivativePath(chainCfg.ChainIndex, 0, chainCfg.MainIndexOffset || 0),
+        Source: chainData.source.hot,
+        Mode: result.data.hotMode,
+        Bin: result.data.hotBin,
+        Address: result.data.hotAddress || ''
+      },
+      ColdWallet: {
+        Source: chainData.source.cold,
+        SeedKey: result.data.seedKey,
+        HSMKey: result.data.hsmKey,
+        Address: result.data.coldAddress || ''
+      }
+    })
   }
   // 设置为最终config
   result.config = cfg
