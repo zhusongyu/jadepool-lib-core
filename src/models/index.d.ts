@@ -273,6 +273,7 @@ declare interface ChainConfig {
     previousBlocks: number
     scanBlockTaskCap: number
     scanAddressTaskCap: number
+    fillTransactionCap?: number
   }
   /** 是否支持扩展代币 */
   tokenExtendsEnabled: boolean
