@@ -40,6 +40,14 @@ class ApiEndpoint {
     this._current = (this._current + 1) % this._endpoints.length
   }
   /**
+   * 设置之后请求的timeout
+   * @param {Number} timeout
+   */
+  setTimeout (timeout) {
+    if (typeof timeout !== 'number') return
+    this._timeout = timeout
+  }
+  /**
    * 发起请求
    * @param {'get'|'post'} method 方法名
    * @param {string} uri api uri
