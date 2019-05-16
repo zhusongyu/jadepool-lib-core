@@ -202,7 +202,7 @@ class AgendaService extends BaseService {
    * 正在running的jobs
    * @param {string} taskName
    */
-  async runningJobs (taskName) {
+  async runningJobs (taskName, id = undefined) {
     let runningQuery
     // 版本
     if (this._isMongoLegacy) {
@@ -221,6 +221,10 @@ class AgendaService extends BaseService {
         { lastFinishedAt: { $exists: false } },
         runningQuery
       ]
+    }
+    // runingJobs可添加id进行check
+    if (id !== undefined) {
+      query.data = { id }
     }
     // 返回运行中的任务
     return this.jobs(query)
