@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.9.2
+
+Improvement:
+
+* api.endpoint 添加setTimeout方法
+
 ## V0.9.1
 
 Fixes:

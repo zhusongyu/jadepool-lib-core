@@ -22,6 +22,10 @@ declare class ApiEndpoint {
    */
   nextEndpoint (): void
   /**
+   * 设置之后请求的timeout
+   */
+  setTimeout (timeout: number): void
+  /**
    * 发起请求
    * @param method 方法名
    * @param uri api uri
