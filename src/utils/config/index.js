@@ -49,6 +49,25 @@ const fetchCoinCfgById = (chainKey, tokenNameOrAssetIdOrContract) => {
   })
 }
 
+const loadCoinCfg = async (chainKey, coinName) => {
+  const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
+  const chainDat = await ConfigDat.findOne({
+    path: 'chain',
+    key: chainKey,
+    parent: { $exists: false }
+  }).exec()
+  if (!chainDat) return null
+  const coinDat = await ConfigDat.findOne({
+    path: 'tokens',
+    key: coinName,
+    parent: chainDat._id
+  }).exec()
+  if (!coinDat) return null
+  return Object.assign(coinDat.toMerged(), {
+    name: coinName
+  })
+}
+
 /**
  * 获取实时的区块链配置
  * @param {string} chainKey
@@ -87,7 +106,6 @@ const loadAllChainNames = async () => {
 // ------------------------ 已废弃方法 ------------------------
 const fetchCoinCfg = () => { throw new NBError(10001, `unsupported method[fetchCoinCfg]`) }
 const fetchAllCoinNames = () => { throw new NBError(10001, `unsupported method[fetchAllCoinNames]`) }
-const loadCoinCfg = () => { throw new NBError(10001, `unsupported method[loadCoinCfg]`) }
 const loadAllCoinNames = () => { throw new NBError(10001, `unsupported method[loadAllCoinNames]`) }
 
 module.exports = {
@@ -96,11 +114,11 @@ module.exports = {
   fetchChainCfg,
   fetchAllChainNames,
   // 实时读取
+  loadCoinCfg,
   loadChainCfg,
   loadAllChainNames,
   // 废弃方法
   fetchCoinCfg,
   fetchAllCoinNames,
-  loadCoinCfg,
   loadAllCoinNames
 }

@@ -4,7 +4,8 @@ import {
   WalletCoinInfo,
   TokenConfigBasic,
   TokenConfigJadepool,
-  ChainConfig
+  ChainConfig,
+  TokenConfig
 } from "../../models";
 
 /**
@@ -29,6 +30,12 @@ export function fetchChainCfg(nameOrKeyOrCoreType: string): ChainConfig
  */
 export function fetchAllChainNames(): string[]
 /**
+ * 读取默认配置中的token配置信息
+ * @param chainKey
+ * @param coinName
+ */
+export function loadCoinCfg(chain: string | ChainConfig, coinName: string): Promise<TokenConfig>
+/**
  * 获取实时的区块链配置
  * @param chainKey
  */
@@ -50,11 +57,6 @@ export function fetchCoinCfg(coinName: string): any
  * @deprecated
  */
 export function fetchAllCoinNames(chainKey?: string): string[]
-/**
- * 该函数已无法使用
- * @deprecated
- */
-export function loadCoinCfg(chain: string | ChainConfig, coinName: string): Promise<any>
 /**
  * 该函数已无法使用
  * @deprecated
