@@ -33,6 +33,23 @@ const fetchAllChainNames = () => {
 }
 
 /**
+ * 根据denom获取CoinCfg
+ * @param {string} denomOrName
+ * @returns {{ name: string, Rate: number, TokenName: string }}
+ */
+const fetchCoinCfgById = (chainKey, tokenNameOrAssetIdOrContract) => {
+  const cfgs = jp.config.coin[chainKey]
+  if (!cfgs || !tokenNameOrAssetIdOrContract) return null
+  return _.find(cfgs, cfg => {
+    return cfg.name === tokenNameOrAssetIdOrContract ||
+      cfg.TokenName === tokenNameOrAssetIdOrContract ||
+      cfg.Contract === tokenNameOrAssetIdOrContract ||
+      cfg.contract === tokenNameOrAssetIdOrContract ||
+      cfg.assetId === tokenNameOrAssetIdOrContract
+  })
+}
+
+/**
  * 获取实时的区块链配置
  * @param {string} chainKey
  */
@@ -75,6 +92,7 @@ const loadAllCoinNames = () => { throw new NBError(10001, `unsupported method[lo
 
 module.exports = {
   applyIgnoreKeys,
+  fetchCoinCfgById,
   fetchChainCfg,
   fetchAllChainNames,
   // 实时读取

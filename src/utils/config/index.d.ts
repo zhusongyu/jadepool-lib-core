@@ -14,6 +14,12 @@ import {
  */
 export function applyIgnoreKeys(types: string, jsonObj: object): object
 /**
+ * 快速获取内存中的coin信息
+ * @param chainKey
+ * @param tokenNameOrNameOrAssetIdOrContract
+ */
+export function fetchCoinCfgById(chainKey: string, tokenNameOrNameOrAssetIdOrContract: string): TokenConfigBasic
+/**
  * 获取区块链配置,仅有效链可获取
  * @param nameOrKeyOrCoreType
  */
