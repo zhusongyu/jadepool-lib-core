@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const semver = require('semver')
 const mongoose = require('mongoose')
 const jp = require('../jadepool')
 const consts = require('../consts')
@@ -74,6 +75,37 @@ Wallet.prototype.nextAddressIndex = async function () {
     { new: true }
   ).exec()
   return doc ? doc.addrIndex : -1
+}
+
+/**
+ * update from config
+ * @param {string[]} chains 区块key或configdats
+ */
+Wallet.prototype.updateFromConfig = async function (chains) {
+  // no need update
+  if (this.version && semver.lte(jp.env.version, this.version)) return null
+  // set WalletDefaults
+  const chainDats = (await Promise.all(chains.map(async chain => {
+    if (typeof chain === 'string') {
+      return cfgloader.loadConfig('chain', chain)
+    } else if (typeof chain.toMerged === 'function') {
+      return Promise.resolve(chain)
+    } else {
+      return Promise.resolve()
+    }
+  }))).filter(dat => !!dat)
+  // set all chains' data
+  for (let i = 0; i < chainDats.length; i++) {
+    const chainCfgDat = chainDats[i]
+    const chainKey = chainCfgDat.key
+    const chainCfg = chainCfgDat.toMerged()
+    const walletDefaults = chainCfg.WalletDefaults || { data: { seedKey: chainKey } }
+    await this.updateWalletData(chainKey, walletDefaults, !chainCfgDat.disabled, false)
+  }
+  this.version = jp.env.version
+  // save wallet
+  await this.save()
+  return this
 }
 
 /**

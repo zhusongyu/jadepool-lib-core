@@ -1,5 +1,4 @@
 const _ = require('lodash')
-const semver = require('semver')
 const {
   loadConfig,
   loadConfigKeys,
@@ -48,20 +47,11 @@ const configSetupMethods = {
     // 获取defaultwallet
     const Wallet = jp.getModel(consts.MODEL_NAMES.WALLET)
     const defaultWallet = await Wallet.findOne({ name: consts.DEFAULT_KEY }).exec()
-    // Step.2 加载chains目录
-    const fileKeys = await loadConfigKeys('chain')
-    for (let i = 0; i < fileKeys.length; i++) {
-      const key = fileKeys[i]
-      // 设置WalletDefaults
-      if (!defaultWallet.version || semver.gt(jp.env.version, defaultWallet.version)) {
-        let chainCfgDat = await loadConfig('chain', key)
-        if (!chainCfgDat) continue
-        const chainCfg = chainCfgDat.toMerged()
-        const walletDefaults = chainCfg.WalletDefaults || { data: { seedKey: key } }
-        await defaultWallet.updateWalletData(key, walletDefaults, !chainCfgDat.disabled)
-        logger.tag('Wallet-updated', key).log(JSON.stringify(walletDefaults))
-      }
-
+    // Step.2 加载chains
+    for (let i = 0; i < defaultWallet.chains.length; i++) {
+      const chainData = defaultWallet.chains[i]
+      const key = chainData.chainKey
+      // ChainConfig
       await defaultWallet.populateChainConfig(key)
       const chainInfo = defaultWallet.getChainInfo(key)
       if (!chainInfo) continue
@@ -85,13 +75,6 @@ const configSetupMethods = {
       jp.config.coin[key] = basicCfgs
       jp.config.jadepool[key] = jadepoolCfgs
       jp.config.chain[key] = chainInfo.config
-    }
-    // 更新版本号
-    if (!defaultWallet.version || semver.gt(jp.env.version, defaultWallet.version)) {
-      defaultWallet.version = jp.env.version
-      // save default wallet
-      await defaultWallet.save()
-      logger.tag('Wallet').log('version updated')
     }
   }
 }
@@ -117,8 +100,6 @@ const setupConfig = async (name, enableAutoSave = false) => {
  */
 const setupAll = async () => {
   if (!jp.config.cfgLoads || !_.isArray(jp.config.cfgLoads)) return
-  // 常量设置
-  jp.config.isTestNet = !jp.env.isProd
 
   logger.diff('SetupAll').tag('Start').log(`cfgs=${jp.config.cfgLoads.length}`)
   // 仅读取以保证数据库写入

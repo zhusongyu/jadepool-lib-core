@@ -342,6 +342,11 @@ declare interface WalletDocument extends mongoose.Document {
    */
   nextAddressIndex (): Promise<number>
   /**
+   * upgrade or update wallet's chain config
+   * @param chainKeys 
+   */
+  updateFromConfig (chainKeys: string[] | ConfigDatDocument[]): Promise<WalletDocument>
+  /**
    * set SourceType and data
    * @param chainKey blockchain key
    * @param walletDefaults wallet config defaults
