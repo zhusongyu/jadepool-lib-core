@@ -100,7 +100,7 @@ Wallet.prototype.updateFromConfig = async function (chains) {
     const chainKey = chainCfgDat.key
     const chainCfg = chainCfgDat.toMerged()
     const walletDefaults = chainCfg.WalletDefaults || { data: { seedKey: chainKey } }
-    await this.updateWalletData(chainKey, walletDefaults, !chainCfgDat.disabled, false)
+    await this._fillDefaultData(chainKey, walletDefaults, !chainCfgDat.disabled, false)
   }
   this.version = jp.env.version
   // save wallet
@@ -111,15 +111,15 @@ Wallet.prototype.updateFromConfig = async function (chains) {
 /**
  * set data with defaults
  * @param {string} chainKey blockchain key
- * @param {object} walletData 默认配置
+ * @param {object} defaultData 默认配置
  * @param {boolean} enabled
  * @param {boolean} isSave save or not
  */
-Wallet.prototype.updateWalletData = async function (chainKey, walletData, enabled, isSave = true) {
+Wallet.prototype._fillDefaultData = async function (chainKey, defaultData, enabled, isSave = true) {
   // ensure sourceType available
   const eumTypes = _.values(consts.PRIVKEY_SOURCES)
-  const hotSource = [_.get(walletData, 'source.hot')].filter(v => eumTypes.indexOf(v) !== -1)[0]
-  const coldSource = [_.get(walletData, 'source.cold')].filter(v => eumTypes.indexOf(v) !== -1)[0]
+  const hotSource = [_.get(defaultData, 'source.hot')].filter(v => eumTypes.indexOf(v) !== -1)[0]
+  const coldSource = [_.get(defaultData, 'source.cold')].filter(v => eumTypes.indexOf(v) !== -1)[0]
   // build save object
   const i = _.findIndex(this.chains || [], { chainKey })
   if (i === -1) {
@@ -129,25 +129,31 @@ Wallet.prototype.updateWalletData = async function (chainKey, walletData, enable
         hot: hotSource || consts.PRIVKEY_SOURCES.SEED,
         cold: coldSource || consts.PRIVKEY_SOURCES.SEED
       },
-      data: walletData.data,
+      data: defaultData.data,
       status: {
         enabled: enabled,
-        coinsEnabled: walletData.coinsEnabled || []
+        coinsEnabled: defaultData.coinsEnabled || []
       },
-      coins: walletData.coins || []
+      coins: defaultData.coins || []
     })
   } else {
     const chainData = this.chains[i]
-    if (hotSource) chainData.set('source.hot', hotSource)
-    if (coldSource) chainData.set('source.cold', coldSource)
-    if (walletData.data) {
-      chainData.data = Object.assign({}, chainData.data, walletData.data)
+    if (!chainData.get('source.hot') && hotSource) {
+      chainData.set('source.hot', hotSource)
     }
-    if (enabled !== undefined) chainData.set('status.enabled', enabled)
-    _.forEach(walletData.coins || [], defaultsCoinData => {
+    if (!chainData.get('source.cold') && coldSource) {
+      chainData.set('source.cold', coldSource)
+    }
+    if (defaultData.data) {
+      chainData.data = _.defaults(_.clone(chainData.data), defaultData.data)
+    }
+    if (chainData.get('status.enabled') === undefined && enabled !== undefined) {
+      chainData.set('status.enabled', enabled)
+    }
+    _.forEach(defaultData.coins || [], defaultsCoinData => {
       const saveCoinData = _.find(chainData.coins || [], { name: defaultsCoinData.name })
       if (saveCoinData) {
-        saveCoinData.data = Object.assign({}, saveCoinData.data, defaultsCoinData.data)
+        saveCoinData.data = _.defaults(_.clone(saveCoinData.data), defaultsCoinData.data)
       }
     })
   }

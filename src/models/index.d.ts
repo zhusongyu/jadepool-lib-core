@@ -347,14 +347,6 @@ declare interface WalletDocument extends mongoose.Document {
    */
   updateFromConfig (chainKeys: string[] | ConfigDatDocument[]): Promise<WalletDocument>
   /**
-   * set SourceType and data
-   * @param chainKey blockchain key
-   * @param walletDefaults wallet config defaults
-   * @param enabled if blockchain enabled
-   * @param isSave save or not
-   */
-  updateWalletData (chainKey: string, walletDefaults: WalletChainInfo, enabled: boolean, isSave?: boolean): Promise<WalletDocument>
-  /**
    * set chain's enabled coins
    * @param chainKey blockchain key
    * @param status 状态配置
