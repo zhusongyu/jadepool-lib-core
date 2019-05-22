@@ -367,6 +367,13 @@ declare interface WalletDocument extends mongoose.Document {
    */
   setConfigMods (chainKey: string, coinName: string, config: TokenConfig): Promise<WalletDocument>
   /**
+   * set source type
+   * @param chainKey blockchain key
+   * @param target target type
+   * @param type source type
+   */
+  setSource (chainKey: string, target: 'hot' | 'cold', type: WalletSourceType): Promise<WalletDocument>
+  /**
    * set SourceData in exists chainData
    * @param chainKey blockchain key
    * @param coin specific coin scope or chain scope

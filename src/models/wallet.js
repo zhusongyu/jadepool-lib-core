@@ -182,14 +182,14 @@ Wallet.prototype._setAnyData = async function (chainKey, coinName, field, data) 
     if (coinIdx !== -1) {
       const pathKey = `chains.${i}.coins.${coinIdx}.${field}`
       const oldData = _.clone(this.get(pathKey))
-      this.set(pathKey, Object.assign(oldData, data))
+      this.set(pathKey, _.isObject(oldData) ? Object.assign(oldData, data) : data)
     } else {
       chainData.coins.push({ name: coinName, [field]: data })
     }
   } else {
     const pathKey = `chains.${i}.${field}`
     const oldData = _.clone(this.get(pathKey))
-    this.set(pathKey, Object.assign(oldData, data))
+    this.set(pathKey, _.isObject(oldData) ? Object.assign(oldData, data) : data)
   }
   // save to db
   await this.save()
@@ -214,10 +214,22 @@ Wallet.prototype.setTokenStatus = async function (chainKey, coinName, status) {
   return this._setAnyData(chainKey, coinName, 'status', status)
 }
 /**
- * saet token config mods
+ * set token config mods
  */
 Wallet.prototype.setConfigMods = async function (chainKey, coinName, mods) {
   return this._setAnyData(chainKey, coinName, 'config', mods)
+}
+/**
+ * set source
+ */
+Wallet.prototype.setSource = async function (chainKey, target, type) {
+  if (target !== 'hot' && target !== 'cold') {
+    throw new NBError(10002, `source target: ${target}`)
+  }
+  if (!_.includes(_.values(consts.PRIVKEY_SOURCES), type)) {
+    throw new NBError(10002, `source type: ${type}`)
+  }
+  return this._setAnyData(chainKey, undefined, `source.${target}`, type)
 }
 /**
  * set SourceData in exists chainData
@@ -238,9 +250,7 @@ Wallet.prototype.getSourceData = function (chainKey, coinName) {
   const chainData = _.find(this.chains || [], { chainKey })
   if (!chainData) return null
   const coinData = _.find(chainKey.coins || [], c => c.name === coinName)
-  return Object.assign({
-    source: chainData.source
-  }, chainData.data, coinData ? coinData.data : {})
+  return Object.assign({}, chainData.data, coinData ? coinData.data : {})
 }
 
 /**
