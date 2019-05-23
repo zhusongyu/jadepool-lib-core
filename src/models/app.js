@@ -76,7 +76,7 @@ AppConfig.prototype.getWallet = async function () {
   const Wallet = jp.getModel(consts.MODEL_NAMES.WALLET)
   let wallet
   if (this.wallet) {
-    wallet = await Wallet.findById(wallet).exec()
+    wallet = await Wallet.findById(this.wallet).exec()
   } else {
     wallet = await Wallet.findOne({ name: consts.DEFAULT_KEY }).exec()
   }
