@@ -279,7 +279,7 @@ Wallet.prototype.populateTokenConfig = async function (chainKey, coinName) {
   if (chainData) {
     // load chainInfo first
     if (!this._chainInfoCache || !this._chainInfoCache.has(chainKey)) {
-      await this.populateChainInfo(chainKey)
+      await this.populateChainConfig(chainKey)
     }
     const chain = this._chainInfoCache.get(chainKey)
     // load tokenInfo now
