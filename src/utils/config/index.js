@@ -51,11 +51,16 @@ const fetchCoinCfgById = (chainKey, tokenNameOrAssetIdOrContract) => {
 
 const loadCoinCfg = async (chainKey, coinName) => {
   const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
-  const chainDat = await ConfigDat.findOne({
-    path: 'chain',
-    key: chainKey,
-    parent: { $exists: false }
-  }).exec()
+  let chainDat
+  if (typeof chainKey !== 'string' && typeof chainKey.toMerged === 'function') {
+    chainDat = chainKey
+  } else {
+    chainDat = await ConfigDat.findOne({
+      path: 'chain',
+      key: chainKey,
+      parent: { $exists: false }
+    }).exec()
+  }
   if (!chainDat) return null
   const coinDat = await ConfigDat.findOne({
     path: 'tokens',
@@ -102,11 +107,34 @@ const loadAllChainNames = async (includeDisabled = false) => {
   }).exec()) || []
   return cfgs.filter(cfg => includeDisabled || !cfg.disabled).map(cfg => cfg.key)
 }
+/**
+ * 获取实时的可用coinNames
+ * @param {string} chainKey
+ */
+const loadAllCoinNames = async (chainKey) => {
+  const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
+  let chainDat
+  if (typeof chainKey !== 'string' && typeof chainKey.toMerged === 'function') {
+    chainDat = chainKey
+  } else {
+    chainDat = await ConfigDat.findOne({
+      path: 'chain',
+      key: chainKey,
+      parent: { $exists: false }
+    }).exec()
+  }
+  if (!chainDat) return []
+  const cfgs = (await ConfigDat.find({
+    path: 'tokens',
+    key: { $nin: ['', '_'] },
+    parent: chainDat._id
+  }).exec()) || []
+  return cfgs.map(cfg => cfg.key)
+}
 
 // ------------------------ 已废弃方法 ------------------------
 const fetchCoinCfg = () => { throw new NBError(10001, `unsupported method[fetchCoinCfg]`) }
 const fetchAllCoinNames = () => { throw new NBError(10001, `unsupported method[fetchAllCoinNames]`) }
-const loadAllCoinNames = () => { throw new NBError(10001, `unsupported method[loadAllCoinNames]`) }
 
 module.exports = {
   applyIgnoreKeys,
@@ -116,9 +144,9 @@ module.exports = {
   // 实时读取
   loadCoinCfg,
   loadChainCfg,
+  loadAllCoinNames,
   loadAllChainNames,
   // 废弃方法
   fetchCoinCfg,
-  fetchAllCoinNames,
-  loadAllCoinNames
+  fetchAllCoinNames
 }

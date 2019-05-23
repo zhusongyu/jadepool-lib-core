@@ -36,6 +36,11 @@ export function fetchAllChainNames(): string[]
  */
 export function loadCoinCfg(chain: string | ChainConfig, coinName: string): Promise<TokenConfig>
 /**
+ * 获取实时的可用coinNames
+ * @param chainKey
+ */
+export function loadAllCoinNames(chain: string | ChainConfig): Promise<string[]>
+/**
  * 获取实时的区块链配置
  * @param chainKey
  */
@@ -57,13 +62,3 @@ export function fetchCoinCfg(coinName: string): any
  * @deprecated
  */
 export function fetchAllCoinNames(chainKey?: string): string[]
-/**
- * 该函数已无法使用
- * @deprecated
- */
-export function loadCoinCfg(coinName: string): Promise<any>
-/**
- * 该函数已无法使用
- * @deprecated
- */
-export function loadAllCoinNames(chainKey?: string): Promise<string[]>
