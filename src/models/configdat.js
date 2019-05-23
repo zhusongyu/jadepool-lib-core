@@ -29,7 +29,7 @@ const schema = new Schema({
   },
   path: { // 该配置内容在配置文件中的父路径。若存在parent，则是相对parent所在的文件夹路径
     type: String,
-    require: true
+    required: true
   },
   key: { // 该配置内容在配置文件中的key，同时也是配置文件的文件夹名，为空即为当前path
     type: String,
