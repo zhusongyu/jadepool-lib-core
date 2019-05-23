@@ -92,7 +92,7 @@ const loadChainCfg = async (chainKey) => {
 /**
  * 获取实时的全部已启用区块链
  */
-const loadAllChainNames = async () => {
+const loadAllChainNames = async (includeDisabled = false) => {
   // Config in DB
   const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
   const cfgs = (await ConfigDat.find({
@@ -100,7 +100,7 @@ const loadAllChainNames = async () => {
     key: { $ne: '' },
     parent: { $exists: false }
   }).exec()) || []
-  return cfgs.filter(cfg => !cfg.disabled).map(cfg => cfg.key)
+  return cfgs.filter(cfg => includeDisabled || !cfg.disabled).map(cfg => cfg.key)
 }
 
 // ------------------------ 已废弃方法 ------------------------

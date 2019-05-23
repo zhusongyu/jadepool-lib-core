@@ -43,7 +43,7 @@ export function loadChainCfg(chainKey: string): Promise<ChainConfig>
 /**
  * 获取实时的全部链名称
  */
-export function loadAllChainNames(): Promise<string[]>
+export function loadAllChainNames(includeDisabled?: boolean): Promise<string[]>
 
 
 /**
