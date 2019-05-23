@@ -1,10 +1,4 @@
-
-declare interface ConfigDat {
-	toMerged: Function
-	geneTemplate: Function
-	applyModify: Function
-	save: Function
-}
+import { ConfigDatDocument } from "../../models";
 
 /**
  * 设置是否自动保存
@@ -29,14 +23,14 @@ export declare function setAliasConfigPath(path: string, key: string, aliasPath:
  * @param parent 
  * @param forceSelf
  */
-export declare function loadConfig(cfgPath: string, key: string, parent: ConfigDat, forceSelf: boolean): Promise<ConfigDat>;
+export declare function loadConfig(cfgPath: string, key: string, parent: ConfigDatDocument, forceSelf: boolean): Promise<ConfigDatDocument>;
 
 /**
  * 从数据库中读取path相同的全部配置，同时也从文件夹中读取全部路径
  * @param cfgPath 
  * @param parent 
  */
-export declare function loadConfigKeys(cfgPath: string, parent: ConfigDat): Promise<string[]>;
+export declare function loadConfigKeys(cfgPath: string, parent: ConfigDatDocument): Promise<string[]>;
 
 /**
  * 保存配置修改
@@ -46,7 +40,7 @@ export declare function loadConfigKeys(cfgPath: string, parent: ConfigDat): Prom
  * @param disabled 是否禁用
  * @param parent
  */
-export declare function saveConfig(cfgPath: string, key: string, modJson: object | undefined, disabled: boolean | undefined, parent: ConfigDat): Promise<ConfigDat>;
+export declare function saveConfig(cfgPath: string, key: string, modJson: object | undefined, disabled: boolean | undefined, parent: ConfigDatDocument): Promise<ConfigDatDocument>;
 
 /**
  * 从数据库中删除配置，该配置必须是customized的配置
@@ -54,5 +48,5 @@ export declare function saveConfig(cfgPath: string, key: string, modJson: object
  * @param key 子目录名
  * @param parent 
  */
-export declare function deleteConfig(cfgPath: string, key: string, parent: ConfigDat): Promise<boolean>;
+export declare function deleteConfig(cfgPath: string, key: string, parent: ConfigDatDocument): Promise<boolean>;
  

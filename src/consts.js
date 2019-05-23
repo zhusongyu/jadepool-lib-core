@@ -65,16 +65,24 @@ const LEDGER_MODES = {
   RPC: 'rpc'
 }
 const SERVER_TYPES = {
-  API: 'api',
+  /** 主服务 */
   MAIN: 'main',
+  /** AdminAPI服务 */
+  API: 'api',
+  /** 安全服务 */
   SAFE: 'safe',
+  /** 外部服务 */
   EXTERNAL: 'external',
+  /** 未知服务 */
   UNKNOWN: 'unknown'
 }
 const JOB_TYPES = {
-  EVERY: 'every', // 循环任务
-  NORMAL: 'normal', // 普通任务
-  SCHEDULE: 'schedule' // 计划任务
+  /** 循环任务 */
+  EVERY: 'every',
+  /** 普通任务 */
+  NORMAL: 'normal',
+  /** 计划任务 */
+  SCHEDULE: 'schedule'
 }
 const DB_KEYS = {
   DEFAULT: 'default',
@@ -86,6 +94,7 @@ const MODEL_NAMES = {
   CONFIG_DATA: 'configdat',
   CONFIG_REV: 'configrev',
   APPLICATION: 'app',
+  WALLET: 'wallet',
   // Busines Models
   ADDRESS: 'address',
   ORDER: 'order',
@@ -149,34 +158,55 @@ const ADDRESS_TYPE = {
   EXTERNAL: 3 // 外部地址
 }
 const ORDER_STATE = {
-  INIT: 'init', // 订单初始化
-  HOLDING: 'holding', // 1. init与online之间的一个过渡状态，只有发送tx上链出错时，订单会永久保持该holding状态，需要人工介入；否则，该状态会在很短时间就变为online
-  ONLINE: 'online', // 订单已发送
-  PENDING: 'pending', // 订单已上链
-  FAILED: 'failed', // 订单交易失败
-  DONE: 'done' // 订单完成
+  /** 订单初始化 */
+  INIT: 'init',
+  /** 1. init与online之间的一个过渡状态，只有发送tx上链出错时，订单会永久保持该holding状态，需要人工介入；否则，该状态会在很短时间就变为online */
+  HOLDING: 'holding',
+  /** 订单已发送 */
+  ONLINE: 'online',
+  /** 订单已上链 */
+  PENDING: 'pending',
+  /** 订单交易失败 */
+  FAILED: 'failed',
+  /** 订单完成 */
+  DONE: 'done'
 }
 const ORDER_BIZTYPES = {
-  // 资产流转订单
-  WITHDRAW: 'WITHDRAW', // 出：提现订单
-  SWEEP: 'SWEEP', // 出：热转冷
-  SWEEP_INTERNAL: 'SWEEP_INTERNAL', // 出：内部
-  DEPOSIT: 'DEPOSIT', // 入：充值订单
-  AIRDROP: 'AIRDROP', // 入：空投
-  RECHARGE: 'RECHARGE', // 入：冷转热
-  RECHARGE_SPECIAL: 'RECHARGE_SPECIAL', // 入：特殊充值
-  RECHARGE_INTERNAL: 'RECHARGE_INTERNAL', // 入：内部
-  RECHARGE_UNEXPECTED: 'RECHARGE_UNEXPECTED', // 入：意外收入
-  // 非资产流转订单
+  /** 出：提现订单 */
+  WITHDRAW: 'WITHDRAW',
+  /** 出：热转冷 */
+  SWEEP: 'SWEEP',
+  /** 出：内部 */
+  SWEEP_INTERNAL: 'SWEEP_INTERNAL',
+  /** 入：充值订单 */
+  DEPOSIT: 'DEPOSIT',
+  /** 入：空投 */
+  AIRDROP: 'AIRDROP',
+  /** 入：冷转热 */
+  RECHARGE: 'RECHARGE',
+  /** 入：特殊充值 */
+  RECHARGE_SPECIAL: 'RECHARGE_SPECIAL',
+  /** 入：内部 */
+  RECHARGE_INTERNAL: 'RECHARGE_INTERNAL',
+  /** 入：意外收入 */
+  RECHARGE_UNEXPECTED: 'RECHARGE_UNEXPECTED',
+  /** 出：执行某个区块链行为的订单，(value为消耗，fee消耗, 额外业务数据在action中记录) */
   SYSTEM_CALL: 'SYSTEM_CALL',
+  /** 入：已回收的抵押额，(value为本金，fee为0，属于本金收回) */
   PRINCIPAL_FUND: 'PRINCIPAL_FUND',
+  /** 入：收益记录订单，(value为收益额，fee为0, 属于额外利息收入) */
   INTEREST_FUND: 'INTEREST_FUND',
+  /** 冻结：抵押订单，(value为冻结的抵押值，fee为消耗) */
   DELEGATE: 'DELEGATE',
+  /** 解冻请求：取消抵押请求，(value为递交解冻抵押值，fee为消耗) */
   UNDELEGATE: 'UNDELEGATE'
 }
 const DELEGATION_STATE = {
+  /** 未抵押 */
   UNSTAKED: 0,
+  /** 移除抵押中 */
   UNSTAKING: 1,
+  /** 抵押中 */
   STAKED: 2
 }
 const ASYNC_PLAN_MODES = {
@@ -248,7 +278,8 @@ const SUPPORT_LOCALES = {
 const MODEL_LIST_CONFIG = [
   MODEL_NAMES.CONFIG_DATA,
   MODEL_NAMES.CONFIG_REV,
-  MODEL_NAMES.APPLICATION
+  MODEL_NAMES.APPLICATION,
+  MODEL_NAMES.WALLET
 ]
 const MODEL_LIST_DEFAULT = [
   MODEL_NAMES.ADDRESS,

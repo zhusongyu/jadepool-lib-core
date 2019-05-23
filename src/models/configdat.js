@@ -75,32 +75,6 @@ ConfigDat.prototype.toMerged = function () {
   return cfgJson
 }
 
-ConfigDat.prototype.geneTemplate = function () {
-  const mergecCfg = this.toMerged()
-  if (!mergecCfg) return null
-  const template = mergecCfg.template || mergecCfg.tokenTemplate
-  if (!template) return null
-  const cfgJson = {}
-  _.forEach(template, (value, key) => {
-    let defaultVal
-    if (typeof value.default !== 'undefined') {
-      defaultVal = value.default
-    } else if (value.json === true) {
-      defaultVal = {}
-    } else if (value.type === 'number') {
-      defaultVal = 0
-    } else if (value.type === 'string') {
-      defaultVal = ''
-    } else if (value.type === 'boolean') {
-      defaultVal = false
-    } else {
-      defaultVal = null
-    }
-    _.set(cfgJson, key, defaultVal)
-  })
-  return cfgJson
-}
-
 /**
  * 优化并处理修改对象
  * @param {Object} configObj config对象
@@ -145,9 +119,11 @@ const handleConfigObj = (configObj, obj, path) => {
  */
 const mergeConfigObj = (configObj, modObj, path, onlyMergeExists = false) => {
   for (const key in modObj) {
+    if (!modObj.hasOwnProperty(key)) continue
+    const value = modObj[key]
+    if (typeof type === 'function') continue
     const valuePath = path ? `${path}.${key}` : key
     const isExists = _.has(configObj, valuePath)
-    const value = modObj[key]
     // 还原对象数组
     if (_.isArray(value)) {
       let originTargetArr = _.get(configObj, valuePath)

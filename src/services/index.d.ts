@@ -26,8 +26,10 @@ declare class AgendaService extends BaseService {
   startOrReloadJobs (): Promise<void>  
   /**
    * 正在running的jobs
+   * @param taskName 检测的任务名
+   * @param id 可选，同名任务下，检测指定id
    */
-  runningJobs (taskName: string): Promise<Agenda.Job[]>
+  runningJobs (taskName: string, id?: string): Promise<Agenda.Job[]>
 
   jobs (query: object): Promise<Agenda.Job[]>
   update (query: object, update: object): Promise<any>

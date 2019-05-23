@@ -1,5 +1,6 @@
 const _ = require('lodash')
 const mongoose = require('mongoose')
+const AutoIncrement = require('mongoose-sequence')(mongoose)
 const jp = require('../jadepool')
 const consts = require('../consts')
 
@@ -77,6 +78,8 @@ const fetchConnection = (dbKey = consts.DEFAULT_KEY) => {
 module.exports = {
   initialize,
   getUri,
+  fetchConnection,
+  // 导出类
   mongoose,
-  fetchConnection
+  AutoIncrement
 }

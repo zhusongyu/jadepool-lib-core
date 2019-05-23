@@ -1,14 +1,13 @@
 const _ = require('lodash')
 const axios = require('axios').default
-const jadepool = require('../jadepool')
 const NBError = require('../NBError')
-const { fetchChainCfg } = require('./config')
+const { loadChainCfg } = require('./config')
 
 const logger = require('@jadepool/logger').of('Ledger', 'Utils')
 
 class ApiEndpoint {
   /**
-   * @param {string[]} endpoints API URL
+   * @param {string[]|{name: string, type: string, url: string, [key: string]: string}[]} endpoints API URL
    * @param {object} opts
    * @param {number} [opts.timeout=10000] 请求的过期时间
    */
@@ -25,7 +24,7 @@ class ApiEndpoint {
   get endpointUrl () { return this._endpoints[this._current] }
   /**
    * 更新API节点
-   * @param {string[]} endpoints API URL
+   * @param {string[]|{name: string, type: string, url: string, [key: string]: string}[]} endpoints API URL
    */
   updateEndPoints (endpoints) {
     if (!endpoints || endpoints.length === 0) {
@@ -57,7 +56,15 @@ class ApiEndpoint {
     const endIdx = this._current
     let result
     do {
-      const baseURL = this.endpointUrl
+      let baseURL
+      if (_.isString(this.endpointUrl)) {
+        baseURL = this.endpointUrl
+      } else if (this.endpointUrl.url) {
+        baseURL = this.endpointUrl.url
+      } else {
+        this.nextEndpoint()
+        continue
+      }
       try {
         result = await axios({
           baseURL,
@@ -133,22 +140,16 @@ module.exports = {
     let key = chainKey + (nodeKey || '')
     let api = apiEndpointMap.get(key)
     if (!api) {
-      const chainCfg = fetchChainCfg(chainKey)
+      const chainCfg = await loadChainCfg(chainKey)
       if (!chainCfg) throw new NBError(10001, `failed to find chainKey: ${chainKey}`)
-      const nodeCfg = _.find(chainCfg.node, { name: (nodeKey || chainKey) })
-      if (!nodeCfg) throw new NBError(10001, `failed to find nodeCfg: ${nodeKey || chainKey}`)
-      let endpointData = jadepool.env.isProd ? nodeCfg.MainNet : nodeCfg.TestNet
-      if (!endpointData) throw new NBError(10001, `failed to find nodeData: ${nodeKey || chainKey}`)
-      let endpoints = []
-      if (_.isString(endpointData)) {
-        endpoints.push(endpointData)
-      } else if (_.isArray(endpointData) && _.isString(endpointData[0])) {
-        endpoints = endpointData
-      } else if (_.isObject(endpointData) && endpointData.url) {
-        endpoints.push(endpointData.url)
-      } else {
-        throw new NBError(10001, `failed too find endpoint url`)
-      }
+      const endpoints = _.filter(chainCfg.endpoints, ep => {
+        if (!nodeKey || _.isString(ep)) {
+          return true
+        } else if (_.isObject(ep) && ep.type === nodeKey) {
+          return true
+        }
+        return false
+      })
       api = new ApiEndpoint(endpoints)
       apiEndpointMap.set(key, api)
     }

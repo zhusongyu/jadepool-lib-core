@@ -118,6 +118,7 @@ export declare const MODEL_NAMES: {
   CONFIG_DATA: 'configdat',
   CONFIG_REV: 'configrev',
   APPLICATION: 'app',
+  WALLET: 'wallet',
   // Busines Models
   ADDRESS: 'address',
   ORDER: 'order',
@@ -220,7 +221,7 @@ export declare const ORDER_BIZTYPES: {
   /** 冻结：抵押订单，(value为冻结的抵押值，fee为消耗) */
   DELEGATE: 'DELEGATE',
   /** 解冻请求：取消抵押请求，(value为递交解冻抵押值，fee为消耗) */
-  UNDELEGATE: 'DELEGATE',
+  UNDELEGATE: 'UNDELEGATE',
 }
 export declare const ORDER_DEFAULT_ACTIONS: {
   /** 执行UTXO打散 */
