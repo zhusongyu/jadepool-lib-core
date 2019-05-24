@@ -249,10 +249,10 @@ declare interface ChainConfig {
   CoreType: string
   /** 区块链显示名 */
   Chain: string
+  /** 可选，当前使用的区块链ID, 瑶池getChainId方法的默认实现为查询该字段 */
+  ChainId?: string
   /** 衍生路径中的chainIndex */
   ChainIndex: number
-  /** 当前使用的区块链ID */
-  ChainId: string
   /** 衍生路径中的accountIndex offset */
   MainIndexOffset?: number
   /** 钱包的默认Source配置 */
