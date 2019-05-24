@@ -248,9 +248,11 @@ declare interface ChainConfig {
   /** 主要货币名，通常为费用币 */
   CoreType: string
   /** 区块链显示名 */
-  Chain:string
+  Chain: string
   /** 衍生路径中的chainIndex */
   ChainIndex: number
+  /** 当前使用的区块链ID */
+  ChainId: string
   /** 衍生路径中的accountIndex offset */
   MainIndexOffset?: number
   /** 钱包的默认Source配置 */
