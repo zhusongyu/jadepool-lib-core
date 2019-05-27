@@ -358,13 +358,6 @@ class Service extends BaseService {
           try {
             const pubKeys = await cryptoUtils.fetchPublicKeys(sigData.appid || consts.SYSTEM_APPIDS.DEFAULT)
             isValid = pubKeys.some(pubKey => cryptoUtils.verify(jsonData, sigData.signature, pubKey, sigData))
-            // FIXME 此处为针对老版本的兼容
-            if (!isValid) {
-              const pubKey = await cryptoUtils.fetchPubKey('ecc', sigData.appid || consts.SYSTEM_APPIDS.DEFAULT, false)
-              if (pubKey) {
-                isValid = cryptoUtils.verify(jsonData, sigData.signature, pubKey, sigData)
-              }
-            }
           } catch (err) {
             logger.error(`failed to verify sig`, err)
             isValid = false

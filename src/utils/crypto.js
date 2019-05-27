@@ -24,8 +24,6 @@ const loadCryptoConfig = async (cryptoDat = undefined) => {
   return cfgDat.toMerged()
 }
 
-let internalPriKey = null
-
 const cryptoUtils = {
   /**
    * 获取本系统 Private Key
@@ -58,35 +56,6 @@ const cryptoUtils = {
    */
   pubKeyVerify (pubKeyStr, encode = consts.DEFAULT_ENCODE, compress = false) {
     return ecc.pubKeyVerify(pubKeyStr, encode, compress)
-  },
-  /**
-   * 获取非本系统 Public Key
-   * @deprecated 该API已过期，未来将移除
-   */
-  async fetchAppPubKey (cryptoType, category, compress = false, cryptoDat = undefined) {
-    const cryptoCfg = await loadCryptoConfig(cryptoDat)
-    let pubKeyStr = _.get(cryptoCfg, `${cryptoType}.${category}`)
-    pubKeyStr = _.isObject(pubKeyStr) ? pubKeyStr.pub : pubKeyStr
-    if (!pubKeyStr) return null
-    return ecc.pubKeyVerify(pubKeyStr, consts.DEFAULT_ENCODE, compress)
-  },
-  /**
-   * 获取 Public Key
-   * @deprecated 该API已过期，未来将移除
-   * @param {String} cryptoType
-   * @param {String} category
-   * @param {Boolean} compress
-   * @returns {Buffer}
-   */
-  async fetchPubKey (cryptoType, category, compress = false, cryptoDat = undefined) {
-    if (category === consts.SYSTEM_APPIDS.INTERNAL) {
-      return cryptoUtils.getInternalPubKey()
-    } else if (category === consts.SYSTEM_APPIDS.DEFAULT) {
-      const priKey = await cryptoUtils.getPriKey(cryptoDat)
-      return ecc.pubKeyCreate(priKey, consts.DEFAULT_ENCODE, compress)
-    } else {
-      return cryptoUtils.fetchAppPubKey(cryptoType, category, compress, cryptoDat)
-    }
   },
   /**
    * 获取某AppId对应的公钥们
@@ -131,14 +100,20 @@ const cryptoUtils = {
   },
   /**
    * 获取内部私钥
+   * @param {Number} timestamp 时间戳
    */
-  async getInternalPriKey () {
+  async getInternalPriKey (timestamp) {
     if (jp.env.secret) {
-      if (!internalPriKey) {
+      const root = HDKey.fromMasterSeed(Buffer.from(jp.env.secret))
+      let internalPriKey
+      if (timestamp === undefined) {
         const ver = semver.parse(jp.env.version)
-        const root = HDKey.fromMasterSeed(Buffer.from(jp.env.secret))
         // 以major和minor组成版本号一致的系统
         const hdnode = root.derive(`m/666'/0'/0'/${ver.major}/${ver.minor}/${ver.patch}`)
+        internalPriKey = hdnode.privateKey.toString('hex')
+      } else {
+        const date = new Date(timestamp)
+        const hdnode = root.derive(`m/666'/${date.getUTCHours()}'/0'/${date.getUTCMinutes()}/${date.getUTCSeconds()}/${date.getUTCMilliseconds()}`)
         internalPriKey = hdnode.privateKey.toString('hex')
       }
       return Buffer.from(internalPriKey, 'hex')
@@ -147,9 +122,10 @@ const cryptoUtils = {
   },
   /**
    * 获取内部公钥
+   * @param {Number} timestamp 时间戳
    */
-  async getInternalPubKey () {
-    return ecc.pubKeyCreate(await cryptoUtils.getInternalPriKey())
+  async getInternalPubKey (timestamp) {
+    return ecc.pubKeyCreate(await cryptoUtils.getInternalPriKey(timestamp))
   },
   /**
    * 内部签名检查函数
@@ -161,12 +137,13 @@ const cryptoUtils = {
    * @param {string?} [opts.encode='base64'] 签名返回结果encode(base64|hex)
    * @param {string?} [opts.accept='string'] 签名返回结果(string|object)
    * @param {boolean?} [opts.withoutTimestamp=false] 是否需要添加时间戳
+   * @param {boolean?} [opts.signWithTimestamp=false] 以时间戳为私钥
    */
   async signInternal (data, timestamp = undefined, opts = {}) {
     // 强制设置withoutTimestamp
     opts.withoutTimestamp = opts.withoutTimestamp || timestamp === undefined
-    // 获取公钥
-    let priKey = await cryptoUtils.getInternalPriKey()
+    const withTs = opts.signWithTimestamp && !opts.withoutTimestamp
+    let priKey = await cryptoUtils.getInternalPriKey(withTs ? timestamp : undefined)
     if (_.isString(data)) {
       return ecc.signString(data, timestamp, priKey, opts)
     } else if (_.isObject(data)) {
@@ -189,13 +166,14 @@ const cryptoUtils = {
    * @param {string?} [opts.encode='base64'] 签名返回结果encode(base64|hex)
    * @param {string?} [opts.accept='string'] 签名返回结果(string|object)
    * @param {boolean?} [opts.withoutTimestamp=false] 是否需要添加时间戳
+   * @param {boolean?} [opts.signWithTimestamp=false] 以时间戳为私钥
    * @returns {Promise<boolean>} 是否认证通过
    */
   async verifyInternal (data, timestamp = undefined, sig, opts = {}) {
     // 强制设置withoutTimestamp
     opts.withoutTimestamp = opts.withoutTimestamp || timestamp === undefined
-    // 获取公钥
-    let pubKey = await cryptoUtils.getInternalPubKey()
+    const withTs = opts.signWithTimestamp && !opts.withoutTimestamp
+    let pubKey = await cryptoUtils.getInternalPubKey(withTs ? timestamp : undefined)
     if (_.isString(data)) {
       return ecc.verifyString(data, timestamp, sig, pubKey, opts)
     } else if (_.isObject(data)) {
