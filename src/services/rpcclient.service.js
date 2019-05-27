@@ -40,6 +40,7 @@ class Service extends BaseService {
    * @param {object} opts 参数
    * @param {number} [opts.timeout=120] ws的请求timeout时间
    * @param {boolean} [opts.noAuth=false] 是否需要验证
+   * @param {string} opts.acceptNamespace 可接受的RPC请求指定的namespace
    * @param {string[]|string} opts.acceptMethods 可接受的RPC请求
    */
   async initialize (opts) {
@@ -52,6 +53,8 @@ class Service extends BaseService {
     this.timeout = opts.timeout || 120
     // 设置acceptMethods
     this.setAcceptMethods(opts.acceptMethods)
+    // set accept namespace or undefined
+    this.acceptNamespace = opts.acceptNamespace
   }
 
   async onDestroy () {
@@ -380,7 +383,8 @@ class Service extends BaseService {
         try {
           const params = jsonData.params
           if (sigData) params.appid = sigData.appid || consts.SYSTEM_APPIDS.DEFAULT
-          result.result = await jp.invokeMethod(methodName, params.chain, params)
+          const namespace = this.acceptNamespace || params.chain
+          result.result = await jp.invokeMethod(methodName, namespace, params)
         } catch (err) {
           result.error = { code: err.code, message: err.message }
           logger.tag(`Invoked:${methodName}`, 'Error').logObj(result.error)

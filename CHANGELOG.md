@@ -16,6 +16,7 @@ Features:
 * 新增Wallet模型，支持多热钱包模式
 * 为Application配置Wallet参数
 * crypto的internal签名支持以timestamp + secret的形式做为私钥
+* rpcclient可以预设invokeMethod时的namespace
 
 Improvement:
 

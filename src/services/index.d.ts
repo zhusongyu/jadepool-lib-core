@@ -62,6 +62,7 @@ declare class ErrorCodeService extends BaseService {
 
 declare interface JSONRPCOptions {
   noAuth?: boolean
+  acceptNamespace?: string
   acceptMethods: string[]
 }
 declare interface JSONRPCServerOptions extends JSONRPCOptions {
