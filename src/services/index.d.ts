@@ -62,7 +62,6 @@ declare class ErrorCodeService extends BaseService {
 
 declare interface JSONRPCOptions {
   noAuth?: boolean
-  acceptNamespace?: string
   acceptMethods: string[]
 }
 declare interface JSONRPCServerOptions extends JSONRPCOptions {
@@ -92,7 +91,8 @@ declare class JSONRpcService extends BaseService {
 declare interface RequestOptions {
   noAuth?: boolean
   signerId?: string
-  signer?: Buffer | string | undefined
+  signer?: Buffer | string
+  acceptNamespace?: string
 }
 declare class JSONRpcClientService extends BaseService {
   constructor (services : any);
