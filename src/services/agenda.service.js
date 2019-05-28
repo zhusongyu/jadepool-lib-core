@@ -224,7 +224,7 @@ class AgendaService extends BaseService {
     }
     // runingJobs可添加id进行check
     if (id !== undefined) {
-      query.data = { id }
+      query['data.id'] = id
     }
     // 返回运行中的任务
     return this.jobs(query)

@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.10.1
+
+Fixes:
+
+* 修复agenda.service.runningJobs方法中带id查询时的query错误
+
 ## V0.10.0
 
 Breaking Changes:
