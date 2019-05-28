@@ -1,6 +1,6 @@
 # Change Logs
 
-## Latest
+## V0.10.0
 
 Breaking Changes:
 
@@ -14,15 +14,15 @@ Breaking Changes:
 Features:
 
 * 新增Wallet模型，支持多热钱包模式
-* 为Application配置Wallet参数
-* crypto的internal签名支持以timestamp + secret的形式做为私钥
-* rpcclient可以预设invokeMethod时的namespace
+  * Application记录中需配置Wallet参数
+* utils.crypto的internal签名支持以timestamp + secret的形式做为私钥
+* rpcclient.service可以预设invokeMethod时的namespace
 
 Improvement:
 
 * agenda.service支持带id的runningJobs查询
 * utils.db中添加AutoIncrement
-* async plan series模式运行时，一旦出现error即停止plan并认为失败
+* asyncplan.service以series模式运行Plan时，一旦出现error即停止plan并认为失败
 
 ## V0.9.2
 
