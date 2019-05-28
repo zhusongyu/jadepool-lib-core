@@ -4,7 +4,7 @@ const consts = require('../consts')
 const { fetchConnection } = require('../utils/db')
 
 const schema = new mongoose.Schema({
-  name: { type: String, require: true },
+  name: { type: String, required: true },
   server: {
     type: String,
     enum: _.values(consts.SERVER_TYPES),

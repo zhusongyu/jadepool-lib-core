@@ -13,7 +13,8 @@ interface HashOptions {
 
 interface SignOptions extends HashOptions {
 	accept: 'string' | 'object';
-	withoutTimestamp: boolean;
+	withoutTimestamp?: boolean;
+	signWithTimestamp?: boolean;
 }
 
 interface SigObject {
@@ -50,17 +51,6 @@ export function refreshPriKey(): Promise<KeyPair>;
 export function pubKeyVerify(pubKeyStr: string, encode: string, compress?: boolean): Buffer | null;
 
 /**
- * 获取 Public Key
- * @deprecated
- * @param cryptoType 
- * @param category 
- * @param compress 
- * @param cryptoDat 
- * @return  
- */
-export function fetchPubKey(cryptoType: string, category: string, compress?: boolean, cryptoDat?: any): Promise<Buffer>;
-
-/**
  * 获取某AppId对应的公钥们
  * @param appid 应用id
  * @param compress
@@ -78,13 +68,15 @@ export function buildSignedObj(obj: any, errMsg: string, sigAccept?: 'object' | 
 	
 /**
  * 获取内部私钥
+ * @param timestamp 时间戳
  */
-export function getInternalPriKey(): Promise<Buffer>;
+export function getInternalPriKey(timestamp?: number): Promise<Buffer>;
 	
 /**
  * 获取内部公钥
+ * @param timestamp 时间戳
  */
-export function getInternalPubKey(): Promise<Buffer>;
+export function getInternalPubKey(timestamp?: number): Promise<Buffer>;
 
 /**
  * 内部签名检查函数

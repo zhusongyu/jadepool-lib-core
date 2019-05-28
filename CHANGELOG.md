@@ -1,5 +1,29 @@
 # Change Logs
 
+## V0.10.0
+
+Breaking Changes:
+
+由于瑶池支持多wallet，因此不能依赖coinCfg
+
+* 移除utils.config.fetchCoinCfg
+* 移除utils.config.fetchAllCoinNames
+* 重构setuper，仅将default钱包中的数据缓存到内存config
+* 移除crypto.fetchPubKey，仅使用新方法fetchPublicKeys
+
+Features:
+
+* 新增Wallet模型，支持多热钱包模式
+  * Application记录中需配置Wallet参数
+* utils.crypto的internal签名支持以timestamp + secret的形式做为私钥
+* rpcclient.service可以预设invokeMethod时的namespace
+
+Improvement:
+
+* agenda.service支持带id的runningJobs查询
+* utils.db中添加AutoIncrement
+* asyncplan.service以series模式运行Plan时，一旦出现error即停止plan并认为失败
+
 ## V0.9.2
 
 Improvement:

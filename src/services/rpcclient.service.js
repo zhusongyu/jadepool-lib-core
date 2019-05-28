@@ -89,6 +89,7 @@ class Service extends BaseService {
    * @param {boolean} [opts.noAuth=false] 是否需要验证
    * @param {string} [opts.signerId=undefined] 签名用的AppId
    * @param {string} [opts.signer=undefined] 签名用的
+   * @param {string} [opts.acceptNamespace=undefined] 可接受的RPC请求指定的namespace
    */
   async joinRPCServer (url, opts = {}) {
     const urlObj = new URL(url)
@@ -145,7 +146,7 @@ class Service extends BaseService {
       logger.tag('Closed').log(`url=${url},reason=${reason},code=${code}`)
     })
     ws.on('message', data => {
-      this._handleRPCMessage(ws, data.valueOf())
+      this._handleRPCMessage(ws, opts.acceptNamespace, data.valueOf())
     })
   }
   /**
@@ -333,9 +334,10 @@ class Service extends BaseService {
   /**
    * 消息处理函数
    * @param {WebSocket} ws 处理用的websocket客户端
+   * @param {String} namespace 可接受的RPC请求指定的namespace
    * @param {String} data 明确为string类型, 即JSONRpc的传输对象
    */
-  async _handleRPCMessage (ws, data) {
+  async _handleRPCMessage (ws, namespace, data) {
     let jsonData
     try {
       jsonData = JSON.parse(data)
@@ -350,21 +352,14 @@ class Service extends BaseService {
       // 判断是否为方法调用或通知，将进行本地调用
       let result = { jsonrpc: '2.0' }
       // 验证签名
+      const sigData = jsonData.sig || jsonData.extra
       if (!this.noAuth) {
-        const sigData = jsonData.sig || jsonData.extra
         if (sigData) {
           let isValid = false
           delete jsonData.sig
           try {
-            const pubKeys = await cryptoUtils.fetchPublicKeys(sigData.appid || 'app')
+            const pubKeys = await cryptoUtils.fetchPublicKeys(sigData.appid || consts.SYSTEM_APPIDS.DEFAULT)
             isValid = pubKeys.some(pubKey => cryptoUtils.verify(jsonData, sigData.signature, pubKey, sigData))
-            // FIXME 此处为针对老版本的兼容
-            if (!isValid) {
-              const pubKey = await cryptoUtils.fetchPubKey('ecc', sigData.appid || 'app', false)
-              if (pubKey) {
-                isValid = cryptoUtils.verify(jsonData, sigData.signature, pubKey, sigData)
-              }
-            }
           } catch (err) {
             logger.error(`failed to verify sig`, err)
             isValid = false
@@ -385,7 +380,9 @@ class Service extends BaseService {
       if (!result.error) {
         logger.tag(`Invoke:${jsonData.method}`).log(`id=${jsonData.id}`)
         try {
-          result.result = await jp.invokeMethod(methodName, null, jsonData.params)
+          const params = jsonData.params
+          if (sigData) params.appid = sigData.appid || consts.SYSTEM_APPIDS.DEFAULT
+          result.result = await jp.invokeMethod(methodName, namespace || params.chain, params)
         } catch (err) {
           result.error = { code: err.code, message: err.message }
           logger.tag(`Invoked:${methodName}`, 'Error').logObj(result.error)

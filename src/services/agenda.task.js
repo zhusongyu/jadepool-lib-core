@@ -204,6 +204,7 @@ class Task {
    */
   next (job) {
     if (!this.nextInterval) return
+    if (!this.isWorking) return
     job.schedule(this.nextInterval)
   }
 

@@ -29,7 +29,7 @@ const schema = new Schema({
   },
   path: { // 该配置内容在配置文件中的父路径。若存在parent，则是相对parent所在的文件夹路径
     type: String,
-    require: true
+    required: true
   },
   key: { // 该配置内容在配置文件中的key，同时也是配置文件的文件夹名，为空即为当前path
     type: String,
@@ -72,32 +72,6 @@ ConfigDat.prototype.toMerged = function () {
   if (typeof this.disabled !== 'undefined') {
     cfgJson.disabled = this.disabled
   }
-  return cfgJson
-}
-
-ConfigDat.prototype.geneTemplate = function () {
-  const mergecCfg = this.toMerged()
-  if (!mergecCfg) return null
-  const template = mergecCfg.template || mergecCfg.tokenTemplate
-  if (!template) return null
-  const cfgJson = {}
-  _.forEach(template, (value, key) => {
-    let defaultVal
-    if (typeof value.default !== 'undefined') {
-      defaultVal = value.default
-    } else if (value.json === true) {
-      defaultVal = {}
-    } else if (value.type === 'number') {
-      defaultVal = 0
-    } else if (value.type === 'string') {
-      defaultVal = ''
-    } else if (value.type === 'boolean') {
-      defaultVal = false
-    } else {
-      defaultVal = null
-    }
-    _.set(cfgJson, key, defaultVal)
-  })
   return cfgJson
 }
 
@@ -145,9 +119,11 @@ const handleConfigObj = (configObj, obj, path) => {
  */
 const mergeConfigObj = (configObj, modObj, path, onlyMergeExists = false) => {
   for (const key in modObj) {
+    if (!modObj.hasOwnProperty(key)) continue
+    const value = modObj[key]
+    if (typeof type === 'function') continue
     const valuePath = path ? `${path}.${key}` : key
     const isExists = _.has(configObj, valuePath)
-    const value = modObj[key]
     // 还原对象数组
     if (_.isArray(value)) {
       let originTargetArr = _.get(configObj, valuePath)
