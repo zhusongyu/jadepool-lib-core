@@ -6,5 +6,6 @@ module.exports = {
   api: require('./apiEndpoint'),
   db: require('./db'),
   redis: require('./redis'),
+  RedisMessager: require('./redisMessager'),
   ProcessRunner: require('./processRunner')
 }

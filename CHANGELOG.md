@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.10.2
+
+Features:
+
+* 新增Redis工具：RedisMessager，可便捷使用Redis 5.0的消息队列功能
+
 ## V0.10.1
 
 Fixes:
