@@ -6,6 +6,7 @@ import * as api from './apiEndpoint';
 import * as db from './db';
 import * as redis from './redis';
 import ProcessRunner from './processRunner';
+import RedisMessager from './redisMessager';
 
 export {
   config,
@@ -15,5 +16,6 @@ export {
   api,
   db,
   redis,
+  RedisMessager,
   ProcessRunner,
 }
