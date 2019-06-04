@@ -6,6 +6,8 @@ interface AddMessageOptions {
 }
 
 interface ConsumeMessageOptions {
+  /** 组名，默认使用初始化时的defaultGroup */
+  group?: string
   /** 获取数量, 默认 1 */
   count?: number
   /** 阻塞等待, 默认 1000 */
@@ -26,16 +28,19 @@ declare class RedisMessager {
   /**
    * @param redisClient
    * @param streamKey
-   * @param group
-   * @param opts
+   * @param defaultGroup 默认组
    */
-  constructor (redisClient: redis.RedisClient, streamKey: string, groupName: string);
+  constructor (redisClient: redis.RedisClient, streamKey: string, defaultGroup?: string);
+  /**
+   * 确保Group存在
+   * @param groupName
+   */
+  ensureGroup (groupName: string): Promise<void>;
 	/**
 	 * 发起请求
 	 * @param msgs 塞入队列的对象
 	 */
   addMessages(msgs: object[], opts?: AddMessageOptions): Promise<string[]>;
-  
   /**
    * 处理Message
    * @param consumerName 消费者名称
@@ -45,8 +50,9 @@ declare class RedisMessager {
   /**
    * 完成Message
    * @param msgIds
+   * @param groupName 不传则使用默认组
    */
-  ackMessages (msgIds: string[]): Promise<string[]>
+  ackMessages (msgIds: string[], groupName?: string): Promise<string[]>
 }
 
 export = RedisMessager
