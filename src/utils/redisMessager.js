@@ -124,7 +124,7 @@ class RedisMessager {
         data[dataArr[i]] = dataArr[i + 1]
       }
       results.push({ id: msgId, data })
-      logger.tag(this._streamKey, 'New Found').log(`id=${msgId},data=${JSON.stringify(data)},consumer=${consumerName}`)
+      logger.tag(this._streamKey, 'Msg Found').log(`group=${groupName},id=${msgId},data=${JSON.stringify(data)},consumer=${consumerName}`)
     }
     return results
   }
@@ -140,7 +140,7 @@ class RedisMessager {
     const xackAsync = promisify(this._redisClient.XACK).bind(this._redisClient)
 
     const ids = await xackAsync(this._streamKey, groupName, ...msgIds)
-    logger.tag(this._streamKey, 'Msg Handled').log(`msg.id=${msgIds}`)
+    logger.tag(this._streamKey, 'Msg Handled').log(`group=${groupName},ids=${msgIds}`)
     return ids
   }
 }
