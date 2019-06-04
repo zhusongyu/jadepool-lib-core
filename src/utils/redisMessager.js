@@ -27,6 +27,18 @@ class RedisMessager {
    * @param {Number} [opts.maxLen=10000]
    */
   async addMessages (msgs, opts = {}) {
+    const xinfoAsync = promisify(this._redisClient.xinfo).bind(this._redisClient)
+    const xgroupAsync = promisify(this._redisClient.xgroup).bind(this._redisClient)
+    // check and create consumer group
+    let theGroup
+    try {
+      const groups = (await xinfoAsync('GROUPS', this._streamKey)) || []
+      theGroup = groups.find(group => group[1] === this._group)
+    } catch (err) {}
+    if (!theGroup) {
+      await xgroupAsync('CREATE', this._streamKey, this._group, '$', 'MKSTREAM')
+      logger.tag(this._streamKey).log(`stream.group=${this._group}`)
+    }
     if (typeof msgs.length !== 'number') return []
     const xaddAsync = promisify(this._redisClient.xadd).bind(this._redisClient)
     const maxLen = opts.maxLen || 10000
@@ -43,16 +55,6 @@ class RedisMessager {
       ids.push(await xaddAsync(this._streamKey, 'MAXLEN', '~', maxLen, '*', ...record))
     }
     logger.tag(this._streamKey).log(`stream.added=${msgs.length}`)
-
-    const xinfoAsync = promisify(this._redisClient.xinfo).bind(this._redisClient)
-    const xgroupAsync = promisify(this._redisClient.xgroup).bind(this._redisClient)
-    // create consumer group
-    const groups = (await xinfoAsync('GROUPS', this._streamKey)) || []
-    const theGroup = groups.find(group => group[1] === this._group)
-    if (!theGroup) {
-      await xgroupAsync('CREATE', this._streamKey, this._group, '$', 'MKSTREAM')
-      logger.tag(this._streamKey).log(`stream.group=${this._group}`)
-    }
     return ids
   }
   /**

@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.10.3
+
+Fixes:
+
+* 修复RedisMessager，新Group无法收到最新消息的Bug
+
 ## V0.10.2
 
 Features:
