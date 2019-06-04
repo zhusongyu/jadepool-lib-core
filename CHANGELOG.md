@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.10.5
+
+Improvement:
+
+* 更新redisMessager输出的log，添加group
+
 ## V0.10.4
 
 Improvement:
