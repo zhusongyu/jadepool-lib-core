@@ -9,16 +9,38 @@ class RedisMessager {
    * @param {String} streamKey
    * @param {String} groupName
    */
-  constructor (redisClient, streamKey, groupName) {
+  constructor (redisClient, streamKey, groupName = undefined) {
     if (!(redisClient instanceof redis.RedisClient)) {
       throw new Error('first parameter should be redis.RedisClient')
     }
-    if (typeof streamKey !== 'string' || typeof groupName !== 'string') {
+    if (typeof streamKey !== 'string') {
       throw new Error('need streamKey and groupName')
     }
     this._redisClient = redisClient
     this._streamKey = streamKey
-    this._group = groupName
+    this._defaultGroup = groupName
+  }
+  /**
+   * 确保Group存在
+   * @param {String} groupName
+   */
+  async ensureGroup (groupName) {
+    groupName = groupName || this._defaultGroup
+    if (typeof groupName !== 'string') {
+      throw new Error('require group Name')
+    }
+    const xinfoAsync = promisify(this._redisClient.xinfo).bind(this._redisClient)
+    const xgroupAsync = promisify(this._redisClient.xgroup).bind(this._redisClient)
+    // check and create consumer group
+    let theGroup
+    try {
+      const groups = (await xinfoAsync('GROUPS', this._streamKey)) || []
+      theGroup = groups.find(group => group[1] === groupName)
+    } catch (err) {}
+    if (!theGroup) {
+      await xgroupAsync('CREATE', this._streamKey, groupName, '$', 'MKSTREAM')
+      logger.tag(this._streamKey, 'Create Group').log(`group=${groupName}`)
+    }
   }
   /**
    * 添加消息
@@ -27,18 +49,6 @@ class RedisMessager {
    * @param {Number} [opts.maxLen=10000]
    */
   async addMessages (msgs, opts = {}) {
-    const xinfoAsync = promisify(this._redisClient.xinfo).bind(this._redisClient)
-    const xgroupAsync = promisify(this._redisClient.xgroup).bind(this._redisClient)
-    // check and create consumer group
-    let theGroup
-    try {
-      const groups = (await xinfoAsync('GROUPS', this._streamKey)) || []
-      theGroup = groups.find(group => group[1] === this._group)
-    } catch (err) {}
-    if (!theGroup) {
-      await xgroupAsync('CREATE', this._streamKey, this._group, '$', 'MKSTREAM')
-      logger.tag(this._streamKey).log(`stream.group=${this._group}`)
-    }
     if (typeof msgs.length !== 'number') return []
     const xaddAsync = promisify(this._redisClient.xadd).bind(this._redisClient)
     const maxLen = opts.maxLen || 10000
@@ -60,6 +70,7 @@ class RedisMessager {
   /**
    * 处理Message
    * @param {Object} opts
+   * @param {String} [opts.group=undefined] 默认使用初始化时的defaultGroup
    * @param {Number} [opts.count=1] 获取数量
    * @param {Number} [opts.block=1000] 阻塞等待
    * @param {Number} [opts.idleTime=3*60*1000] idle等待，默认3min
@@ -72,6 +83,9 @@ class RedisMessager {
 
     // 确保Key可用
     if ((await xlenAsync(this._streamKey)) === 0) return []
+    // 确保Group可用
+    const groupName = opts.group || this._defaultGroup
+    if (typeof groupName !== 'string') return []
 
     const count = opts.count || 1
     const block = opts.block || 1000
@@ -80,12 +94,12 @@ class RedisMessager {
     let msgData
     try {
       // 试试拿新的
-      msgData = await xreadgroupAsync('GROUP', this._group, consumerName, 'COUNT', count, 'BLOCK', block, 'STREAMS', this._streamKey, '>')
+      msgData = await xreadgroupAsync('GROUP', groupName, consumerName, 'COUNT', count, 'BLOCK', block, 'STREAMS', this._streamKey, '>')
     } catch (err) {}
     if (!msgData) {
       // 试试拿老的
       try {
-        msgData = await xreadgroupAsync('GROUP', this._group, consumerName, 'COUNT', count, 'STREAMS', this._streamKey, '0')
+        msgData = await xreadgroupAsync('GROUP', groupName, consumerName, 'COUNT', count, 'STREAMS', this._streamKey, '0')
       } catch (err) {}
     }
     // 新数据设置
@@ -94,12 +108,12 @@ class RedisMessager {
     }
     if (msgs.length === 0) {
       const idleTime = opts.idleTime || 3 * 60 * 1000
-      const pendings = (await xpendingAsync(this._streamKey, this._group, '-', '+', 10)) || []
+      const pendings = (await xpendingAsync(this._streamKey, groupName, '-', '+', 10)) || []
       const idleEnoughItems = pendings.filter(pending => pending[1] !== consumerName && pending[2] > idleTime)
       const idleIds = idleEnoughItems.map(pending => pending[0])
       if (idleIds.length > 0) {
         // 尝试claim无人处理的msg
-        msgs = await xclaimAsync(this._streamKey, this._group, consumerName, idleTime, ...idleIds)
+        msgs = await xclaimAsync(this._streamKey, groupName, consumerName, idleTime, ...idleIds)
       }
     }
     const results = []
@@ -117,11 +131,15 @@ class RedisMessager {
   /**
    * 完成Message
    * @param {String[]} msgIds
+   * @param {String|undefined} groupName 默认使用初始化时的defaultGroup
    */
-  async ackMessages (msgIds) {
+  async ackMessages (msgIds, groupName = undefined) {
     if (typeof msgIds === 'string') msgIds = [ msgIds ]
+    groupName = groupName || this._defaultGroup
+    if (typeof groupName !== 'string') return []
     const xackAsync = promisify(this._redisClient.XACK).bind(this._redisClient)
-    const ids = await xackAsync(this._streamKey, this._group, ...msgIds)
+
+    const ids = await xackAsync(this._streamKey, groupName, ...msgIds)
     logger.tag(this._streamKey, 'Msg Handled').log(`msg.id=${msgIds}`)
     return ids
   }

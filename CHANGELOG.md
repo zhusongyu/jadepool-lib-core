@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.10.4
+
+Improvement:
+
+* 调整RedisMessager接口，独立ensureGroup方法，支持不同Group的consumeMessages
+
 ## V0.10.3
 
 Fixes:
