@@ -1,28 +1,13 @@
 # Change Logs
 
-## V0.10.5
-
-Improvement:
-
-* 更新redisMessager输出的log，添加group
-
-## V0.10.4
-
-Improvement:
-
-* 调整RedisMessager接口，独立ensureGroup方法，支持不同Group的consumeMessages
-
-## V0.10.3
-
-Fixes:
-
-* 修复RedisMessager，新Group无法收到最新消息的Bug
-
-## V0.10.2
+## V0.11.0
 
 Features:
 
+* 添加utils函数：string类和assert类
 * 新增Redis工具：RedisMessager，可便捷使用Redis 5.0的消息队列功能
+  * 修复RedisMessager，新Group无法收到最新消息的Bug
+  * 独立ensureGroup方法，支持不同Group的consumeMessages
 
 ## V0.10.1
 
