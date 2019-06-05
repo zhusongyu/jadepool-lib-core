@@ -79,7 +79,7 @@ const cryptoUtils = {
    * @param {Object} obj 签名对象
    * @param {String|undefined} errMsg 错误信息
    */
-  async buildSignedObj (obj, errMsg, sigAccept = 'object') {
+  async buildSignedObj (obj, errMsg, opts = {}) {
     const data = {}
     if (errMsg) {
       data.status = data.code = 400
@@ -90,8 +90,17 @@ const cryptoUtils = {
     }
     const priKey = await cryptoUtils.getPriKey()
     if (priKey) {
-      const sigObj = ecc.sign(obj, priKey, { hash: 'sha3', accept: sigAccept })
+      const signOpts = _.defaults(_.clone(opts), {
+        hash: 'sha3',
+        accept: 'object',
+        sort: 'key-alphabet',
+        encode: ecc.DEFAULT_ENCODE
+      })
+      const sigObj = ecc.sign(obj, priKey, signOpts)
       data.crypto = 'ecc'
+      data.hash = signOpts.hash
+      data.sort = signOpts.sort
+      data.encode = signOpts.encode
       data.timestamp = sigObj.timestamp
       data.sig = sigObj.signature
     }
