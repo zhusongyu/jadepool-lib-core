@@ -140,6 +140,10 @@ declare interface WalletSourceConfig {
   seedKey: string
   /** 当source为hsm时，需要设置 */
   hsmKey?: string
+  /** 当source为seed_db时，需要设置 */
+  hotAccount?: string
+  hotPubKey?: string
+  coldAccount?: string
   /** 额外参数 */
   [key: string]: any
 }
@@ -298,7 +302,7 @@ declare interface ChainConfig {
   endpoints: string[] | { type: string, name: string, url?: string, [key: string]: string }[]
 }
 
-type WalletSourceType = 'seed' | 'hsm_pure' | 'hsm_deep'
+type WalletSourceType = 'seed' | 'hsm_pure' | 'hsm_deep' | 'seed_db'
 
 declare interface WalletChainStatus {
   /** 在该钱包内是否被禁用 */
