@@ -14,7 +14,7 @@ import RedisMessager from './redisMessager';
  * @param value 待验证内容
  * @param message 错误信息
  */
-export function assert(value: any, message?: string): any;
+export function assert<T>(value: T, message?: string): T;
 
 /**
  * string工具库
