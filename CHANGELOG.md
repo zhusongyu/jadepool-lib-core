@@ -1,11 +1,16 @@
 # Change Logs
 
+## V0.11.2
+
+Improvement:
+
+* utils.crypto.buildSignedObj 支持传入多种参数
+
 ## V0.11.1
 
 Improvement:
 
 * 在wallet的d.ts中添加seed_db模式，配置冷热钱包地址的提示
-
 
 ## V0.11.0
 
