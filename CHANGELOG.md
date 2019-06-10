@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.11.4
+
+Fixes:
+
+* 移除wallet.getTokenInfo时，对configWatchers的修改
+
 ## V0.11.3
 
 Fixes:

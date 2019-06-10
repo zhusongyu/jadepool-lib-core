@@ -349,36 +349,6 @@ Wallet.prototype.getTokenInfo = function (chainKey, coinName, withPatch = false)
 
   const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
   const cfg = ConfigDat.mergeConfigObj(_.clone(tokenCfg), result.config)
-  // 通过全局条件修改config
-  if (jp.config.configWatchers) {
-    _.forEach(jp.config.configWatchers, watcherCfg => {
-      if (!_.includes(['coin', 'jadepool'], watcherCfg.path)) return
-      const targetObj = cfg[watcherCfg.path]
-      if (!targetObj) return
-      // 找到需要修改的目标
-      if (typeof watcherCfg.where === 'string' && coinName !== watcherCfg.where) return
-      if (typeof watcherCfg.where === 'object' && watcherCfg.where !== null && _.filter([targetObj], watcherCfg.where).length === 0) return
-      // 根据conds进行参数修改
-      _.forIn(watcherCfg.cond, (valueArr, key) => {
-        const method = valueArr[0]
-        if (!method) return
-        if (targetObj[key] === undefined) return
-        if (method === '$min' && typeof targetObj[key] === 'number') {
-          const compVal = typeof valueArr[1] === 'number' ? (valueArr[1] || 0)
-            : (typeof valueArr[1] === 'string' ? _.get(targetObj, valueArr[1], 0) : 0)
-          targetObj[key] = Math.max(targetObj[key], compVal)
-        } else if (method === '$max' && typeof targetObj[key] === 'number') {
-          const compVal = typeof valueArr[1] === 'number' ? (valueArr[1] || Number.MAX_VALUE)
-            : (typeof valueArr[1] === 'string' ? _.get(targetObj, valueArr[1], Number.MAX_VALUE) : Number.MAX_VALUE)
-          targetObj[key] = Math.min(targetObj[key], compVal)
-        } else if (method === '$toLower' && typeof targetObj[key] === 'string') {
-          targetObj[key] = _.toLower(targetObj[key])
-        } else if (method === '$toUpper' && typeof targetObj[key] === 'string') {
-          targetObj[key] = _.toUpper(targetObj[key])
-        }
-      }) // end conds forIn
-    }) // end watchers
-  }
   // 打上老版的数据补丁
   if (withPatch) {
     const DerivativeRoot = this.getAddressDerivativePath(chainCfg.ChainIndex, 0, chainCfg.MainIndexOffset || 0)
