@@ -119,15 +119,12 @@ const geneTemplate = async (parent) => {
  * @param {any} parent
  * @returns {Promise<{toMerged: Function, applyModify: Function, save: Function}>}
  */
-const loadConfig = async (cfgPath, key = '', parent = null, forceSelf = false) => {
+const loadConfig = async (cfgPath, key = '', parent = null) => {
   const query = { path: cfgPath, key }
   if (parent) {
-    query.parent = parent
+    query.parent = parent._id || parent.id || parent
   } else {
     query.parent = { $exists: false }
-  }
-  if (forceSelf) {
-    query.server = jp.env.server
   }
 
   const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)

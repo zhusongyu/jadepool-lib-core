@@ -1,5 +1,12 @@
 # Change Logs
 
+## V0.11.3
+
+Fixes:
+
+* 修复wallet机制下configLoader自动升级版本时，带parent的配置无法正常升级的bug
+* 移除utils.configLoader.loadConfig中的无用参数forceSelf
+
 ## V0.11.2
 
 Improvement:
