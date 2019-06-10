@@ -20,10 +20,9 @@ export declare function setAliasConfigPath(path: string, key: string, aliasPath:
  * 从数据库中读取配置，若该配置不存在，则从文件中读取并保存到数据库
  * @param cfgPath 目录名
  * @param key 子目录名
- * @param parent 
- * @param forceSelf
+ * @param parent
  */
-export declare function loadConfig(cfgPath: string, key: string, parent: ConfigDatDocument, forceSelf: boolean): Promise<ConfigDatDocument>;
+export declare function loadConfig(cfgPath: string, key: string, parent: ConfigDatDocument): Promise<ConfigDatDocument>;
 
 /**
  * 从数据库中读取path相同的全部配置，同时也从文件夹中读取全部路径

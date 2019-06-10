@@ -285,7 +285,7 @@ Wallet.prototype.populateTokenConfig = async function (chainKey, coinName) {
     // load tokenInfo now
     if (chain) {
       if (!this._tokenInfoCache) this._tokenInfoCache = new Map()
-      const tokenDat = await cfgloader.loadConfig('tokens', coinName, chain.id)
+      const tokenDat = await cfgloader.loadConfig('tokens', coinName, { id: chain.id, path: 'chain', key: chain.key })
       if (tokenDat) this._tokenInfoCache.set(`${chainKey}.${coinName}`, tokenDat.toMerged())
     }
   }
