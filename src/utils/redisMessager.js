@@ -1,4 +1,5 @@
 const { promisify } = require('util')
+const _ = require('lodash')
 const redis = require('redis')
 
 const logger = require('@jadepool/logger').of('RedisMessager')
@@ -72,7 +73,7 @@ class RedisMessager {
    * @param {Object} opts
    * @param {String} [opts.group=undefined] 默认使用初始化时的defaultGroup
    * @param {Number} [opts.count=1] 获取数量
-   * @param {Number} [opts.block=1000] 阻塞等待
+   * @param {Number} [opts.block=0] 阻塞等待，秒
    * @param {Number} [opts.idleTime=3*60*1000] idle等待，默认3min
    */
   async consumeMessages (consumerName, opts = {}) {
@@ -88,18 +89,23 @@ class RedisMessager {
     if (typeof groupName !== 'string') return []
 
     const count = opts.count || 1
-    const block = opts.block || 1000
 
+    let reqBasic = ['GROUP', groupName, consumerName, 'COUNT', count]
     let msgs = []
     let msgData
     try {
+      const reqArgs = [ reqBasic ]
+      if (opts.block) {
+        reqArgs.push(['BLOCK', opts.block])
+      }
+      reqArgs.push(['STREAMS', this._streamKey, '>'])
       // 试试拿新的
-      msgData = await xreadgroupAsync('GROUP', groupName, consumerName, 'COUNT', count, 'BLOCK', block, 'STREAMS', this._streamKey, '>')
+      msgData = await xreadgroupAsync(_.flatten(reqArgs))
     } catch (err) {}
     if (!msgData) {
       // 试试拿老的
       try {
-        msgData = await xreadgroupAsync('GROUP', groupName, consumerName, 'COUNT', count, 'STREAMS', this._streamKey, '0')
+        msgData = await xreadgroupAsync(reqBasic.concat(['STREAMS', this._streamKey, '0']))
       } catch (err) {}
     }
     // 新数据设置
