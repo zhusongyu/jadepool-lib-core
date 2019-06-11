@@ -273,6 +273,7 @@ declare interface ChainConfig {
     FailedAffirmativeConfirmation: number
     sendOrdersInterval: number
     waitingSendOrdersOnline: boolean
+    hotPermissionChangeable: boolean
   }
   closer: {
     softForkIgnoreCap: number
