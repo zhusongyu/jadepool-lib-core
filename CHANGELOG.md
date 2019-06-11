@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.11.5
+
+Fixes:
+
+* 修复redisMessager consumeMessages时因自动设置block造成的卡死
+
 ## V0.11.4
 
 Fixes:

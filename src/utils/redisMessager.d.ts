@@ -10,7 +10,7 @@ interface ConsumeMessageOptions {
   group?: string
   /** 获取数量, 默认 1 */
   count?: number
-  /** 阻塞等待, 默认 1000 */
+  /** 阻塞等待, 默认 0s */
   block?: number
   /** idle等待，默认 3min */
   idleTime?: number
