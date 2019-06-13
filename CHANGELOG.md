@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.9.3
+
+Fixes:
+
+* async plan series模式运行时，一旦出现error即停止plan并认为失败
+
 ## V0.9.2
 
 Improvement:

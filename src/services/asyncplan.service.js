@@ -83,20 +83,25 @@ class Service extends BaseService {
         await plan.populate('refer').execPopulate()
       }
       const updateObj = { $set: {} }
+      let anyError = false // 是否存在错误
       if (plan.mode === consts.ASYNC_PLAN_MODES.PARALLEL) {
         // 并行任务
         const updates = await Promise.all(_.map(plan.plans, this._updatePlanData.bind(this, plan, plan.refer)))
         updateObj.$set = Object.assign({}, ...updates)
       } else {
         // 串行任务
+        // Check last task
+        const lastPlanData = plan.finished_steps > 0 ? plan.plans[plan.finished_steps - 1] : null
+        if (lastPlanData && lastPlanData.finished_at) {
+          anyError = !(await this._checkPlanSuccess(lastPlanData))
+        }
         const currPlanData = plan.plans[plan.finished_steps]
-        if (currPlanData) {
+        if (!anyError && currPlanData) {
           updateObj.$set = await this._updatePlanData(plan, plan.refer, currPlanData, plan.finished_steps)
         }
       }
       // 判断是否全局完成任务
       let finishedSteps = 0 // 已完成
-      let anyError = false // 是否存在错误
       for (let i = 0; i < plan.plans.length; i++) {
         const planData = plan.plans[i]
         finishedSteps = finishedSteps + (!planData.finished_at ? 0 : 1)
@@ -106,7 +111,8 @@ class Service extends BaseService {
         }
       }
       updateObj.$set.finished_steps = finishedSteps
-      if (finishedSteps === plan.plans.length) {
+      if (finishedSteps === plan.plans.length ||
+        (plan.mode === consts.ASYNC_PLAN_MODES.SERIES && anyError)) {
         updateObj.$set.finished_at = new Date()
         const status = anyError ? consts.ASYNC_PLAN_STATUS.FAILED : consts.ASYNC_PLAN_STATUS.COMPLETED
         updateObj.$set.status = status
