@@ -68,6 +68,11 @@ Improvement:
 
 * agenda.service支持带id的runningJobs查询
 * utils.db中添加AutoIncrement
+
+## V0.9.3
+
+Fixes:
+
 * asyncplan.service以series模式运行Plan时，一旦出现error即停止plan并认为失败
 
 ## V0.9.2
