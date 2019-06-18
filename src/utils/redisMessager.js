@@ -126,8 +126,10 @@ class RedisMessager {
     for (let i = 0; i < msgs.length; i++) {
       const [ msgId, dataArr ] = msgs[i]
       const data = {}
-      for (let i = 0; i < dataArr.length; i += 2) {
-        data[dataArr[i]] = dataArr[i + 1]
+      if (_.isArray(dataArr)) {
+        for (let i = 0; i < dataArr.length; i += 2) {
+          data[dataArr[i]] = dataArr[i + 1]
+        }
       }
       results.push({ id: msgId, data })
       logger.tag(this._streamKey, 'Msg Found').log(`group=${groupName},id=${msgId},data=${JSON.stringify(data)},consumer=${consumerName}`)
