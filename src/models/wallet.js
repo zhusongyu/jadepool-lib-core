@@ -8,7 +8,12 @@ const cfgloader = require('../utils/config/loader')
 const { fetchConnection, AutoIncrement } = require('../utils/db')
 const Schema = mongoose.Schema
 
-const CoinData = new Schema({
+const tokenDataSchema = new Schema({
+  wallet: { // 指向钱包
+    type: Schema.Types.ObjectId,
+    ref: consts.MODEL_NAMES.WALLET
+  },
+  chainKey: { type: String, required: true }, // 区块链Key
   name: { type: String, required: true }, // 币种简称, 区块链唯一
   // 私钥源可选配置，将覆盖chain默认config
   data: Schema.Types.Mixed,
@@ -23,8 +28,15 @@ const CoinData = new Schema({
     jadepool: Schema.Types.Mixed
   }
 })
+tokenDataSchema.index({ wallet: 1, chainKey: 1, name: 1 }, { name: 'tokenByWallet', unique: true })
+// 定义Schema
+const WalletToken = fetchConnection(consts.DB_KEYS.CONFIG).model(consts.MODEL_NAMES.WALLET_TOKEN, tokenDataSchema)
 
-const ChainData = new Schema({
+const walletChainSchema = new Schema({
+  wallet: { // 指向钱包
+    type: Schema.Types.ObjectId,
+    ref: consts.MODEL_NAMES.WALLET
+  },
   chainKey: { type: String, required: true }, // 区块链Key
   // 私钥源
   source: {
@@ -41,8 +53,13 @@ const ChainData = new Schema({
     coinsEnabled: [ String ]
   },
   // 钱包中的币种状态信息
-  coins: [ CoinData ]
+  coins: [
+    { type: Schema.Types.ObjectId, ref: consts.MODEL_NAMES.WALLET_TOKEN }
+  ]
 })
+walletChainSchema.index({ wallet: 1, chainKey: 1 }, { name: 'chainKeyByWallet', unique: true })
+// 定义Schema
+const WalletChain = fetchConnection(consts.DB_KEYS.CONFIG).model(consts.MODEL_NAMES.WALLET_CHAIN, walletChainSchema)
 
 const schema = new Schema({
   name: { type: String, required: true, unique: true }, // 钱包的唯一名称
@@ -53,7 +70,9 @@ const schema = new Schema({
   // 充值地址衍生路径为 m/44'/{chainIndex}'/{mainIndex}'/0/{addressIndex}
   addrIndex: { type: Number, required: true, default: 0, min: 0 },
   // 钱包中的区块链状态信息
-  chains: [ ChainData ] // end chains
+  chains: [
+    { type: Schema.Types.ObjectId, ref: consts.MODEL_NAMES.WALLET_CHAIN }
+  ]
 }, {
   timestamps: { createdAt: 'create_at', updatedAt: 'update_at' }
 })
@@ -79,29 +98,17 @@ Wallet.prototype.nextAddressIndex = async function () {
 
 /**
  * update from config
- * @param {string[]} chains 区块key或configdats
+ * @param {{ key: string, disabled: boolean, WalletDefaults: Object }[]} chainDefaults
  */
-Wallet.prototype.updateFromConfig = async function (chains) {
+Wallet.prototype.updateFromConfig = async function (chainDefaults) {
   // no need update
   if (this.version && semver.lte(jp.env.version, this.version)) return null
-  // set WalletDefaults
-  const chainDats = (await Promise.all(chains.map(async chain => {
-    if (typeof chain === 'string') {
-      return cfgloader.loadConfig('chain', chain)
-    } else if (typeof chain.toMerged === 'function') {
-      return Promise.resolve(chain)
-    } else {
-      return Promise.resolve()
-    }
-  }))).filter(dat => !!dat)
   // set all chains' data
-  for (let i = 0; i < chainDats.length; i++) {
-    const chainCfgDat = chainDats[i]
-    const chainKey = chainCfgDat.key
-    const chainCfg = chainCfgDat.toMerged()
-    const walletDefaults = chainCfg.WalletDefaults || { data: { seedKey: chainKey } }
-    await this._fillDefaultData(chainKey, walletDefaults, !chainCfgDat.disabled, false)
+  let ids = []
+  for (const item of chainDefaults) {
+    ids.push(await _ensureWalletChain(this._id, item.key, item.WalletDefaults, !item.disabled))
   }
+  this.chains = ids
   this.version = jp.env.version
   // save wallet
   await this.save()
@@ -115,85 +122,81 @@ Wallet.prototype.updateFromConfig = async function (chains) {
  * @param {boolean} enabled
  * @param {boolean} isSave save or not
  */
-Wallet.prototype._fillDefaultData = async function (chainKey, defaultData, enabled, isSave = true) {
+const _ensureWalletChain = async function (walletId, chainKey, defaultData, enabled) {
   // ensure sourceType available
   const eumTypes = _.values(consts.PRIVKEY_SOURCES)
   const hotSource = [_.get(defaultData, 'source.hot')].filter(v => eumTypes.indexOf(v) !== -1)[0]
   const coldSource = [_.get(defaultData, 'source.cold')].filter(v => eumTypes.indexOf(v) !== -1)[0]
-  // build save object
-  const i = _.findIndex(this.chains || [], { chainKey })
-  if (i === -1) {
-    this.chains.push({
-      chainKey,
+
+  const query = { wallet: walletId, chainKey }
+  let walletChain = await WalletChain.findOne(query).select('_id data').exec()
+  // 设置数据
+  const defaultSetObj = _.defaults(_.clone(defaultData || {}), { data: { seedKey: chainKey } })
+  const updateObj = {
+    $set: {
+      data: walletChain ? _.defaults(_.clone(walletChain.data), defaultSetObj.data) : defaultSetObj.data
+    },
+    $setOnInsert: Object.assign({
       source: {
         hot: hotSource || consts.PRIVKEY_SOURCES.SEED,
         cold: coldSource || consts.PRIVKEY_SOURCES.SEED
       },
-      data: defaultData.data,
       status: {
         enabled: enabled,
-        coinsEnabled: defaultData.coinsEnabled || []
-      },
-      coins: defaultData.coins || []
-    })
-  } else {
-    const chainData = this.chains[i]
-    if (!chainData.get('source.hot') && hotSource) {
-      chainData.set('source.hot', hotSource)
-    }
-    if (!chainData.get('source.cold') && coldSource) {
-      chainData.set('source.cold', coldSource)
-    }
-    if (defaultData.data) {
-      chainData.data = _.defaults(_.clone(chainData.data), defaultData.data)
-    }
-    if (chainData.get('status.enabled') === undefined && enabled !== undefined) {
-      chainData.set('status.enabled', enabled)
-    }
-    _.forEach(defaultData.coins || [], defaultsCoinData => {
-      const saveCoinData = _.find(chainData.coins || [], { name: defaultsCoinData.name })
-      if (saveCoinData) {
-        saveCoinData.data = _.defaults(_.clone(saveCoinData.data), defaultsCoinData.data)
+        coinsEnabled: defaultSetObj.coinsEnabled || []
       }
-    })
+    }, query)
   }
-  // 保存
-  if (isSave) {
-    await this.save()
+  // set coins docs
+  const coins = defaultData.coins || []
+  const coinDocIds = []
+  for (const defaultsCoinData of coins) {
+    if (!defaultsCoinData) continue
+    const tokenQuery = { wallet: walletId, chainKey, name: defaultsCoinData.name }
+    const oldOne = await WalletToken.findOne(tokenQuery).select('_id data').exec()
+    const doc = await WalletToken.findOneAndUpdate(tokenQuery, {
+      $set: {
+        data: oldOne ? _.defaults(_.clone(oldOne.data), defaultsCoinData.data) : defaultsCoinData.data
+      }
+    }, { upsert: true, new: true }).select('_id').exec()
+    coinDocIds.push(doc._id)
   }
-  return this
+  // add coins
+  if (coinDocIds.length > 0) {
+    updateObj.$addToSet = { coins: { $each: coinDocIds } }
+  }
+  const theDoc = await WalletChain.findOneAndUpdate(query, updateObj, { upsert: true, new: true }).select('_id').exec()
+  return theDoc._id
 }
 
-/**
- * set any data
- * @param {string} chainKey blockchain key
- * @param {string} coinName coin unique name
- * @param {string} field
- * @param {object} data
- * @param {boolean} isSave
- */
-Wallet.prototype._setAnyData = async function (chainKey, coinName, field, data) {
-  const i = _.findIndex(this.chains || [], { chainKey })
-  if (i === -1) throw new NBError(40410, `chain: ${chainKey}`)
+const _setAnyData = async function (walletId, chainKey, coinName, field, data) {
+  const baseQuery = { wallet: walletId, chainKey }
+  const walletChain = await WalletToken.findOne(baseQuery).exec()
+  let query = _.clone(baseQuery)
+  let doc
   if (coinName !== undefined) {
-    const chainData = this.chains[i]
-    let coinIdx = -1
-    coinIdx = _.findIndex(chainData.coins || [], c => c.name === coinName)
-    if (coinIdx !== -1) {
-      const pathKey = `chains.${i}.coins.${coinIdx}.${field}`
-      const oldData = _.clone(this.get(pathKey))
-      this.set(pathKey, _.isObject(oldData) ? Object.assign(oldData, data) : data)
-    } else {
-      chainData.coins.push({ name: coinName, [field]: data })
+    query.name = coinName
+    doc = await WalletToken.findOne(query).exec()
+  } else {
+    doc = walletChain
+  }
+  const oldData = _.get(doc ? doc.toObject() : {}, field)
+  const newData = _.isObject(oldData) ? Object.assign(oldData, data) : data
+  if (coinName !== undefined) {
+    const theDoc = await WalletToken.findOneAndUpdate(query, {
+      $set: { [field]: newData }
+    }, { upsert: true, new: true }).select('_id').exec()
+    // 保证coins
+    if (walletChain.coins.indexOf(theDoc._id) === -1) {
+      await WalletChain.updateOne(baseQuery, {
+        $addToSet: { coins: theDoc._id }
+      }).exec()
     }
   } else {
-    const pathKey = `chains.${i}.${field}`
-    const oldData = _.clone(this.get(pathKey))
-    this.set(pathKey, _.isObject(oldData) ? Object.assign(oldData, data) : data)
+    await WalletChain.updateOne(baseQuery, {
+      $set: { [field]: newData }
+    }).exec()
   }
-  // save to db
-  await this.save()
-  return this
 }
 
 /**
@@ -202,7 +205,8 @@ Wallet.prototype._setAnyData = async function (chainKey, coinName, field, data) 
  * @param {object} status 状态配置
  */
 Wallet.prototype.setChainStatus = async function (chainKey, status) {
-  return this._setAnyData(chainKey, undefined, 'status', status)
+  await _setAnyData(this._id, chainKey, undefined, 'status', status)
+  return this
 }
 /**
  * set token enabled status
@@ -211,13 +215,15 @@ Wallet.prototype.setChainStatus = async function (chainKey, status) {
  * @param {object} status 状态配置
  */
 Wallet.prototype.setTokenStatus = async function (chainKey, coinName, status) {
-  return this._setAnyData(chainKey, coinName, 'status', status)
+  await _setAnyData(this._id, chainKey, coinName, 'status', status)
+  return this
 }
 /**
  * set token config mods
  */
 Wallet.prototype.setConfigMods = async function (chainKey, coinName, mods) {
-  return this._setAnyData(chainKey, coinName, 'config', mods)
+  await _setAnyData(this._id, chainKey, coinName, 'config', mods)
+  return this
 }
 /**
  * set source
@@ -229,7 +235,8 @@ Wallet.prototype.setSource = async function (chainKey, target, type) {
   if (!_.includes(_.values(consts.PRIVKEY_SOURCES), type)) {
     throw new NBError(10002, `source type: ${type}`)
   }
-  return this._setAnyData(chainKey, undefined, `source.${target}`, type)
+  await _setAnyData(this._id, chainKey, undefined, `source.${target}`, type)
+  return this
 }
 /**
  * set SourceData in exists chainData
@@ -240,33 +247,38 @@ Wallet.prototype.setSource = async function (chainKey, target, type) {
 Wallet.prototype.setSourceData = async function (chainKey, coinName, sourceData) {
   sourceData = sourceData || {}
   sourceData.cachedAt = new Date()
-  return this._setAnyData(chainKey, coinName, 'data', sourceData)
+  await _setAnyData(this._id, chainKey, coinName, 'data', sourceData)
+  return this
 }
 
 /**
  * 获取币种相关的钱包信息
  */
-Wallet.prototype.getSourceData = function (chainKey, coinName) {
-  const chainData = _.find(this.chains || [], { chainKey })
-  if (!chainData) return null
-  const coinData = _.find(chainKey.coins || [], c => c.name === coinName)
-  return Object.assign({}, chainData.data, coinData ? coinData.data : {})
+Wallet.prototype.getSourceData = async function (chainKey, coinName) {
+  const baseQuery = { wallet: this._id, chainKey }
+  const walletChain = await WalletChain.findOne(baseQuery).exec()
+  let data = walletChain ? _.clone(walletChain.data) : {}
+  if (coinName !== undefined && coinName !== null) {
+    const walletToken = await WalletToken.findOne(Object.assign({ name: coinName }, baseQuery)).exec()
+    data = Object.assign(data, walletToken ? _.clone(walletToken.data) : {})
+  }
+  return data
 }
 
 /**
  * 加载区块链相关的配置信息
  */
 Wallet.prototype.populateChainConfig = async function (chainKey) {
-  const chainData = _.find(this.chains || [], { chainKey })
-  if (chainData) {
-    if (!this._chainInfoCache) this._chainInfoCache = new Map()
-    const chain = await cfgloader.loadConfig('chain', chainKey)
-    if (chain) {
-      this._chainInfoCache.set(chainKey, Object.assign({
-        id: chain._id,
-        key: chainKey
-      }, chain.toMerged()))
-    }
+  if (!this.populatedCache) this.populatedCache = new Map()
+  const walletKey = chainKey + '_wallet'
+  const doc = await WalletChain.findOne({ wallet: this._id, chainKey }).exec()
+  if (doc) {
+    this.populatedCache.set(walletKey, doc.toObject())
+  }
+  const cfgKey = chainKey + '_config'
+  const chain = await cfgloader.loadConfig('chain', chainKey)
+  if (chain) {
+    this.populatedCache.set(cfgKey, chain.toMerged())
   }
   return this
 }
@@ -275,19 +287,20 @@ Wallet.prototype.populateChainConfig = async function (chainKey) {
  * 加载币种相关的配置信息
  */
 Wallet.prototype.populateTokenConfig = async function (chainKey, coinName) {
-  const chainData = _.find(this.chains || [], { chainKey })
-  if (chainData) {
-    // load chainInfo first
-    if (!this._chainInfoCache || !this._chainInfoCache.has(chainKey)) {
-      await this.populateChainConfig(chainKey)
-    }
-    const chain = this._chainInfoCache.get(chainKey)
-    // load tokenInfo now
-    if (chain) {
-      if (!this._tokenInfoCache) this._tokenInfoCache = new Map()
-      const tokenDat = await cfgloader.loadConfig('tokens', coinName, { id: chain.id, path: 'chain', key: chain.key })
-      if (tokenDat) this._tokenInfoCache.set(`${chainKey}.${coinName}`, tokenDat.toMerged())
-    }
+  const cfgChainKey = chainKey + '_config'
+  // load chainInfo first
+  if (!this.populatedCache || !this.populatedCache.has(cfgChainKey)) {
+    await this.populateChainConfig(chainKey)
+  }
+  const chain = this.populatedCache.get(cfgChainKey)
+  if (chain) {
+    const tokenWalletKey = `${chainKey}.${coinName}_wallet`
+    const doc = await WalletToken.findOne({ wallet: this._id, chainKey, name: coinName })
+    if (doc) this.populatedCache.set(tokenWalletKey, doc.toObject())
+
+    const tokenCfgKey = `${chainKey}.${coinName}_config`
+    const tokenDat = await cfgloader.loadConfig('tokens', coinName, { id: chain.id, path: 'chain', key: chain.key })
+    if (tokenDat) this.populatedCache.set(tokenCfgKey, tokenDat.toMerged())
   }
   return this
 }
@@ -296,31 +309,33 @@ Wallet.prototype.populateTokenConfig = async function (chainKey, coinName) {
  * 获取区块链相关的配置信息
  */
 Wallet.prototype.getChainInfo = function (chainKey) {
-  const chainData = _.find(this.chains || [], { chainKey })
-  if (!chainData) {
-    throw new NBError(10001, `failed to find chain: ${chainKey}`)
-  }
-  return {
-    chainKey,
-    source: chainData.source && chainData.source.toObject(),
-    status: chainData.status && chainData.status.toObject(),
-    data: _.clone(chainData.data),
-    config: this._chainInfoCache && _.clone(this._chainInfoCache.get(chainKey))
-  }
+  if (!this.populatedCache) throw new NBError(10001, `missing populated cache`)
+  const walletKey = chainKey + '_wallet'
+  const cfgKey = chainKey + '_config'
+  const chainData = this.populatedCache.get(walletKey)
+  if (!chainData) throw new NBError(10001, `failed to find chain: ${chainKey}`)
+
+  return Object.assign({}, chainData, {
+    config: _.clone(this.populatedCache.get(cfgKey))
+  })
 }
 
-Wallet.prototype._getTokenInfo = function (chainData, coinName) {
-  if (!chainData) throw new NBError(10001, `failed to missing chainData, for ${coinName}`)
+Wallet.prototype._getTokenInfo = function (chainKey, coinName) {
+  const walletKey = chainKey + '_wallet'
+  const chainData = this.populatedCache.get(walletKey)
+  if (!chainData) throw new NBError(10001, `failed to find chain: ${chainKey}`)
+
   const result = {
     name: coinName,
     data: _.clone(chainData.data),
     status: {}
   }
-  const coinData = _.find(chainData.coins || [], c => c.name === coinName)
+  const tokenWalletKey = `${chainKey}.${coinName}_wallet`
+  const coinData = this.populatedCache.get(tokenWalletKey)
   if (coinData) {
     result.data = Object.assign(result.data, coinData.data ? _.clone(coinData.data) : {})
-    result.status = coinData.status && coinData.status.toObject()
-    result.config = coinData.config && coinData.config.toObject()
+    result.status = coinData.status
+    result.config = coinData.config
   }
   return result
 }
@@ -329,23 +344,25 @@ Wallet.prototype._getTokenInfo = function (chainData, coinName) {
  * 获取币种相关基本信息
  */
 Wallet.prototype.getTokenInfoWithoutConfigDat = function (chainKey, coinName) {
-  const chainData = _.find(this.chains || [], { chainKey })
-  return this._getTokenInfo(chainData, coinName)
+  if (!this.populatedCache) throw new NBError(10001, `missing populated cache`)
+  return this._getTokenInfo(chainKey, coinName)
 }
 
 /**
  * 获取币种相关的配置信息
  */
 Wallet.prototype.getTokenInfo = function (chainKey, coinName, withPatch = false) {
-  const chainData = _.find(this.chains || [], { chainKey })
-  const result = this._getTokenInfo(chainData, coinName)
+  if (!this.populatedCache) throw new NBError(10001, `missing populated cache`)
+  const result = this._getTokenInfo(chainKey, coinName)
 
-  const chainCfg = this._chainInfoCache && this._chainInfoCache.get(chainKey)
-  const tokenCfg = this._tokenInfoCache && this._tokenInfoCache.get(`${chainKey}.${coinName}`)
+  const walletKey = chainKey + '_wallet'
+  const cfgKey = chainKey + '_config'
+  const tokenCfgKey = `${chainKey}.${coinName}_config`
+  const chainData = this.populatedCache.get(walletKey)
+  const chainCfg = this.populatedCache.get(cfgKey)
+  const tokenCfg = this.populatedCache.get(tokenCfgKey)
   // 缺少配置则返回残缺版tokenInfo
-  if (!chainCfg || !tokenCfg) {
-    throw new NBError(10001, `token config without population`)
-  }
+  if (!chainCfg || !tokenCfg) throw new NBError(10001, `token config without population`)
 
   const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
   const cfg = ConfigDat.mergeConfigObj(_.clone(tokenCfg), result.config)
@@ -420,4 +437,8 @@ Wallet.prototype.getAddressDerivativePath = function (chainIndex, addrIndex = un
   return `m/44'/${chainIndex}'/${accountIndex}'/0/${addrIndex}`
 }
 
-module.exports = Wallet
+module.exports = {
+  Wallet,
+  WalletChain,
+  WalletToken
+}
