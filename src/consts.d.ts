@@ -119,6 +119,8 @@ export declare const MODEL_NAMES: {
   CONFIG_REV: 'configrev',
   APPLICATION: 'app',
   WALLET: 'wallet',
+  WALLET_CHAIN: 'walletchain',
+  WALLET_TOKEN: 'wallettoken',
   // Busines Models
   ADDRESS: 'address',
   ORDER: 'order',
