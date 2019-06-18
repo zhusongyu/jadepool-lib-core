@@ -162,16 +162,14 @@ const _ensureWalletChain = async function (walletId, chainKey, defaultData, enab
     coinDocIds.push(doc._id)
   }
   // add coins
-  if (coinDocIds.length > 0) {
-    updateObj.$addToSet = { coins: { $each: coinDocIds } }
-  }
+  updateObj.$addToSet = { coins: { $each: coinDocIds } }
   const theDoc = await WalletChain.findOneAndUpdate(query, updateObj, { upsert: true, new: true }).select('_id').exec()
   return theDoc._id
 }
 
 const _setAnyData = async function (walletId, chainKey, coinName, field, data) {
   const baseQuery = { wallet: walletId, chainKey }
-  const walletChain = await WalletToken.findOne(baseQuery).exec()
+  const walletChain = await WalletChain.findOne(baseQuery).exec()
   let query = _.clone(baseQuery)
   let doc
   if (coinName !== undefined) {
