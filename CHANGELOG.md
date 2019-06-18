@@ -1,5 +1,17 @@
 # Change Logs
 
+## V0.11.6
+
+Improvement:
+
+* 调整Wallet Model的实现，修改为多表记录
+* 添加Wallet测试用例
+* ConfigDat.toMerged 添加参数id，key
+
+Fixes:
+
+* redisMessager consumeMsgs时设置data需先确认array存在
+
 ## V0.11.5
 
 Fixes:
