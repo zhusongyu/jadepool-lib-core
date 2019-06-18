@@ -325,7 +325,7 @@ declare interface WalletChainInfo {
   config?: ChainConfig
 }
 
-declare interface WalletChain extends WalletChainInfo  {
+declare interface WalletChain extends WalletChainInfo {
   // 钱包中的币种状态信息
   coins: WalletCoinInfo[]
 }
@@ -352,7 +352,7 @@ declare interface WalletDocument extends mongoose.Document {
    * upgrade or update wallet's chain config
    * @param chainKeys 
    */
-  updateFromConfig (chainKeys: string[] | ConfigDatDocument[]): Promise<WalletDocument>
+  updateFromConfig (chainDefaults: ChainConfig[]): Promise<WalletDocument>
   /**
    * set chain's enabled coins
    * @param chainKey blockchain key
@@ -392,7 +392,7 @@ declare interface WalletDocument extends mongoose.Document {
    * @param chainKey blockchain key
    * @param coin specific coin scope or chain scope
    */
-  getSourceData (chainKey: string, coin?: string): WalletSourceData
+  getSourceData (chainKey: string, coin?: string): Promise<WalletSourceData>
   /**
    * load chain information
    * @param chainKey

@@ -47,6 +47,7 @@ const configSetupMethods = {
     // 获取defaultwallet
     const Wallet = jp.getModel(consts.MODEL_NAMES.WALLET)
     const defaultWallet = await Wallet.findOne({ name: consts.DEFAULT_KEY }).exec()
+    await defaultWallet.populate('chains').execPopulate()
     // Step.2 加载chains
     for (let i = 0; i < defaultWallet.chains.length; i++) {
       const chainData = defaultWallet.chains[i]

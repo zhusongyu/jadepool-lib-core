@@ -68,6 +68,9 @@ ConfigDat.prototype.toMerged = function () {
   if (this.modified) {
     cfgJson = mergeConfigObj(cfgJson, JSON.parse(this.modified))
   }
+  // 设置基本参数
+  cfgJson.id = this._id
+  cfgJson.key = this.key
   // 设置disabled
   if (typeof this.disabled !== 'undefined') {
     cfgJson.disabled = this.disabled
