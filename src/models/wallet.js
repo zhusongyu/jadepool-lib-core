@@ -171,18 +171,24 @@ const _setAnyData = async function (walletId, chainKey, coinName, field, data) {
   const baseQuery = { wallet: walletId, chainKey }
   const walletChain = await WalletChain.findOne(baseQuery).exec()
   let query = _.clone(baseQuery)
-  let doc
   if (coinName !== undefined) {
     query.name = coinName
-    doc = await WalletToken.findOne(query).exec()
-  } else {
-    doc = walletChain
   }
-  const oldData = _.get(doc ? doc.toObject() : {}, field)
-  const newData = _.isObject(oldData) ? Object.assign(oldData, data) : data
+  const buildUpdate = function (update, data, path) {
+    if (_.isObject(data)) {
+      for (const key in data) {
+        if (!data.hasOwnProperty(key)) continue
+        buildUpdate(update, data[key], `${path}.${key}`)
+      }
+    } else {
+      update[path] = data
+    }
+    return update
+  }
+  const updateObj = buildUpdate({}, data, field)
   if (coinName !== undefined) {
     const theDoc = await WalletToken.findOneAndUpdate(query, {
-      $set: { [field]: newData }
+      $set: updateObj
     }, { upsert: true, new: true }).select('_id').exec()
     // 保证coins
     if (walletChain.coins.indexOf(theDoc._id) === -1) {
@@ -192,7 +198,7 @@ const _setAnyData = async function (walletId, chainKey, coinName, field, data) {
     }
   } else {
     await WalletChain.updateOne(baseQuery, {
-      $set: { [field]: newData }
+      $set: updateObj
     }).exec()
   }
 }
