@@ -39,8 +39,12 @@ class RedisMessager {
       theGroup = groups.find(group => group[1] === groupName)
     } catch (err) {}
     if (!theGroup) {
-      await xgroupAsync('CREATE', this._streamKey, groupName, '$', 'MKSTREAM')
-      logger.tag(this._streamKey, 'Create Group').log(`group=${groupName}`)
+      try {
+        await xgroupAsync('CREATE', this._streamKey, groupName, '$', 'MKSTREAM')
+        logger.tag(this._streamKey, 'Create Group').log(`group=${groupName}`)
+      } catch (err) {
+        logger.tag(this._streamKey).warn('failed-to-create-group')
+      }
     }
   }
   /**
@@ -65,7 +69,6 @@ class RedisMessager {
       }
       ids.push(await xaddAsync(this._streamKey, 'MAXLEN', '~', maxLen, '*', ...record))
     }
-    logger.tag(this._streamKey).log(`stream.added=${msgs.length}`)
     return ids
   }
   /**
@@ -110,7 +113,7 @@ class RedisMessager {
     }
     // 新数据设置
     if (msgData && msgData.length > 0) {
-      msgs = msgData[0][1] // 该streamKey的msgs列表
+      msgs = msgData[0][1] || [] // 该streamKey的msgs列表
     }
     if (msgs.length === 0) {
       const idleTime = opts.idleTime || 3 * 60 * 1000
@@ -119,7 +122,7 @@ class RedisMessager {
       const idleIds = idleEnoughItems.map(pending => pending[0])
       if (idleIds.length > 0) {
         // 尝试claim无人处理的msg
-        msgs = await xclaimAsync(this._streamKey, groupName, consumerName, idleTime, ...idleIds)
+        msgs = (await xclaimAsync(this._streamKey, groupName, consumerName, idleTime, ...idleIds)) || []
       }
     }
     const results = []
