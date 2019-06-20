@@ -161,6 +161,7 @@ describe('Models: wallets', function () {
     const testCases = [
       { chainKey: 'VeChain', coinName: undefined, data: { a: 1 }, result: { a: 1 } },
       { chainKey: 'VeChain', coinName: 'VET', data: { b: 2 }, result: { a: 1, b: 2 } },
+      { chainKey: 'VeChain', coinName: 'VET', data: { c: 2 }, result: { a: 1, b: 2, c: 2 } },
       { chainKey: 'Cybex', coinName: undefined, data: { c: 3 }, result: { c: 3 } },
       { chainKey: 'BTC', coinName: 'USDT', data: { d: 4 }, result: { d: 4 } }
     ]

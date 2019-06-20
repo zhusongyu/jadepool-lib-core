@@ -1,5 +1,16 @@
 # Change Logs
 
+## V0.11.7
+
+Fixes:
+
+* 修复Wallet保存数据时的错误
+* 避免一些redisManager中可能的报错
+
+Improvement:
+
+* 减少RedisManager中的日志输出
+
 ## V0.11.6
 
 Improvement:
