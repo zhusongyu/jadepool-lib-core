@@ -113,7 +113,12 @@ class RedisMessager {
     }
     // 新数据设置
     if (msgData && msgData.length > 0) {
-      msgs = msgData[0][1] || [] // 该streamKey的msgs列表
+      const theMsgs = msgData[0][1] // 该streamKey的msgs列表
+      if (_.isArray(theMsgs) && _.isArray(theMsgs[0]) && theMsgs[0].length === 2) {
+        msgs = theMsgs
+      } else {
+        msgs = []
+      }
     }
     if (msgs.length === 0) {
       const idleTime = opts.idleTime || 3 * 60 * 1000
@@ -122,7 +127,12 @@ class RedisMessager {
       const idleIds = idleEnoughItems.map(pending => pending[0])
       if (idleIds.length > 0) {
         // 尝试claim无人处理的msg
-        msgs = (await xclaimAsync(this._streamKey, groupName, consumerName, idleTime, ...idleIds)) || []
+        const theMsgs = await xclaimAsync(this._streamKey, groupName, consumerName, idleTime, ...idleIds)
+        if (_.isArray(theMsgs) && _.isArray(theMsgs[0]) && theMsgs[0].length === 2) {
+          msgs = theMsgs
+        } else {
+          msgs = []
+        }
       }
     }
     const results = []

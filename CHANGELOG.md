@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.11.8
+
+Fixes:
+
+* 修复redisMessager中可能的报错
+
 ## V0.11.7
 
 Fixes:
