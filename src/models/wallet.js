@@ -175,13 +175,13 @@ const _setAnyData = async function (walletId, chainKey, coinName, field, data) {
     query.name = coinName
   }
   const buildUpdate = function (update, data, path) {
-    if (_.isObject(data)) {
+    if (_.isArray(data) || !_.isObject(data)) {
+      update[path] = data
+    } else {
       for (const key in data) {
         if (!data.hasOwnProperty(key)) continue
         buildUpdate(update, data[key], `${path}.${key}`)
       }
-    } else {
-      update[path] = data
     }
     return update
   }
