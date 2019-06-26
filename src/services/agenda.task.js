@@ -136,12 +136,15 @@ class Task {
     if (this[sTaskConfig]) {
       try {
         const updateObj = {}
-        const oldMaxDt = this[sTaskConfig].get('data.maxDeltaTime') || 0
         // 记录DeltaTime
         const endTs = Date.now()
         const deltaTime = (endTs - startTs) / 1000
+        const oldMaxDt = this[sTaskConfig].get('data.maxDeltaTime') || 0
+        const maxDt = Math.max(oldMaxDt, deltaTime)
+        const avgDt = this[sTaskConfig].get('data.avgDeltaTime') || maxDt
         updateObj['data.lastDeltaTime'] = deltaTime
-        updateObj['data.maxDeltaTime'] = Math.max(oldMaxDt, deltaTime)
+        updateObj['data.maxDeltaTime'] = maxDt
+        updateObj['data.avgDeltaTime'] = (avgDt + deltaTime) * 0.5
         // 如果是循环任务，则记录循环任务时间
         if (this[sTaskConfig].jobtype !== consts.JOB_TYPES.NORMAL) {
           updateObj['data.lastFinishedAt'] = endTs
