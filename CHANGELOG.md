@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.11.9
+
+Fixes:
+
+* 修复wallet保存数组时的异常
+
 ## V0.11.8
 
 Fixes:
