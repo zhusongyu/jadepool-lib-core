@@ -202,6 +202,10 @@ export declare const ORDER_BIZTYPES: {
   SWEEP: 'SWEEP',
   /** 出：内部 */
   SWEEP_INTERNAL: 'SWEEP_INTERNAL',
+  /** 出：退款 */
+  REFUND: 'REFUND',
+  /** 出（伪）：撤销入账记录 */
+  REVERT: 'REVERT',
   /** 入：充值订单 */
   DEPOSIT: 'DEPOSIT',
   /** 入：空投 */
