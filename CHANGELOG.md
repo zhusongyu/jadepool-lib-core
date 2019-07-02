@@ -1,11 +1,16 @@
 # Change Logs
 
+## V0.11.11
+
+Improvement:
+
+* 新增bizTypes: REVERT, REFUND
+
 ## V0.11.10
 
 Improvement:
 
 * agenda task config中保存平均运行时间
-* 新增bizTypes: REVERT, REFUND
 
 ## V0.11.9
 
