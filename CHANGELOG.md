@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.11.12
+
+Fixes:
+
+* bizType REFUND 属于 ORDER_BIZTYPES_OUT
+
 ## V0.11.11
 
 Improvement:
