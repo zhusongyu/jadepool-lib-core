@@ -287,6 +287,8 @@ export declare const BATCH_STATE: {
 }
 export declare const ISSUE_TYPES: {
   ORDER_HOLDING: 'orderHolding'
+  ORDER_UNEXPECTED: 'orderUnexpected'
+  CONTRACT_UNKNOWN_ISSUE: 'contractUnknownIssue'
 }
 export declare const ISSUE_STATE: {
   OPENED: 'opened',
