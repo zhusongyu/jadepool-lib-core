@@ -1,5 +1,7 @@
 # Jadepool NodeJS lib-core
 
+[![License](https://img.shields.io/npm/l/@jadepool/lib-core.svg)](LICENSE.md)
+
 瑶池支持库，含基础主要services等
 
 ## 初始化
