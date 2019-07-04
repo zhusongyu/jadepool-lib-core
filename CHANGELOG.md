@@ -6,6 +6,10 @@ Fixes:
 
 * bizType REFUND 属于 ORDER_BIZTYPES_OUT
 
+Improvement:
+
+* 添加ISSUE_TYPES.ORDER_UNEXPECTED 和 CONTRACT_UNKNOWN_ISSUE
+
 ## V0.11.11
 
 Improvement:

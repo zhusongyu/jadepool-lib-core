@@ -261,7 +261,9 @@ const BATCH_STATE = {
   FAILED: 'failed' // 批处理交易全部结束，其中有failed的交易
 }
 const ISSUE_TYPES = {
-  ORDER_HOLDING: 'orderHolding'
+  ORDER_HOLDING: 'orderHolding',
+  ORDER_UNEXPECTED: 'orderUnexpected',
+  CONTRACT_UNKNOWN_ISSUE: 'contractUnknownIssue'
 }
 const ISSUE_STATE = {
   OPENED: 'opened',
