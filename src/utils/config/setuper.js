@@ -62,7 +62,11 @@ const configSetupMethods = {
       const basicCfgs = []
       const jadepoolCfgs = []
       // 加载全部Tokens
-      let allTokens = await loadConfigKeys('tokens', chainInfo.config.id)
+      let allTokens = await loadConfigKeys('tokens', {
+        id: chainInfo.config.id,
+        path: 'chain',
+        key
+      })
       allTokens = allTokens.filter(tokenName => tokenName !== '_')
       for (let i = 0; i < allTokens.length; i++) {
         const coinName = allTokens[i]
