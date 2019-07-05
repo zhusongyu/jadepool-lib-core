@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.11.13
+
+Fixes:
+
+* utils.config.loadAllCoinNames 支持 includeDisabled 参数
+
 ## V0.11.12
 
 Fixes:

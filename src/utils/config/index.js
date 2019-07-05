@@ -111,7 +111,7 @@ const loadAllChainNames = async (includeDisabled = false) => {
  * 获取实时的可用coinNames
  * @param {string} chainKey
  */
-const loadAllCoinNames = async (chainKey) => {
+const loadAllCoinNames = async (chainKey, includeDisabled = false) => {
   const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
   let chainDat
   if (typeof chainKey !== 'string' && typeof chainKey.toMerged === 'function') {
@@ -129,7 +129,7 @@ const loadAllCoinNames = async (chainKey) => {
     key: { $nin: ['', '_'] },
     parent: chainDat._id
   }).exec()) || []
-  return cfgs.map(cfg => cfg.key)
+  return cfgs.filter(cfg => includeDisabled || !cfg.disabled).map(cfg => cfg.key)
 }
 
 // ------------------------ 已废弃方法 ------------------------
