@@ -39,7 +39,7 @@ export function loadCoinCfg(chain: string | ChainConfig, coinName: string): Prom
  * 获取实时的可用coinNames
  * @param chainKey
  */
-export function loadAllCoinNames(chain: string | ChainConfig): Promise<string[]>
+export function loadAllCoinNames(chain: string | ChainConfig, includeDisabled?: boolean): Promise<string[]>
 /**
  * 获取实时的区块链配置
  * @param chainKey
