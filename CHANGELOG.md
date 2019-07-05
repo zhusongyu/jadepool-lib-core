@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.11.14
+
+Fixes:
+
+* 修复别名目录下无法根据perent找到配置的bug
+
 ## V0.11.13
 
 Fixes:

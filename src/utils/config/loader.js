@@ -162,7 +162,7 @@ const loadConfig = async (cfgPath, key = '', parent = null) => {
           path: cfgPath,
           key
         })
-        if (parent) cfgDat.parent = parent
+        if (parent) cfgDat.parent = parent._id || parent.id || parent
         // 初始化disabled
         if (typeof cfgJson.disabled === 'boolean') {
           cfgDat.disabled = cfgJson.disabled
@@ -188,8 +188,12 @@ const loadConfig = async (cfgPath, key = '', parent = null) => {
 const loadConfigKeys = async (cfgPath, parent = null) => {
   const query = {
     path: cfgPath,
-    key: { $ne: '' },
-    parent: parent || { $exists: false }
+    key: { $ne: '' }
+  }
+  if (parent) {
+    query.parent = parent._id || parent.id || parent
+  } else {
+    query.parent = { $exists: false }
   }
 
   // Config in DB
