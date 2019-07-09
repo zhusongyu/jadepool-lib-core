@@ -285,6 +285,7 @@ declare interface ChainConfig {
   /** 是否支持扩展代币 */
   tokenExtendsEnabled: boolean
   tokenTypes: string[]
+  tokenNonFungibleTypes: string[]
   tokenTemplates?: string[]
   /** 是否需要在线验证地址 */
   addressOnline: boolean

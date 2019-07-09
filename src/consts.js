@@ -100,6 +100,7 @@ const MODEL_NAMES = {
   // Busines Models
   ADDRESS: 'address',
   ORDER: 'order',
+  ITEM: 'item',
   DELEGATION: 'delegation',
   ASYNC_PLAN: 'asyncplan',
   SCAN_TASK: 'scantask',
@@ -206,6 +207,12 @@ const ORDER_BIZTYPES = {
   DELEGATE: 'DELEGATE',
   /** 解冻请求：取消抵押请求，(value为递交解冻抵押值，fee为消耗) */
   UNDELEGATE: 'UNDELEGATE'
+}
+const ITEM_STATE = {
+  STOCKING: 'stocking',
+  IN_STOCK: 'in-stock',
+  IN_RESERVE: 'in-reserve',
+  OUT_OF_STOCK: 'out-of-stock'
 }
 const DELEGATION_STATE = {
   /** 未抵押 */
@@ -367,6 +374,7 @@ module.exports = {
   ADDRESS_TYPE,
   ADDRESS_BIZ_MODES,
   ADDRESS_STATE,
+  ITEM_STATE,
   ORDER_STATE,
   ORDER_BIZTYPES,
   ORDER_BIZTYPES_IN,
