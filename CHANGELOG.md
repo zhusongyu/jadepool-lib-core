@@ -1,5 +1,12 @@
 # Change Logs
 
+## V0.9.4
+
+Improvement:
+
+* 添加常量consts.MODEL_NAMES.ITEM
+* 添加常量consts.ITEM_STATE
+
 ## V0.9.3
 
 Fixes:

@@ -53,6 +53,7 @@ interface ChainConfig {
   generalOptions: object,
   tokenExtendsEnabled: boolean,
   tokenTypes: string[],
+  tokenNonFungibleTypes: string[],
   tokenTemplate: object,
   addressMode: string,
   addressOnline: boolean,

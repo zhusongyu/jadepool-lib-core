@@ -89,6 +89,7 @@ const MODEL_NAMES = {
   // Busines Models
   ADDRESS: 'address',
   ORDER: 'order',
+  ITEM: 'item',
   DELEGATION: 'delegation',
   ASYNC_PLAN: 'asyncplan',
   SCAN_TASK: 'scantask',
@@ -173,6 +174,12 @@ const ORDER_BIZTYPES = {
   INTEREST_FUND: 'INTEREST_FUND',
   DELEGATE: 'DELEGATE',
   UNDELEGATE: 'UNDELEGATE'
+}
+const ITEM_STATE = {
+  STOCKING: 'stocking',
+  IN_STOCK: 'in-stock',
+  IN_RESERVE: 'in-reserve',
+  OUT_OF_STOCK: 'out-of-stock'
 }
 const DELEGATION_STATE = {
   UNSTAKED: 0,
@@ -327,6 +334,7 @@ module.exports = {
   ADDRESS_TYPE,
   ADDRESS_BIZ_MODES,
   ADDRESS_STATE,
+  ITEM_STATE,
   ORDER_STATE,
   ORDER_BIZTYPES,
   ORDER_BIZTYPES_IN,

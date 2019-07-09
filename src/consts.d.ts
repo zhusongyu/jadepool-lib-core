@@ -121,6 +121,7 @@ export declare const MODEL_NAMES: {
   // Busines Models
   ADDRESS: 'address',
   ORDER: 'order',
+  ITEM: 'item',
   DELEGATION: 'delegation',
   ASYNC_PLAN: 'asyncplan',
   SCAN_TASK: 'scantask',
@@ -243,6 +244,12 @@ export declare const ORDER_DEFAULT_ACTIONS: {
   CLAIM_REWARD: 'claim-reward',
   /** 设置奖励地址 */
   SET_REWARD_ADDRESS: 'set-reward-address'
+}
+export declare const ITEM_STATE: {
+  STOCKING: 'stocking',
+  IN_STOCK: 'in-stock',
+  IN_RESERVE: 'in-reserve',
+  OUT_OF_STOCK: 'out-of-stock'
 }
 export declare const DELEGATION_STATE: {
   /** 未抵押 */
