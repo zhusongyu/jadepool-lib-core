@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.11.15
+
+Merge:
+
+* 合并0.9.4
+
 ## V0.11.14
 
 Fixes:
@@ -137,6 +143,13 @@ Improvement:
 
 * agenda.service支持带id的runningJobs查询
 * utils.db中添加AutoIncrement
+
+## V0.9.4
+
+Improvement:
+
+* 添加常量consts.MODEL_NAMES.ITEM
+* 添加常量consts.ITEM_STATE
 
 ## V0.9.3
 
