@@ -1,5 +1,12 @@
 # Change Logs
 
+## V0.11.16
+
+Fixes:
+
+* 更新lodash到4.17.14以修复致命漏洞
+* wallet.setSourceData 可设置 cached
+
 ## V0.11.15
 
 Merge:

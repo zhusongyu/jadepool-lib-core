@@ -386,8 +386,9 @@ declare interface WalletDocument extends mongoose.Document {
    * @param chainKey blockchain key
    * @param coin specific coin scope or chain scope
    * @param sourceData all data of private key source including caching data
+   * @param isSetCachedAt set cached at or not
    */
-  setSourceData (chainKey: string, coin: string | undefined, sourceData: WalletSourceData): Promise<WalletDocument>
+  setSourceData (chainKey: string, coin: string | undefined, sourceData: WalletSourceData, isSetCachedAt?: boolean): Promise<WalletDocument>
   /**
    * get SourceData
    * @param chainKey blockchain key
