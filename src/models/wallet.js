@@ -247,10 +247,13 @@ Wallet.prototype.setSource = async function (chainKey, target, type) {
  * @param {string} chainKey blockchain key
  * @param {string|undefined} coin specific coin scope or chain scope
  * @param {any} sourceData all data of private key source including caching data
+ * @param {boolean} isSetCachedAt set cached at or not
  */
-Wallet.prototype.setSourceData = async function (chainKey, coinName, sourceData) {
+Wallet.prototype.setSourceData = async function (chainKey, coinName, sourceData, isSetCachedAt) {
   sourceData = sourceData || {}
-  sourceData.cachedAt = new Date()
+  if (isSetCachedAt) {
+    sourceData.cachedAt = new Date()
+  }
   await _setAnyData(this._id, chainKey, coinName, 'data', sourceData)
   return this
 }
