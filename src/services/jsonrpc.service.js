@@ -45,13 +45,15 @@ class JSONRPCService extends BaseService {
    * @param {string?} opts.signerId
    * @param {Buffer|string|undefined} opts.signer
    * @param {Buffer|string|undefined} opts.verifier
+   * @param {string} [opts.hash='sha256']
+   * @param {string} [opts.encode='base64']
+   * @param {string} [opts.sort=undefined]
+   * @param {boolean} [opts.withoutTimestamp=false]
+   * @param {boolean} [opts.authWithTimestamp=false] 以时间戳进行签名，验签
    */
   async initialize (opts) {
     // 设置签名和验签规则
-    this.noAuth = !!opts.noAuth
-    this.signerId = opts.signerId
-    this.signer = opts.signer
-    this.verifier = opts.verifier
+    this.opts = _.clone(opts)
     // 定义ws server
     const host = opts.host || '0.0.0.0'
     const port = opts.port || 7897
@@ -76,12 +78,12 @@ class JSONRPCService extends BaseService {
         let [key, timestamp, sig] = authString.split(',')
         let promise
         if (!opts.verifier) {
-          promise = cryptoUtils.verifyInternal(key, parseInt(timestamp), sig)
+          promise = cryptoUtils.verifyInternal(key, parseInt(timestamp), sig, opts)
         } else {
           const pubKey = typeof opts.verifier === 'string' ? Buffer.from(opts.verifier, consts.DEFAULT_ENCODE) : opts.verifier
           promise = new Promise((resolve, reject) => {
             try {
-              resolve(cryptoUtils.verifyString(key, parseInt(timestamp), sig, pubKey))
+              resolve(cryptoUtils.verifyString(key, parseInt(timestamp), sig, pubKey, opts))
             } catch (err) { reject(err) }
           })
         }
@@ -149,23 +151,30 @@ class JSONRPCService extends BaseService {
     const emitter = new EventEmitter()
     this.requests.set(reqData.id, emitter)
     let objToSend = reqData
+    const opts = _.clone(this.opts)
     // 判断是否进行信息签名
-    if (!this.noAuth) {
-      const sigOpts = {
-        hash: 'sha256',
-        encode: 'base64',
-        withoutTimestamp: true
-      }
+    if (!opts.noAuth) {
+      opts.hash = opts.hash || 'sha256'
+      opts.encode = opts.encode || 'base64'
+      let appid
       let sigData
-      if (this.signerId === undefined) {
-        sigOpts.appid = consts.SYSTEM_APPIDS.INTERNAL
-        sigData = await cryptoUtils.signInternal(reqData, undefined, sigOpts)
-      } else {
-        const priKey = typeof this.signer === 'string' ? Buffer.from(this.signer, consts.DEFAULT_ENCODE) : this.signer
-        sigOpts.appid = this.signerId || consts.SYSTEM_APPIDS.DEFAULT
-        sigData = await cryptoUtils.sign(reqData, priKey, sigOpts)
+      if (opts.signerId === undefined) {
+        appid = consts.SYSTEM_APPIDS.INTERNAL
+        const timestamp = !opts.withoutTimestamp ? Date.now() : undefined
+        sigData = await cryptoUtils.signInternal(reqData, timestamp, opts)
+      } else if (opts.signer !== undefined) {
+        const priKey = typeof opts.signer === 'string' ? Buffer.from(opts.signer, consts.DEFAULT_ENCODE) : opts.signer
+        appid = opts.signerId || consts.SYSTEM_APPIDS.DEFAULT
+        sigData = await cryptoUtils.sign(reqData, priKey, opts)
       }
-      objToSend.sig = Object.assign({ signature: sigData.signature }, sigOpts)
+      if (!sigData) {
+        throw new Error(`missing signer`)
+      }
+      objToSend.sig = Object.assign({
+        appid,
+        signature: sigData.signature,
+        internal: opts.signerId ? undefined : (opts.authWithTimestamp ? 'timestamp' : 'version')
+      }, _.pick(opts, ['hash', 'sort', 'encode', 'accept', 'withoutTimestamp']))
     }
     // 发起并等待请求
     const result = await new Promise((resolve, reject) => {
@@ -198,6 +207,22 @@ class JSONRPCService extends BaseService {
     } catch (err) {
       return
     }
+    // handle batch request
+    let reqs = []
+    if (_.isArray(jsonData)) {
+      reqs = jsonData
+    } else {
+      reqs.push(jsonData)
+    }
+    // 逐条完成JSONRPC
+    for (const request of reqs) {
+      try {
+        await this._handleOneRPCMessage(ws, request)
+      } catch (err) {}
+    } // end for
+  }
+
+  async _handleOneRPCMessage (ws, jsonData) {
     if (jsonData.jsonrpc !== '2.0') {
       logger.tag('RPC Message').warn(`only accept JSONRPC 2.0 instead of "${jsonData.jsonrpc}"`)
       return

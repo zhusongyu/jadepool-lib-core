@@ -26,6 +26,23 @@ const loadCryptoConfig = async (cryptoDat = undefined) => {
 
 const cryptoUtils = {
   /**
+   * 解析字符串并创建一个KeyBuffer
+   * @param {string} str
+   */
+  keyBufferFrom (str) {
+    const base64Pattern = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$/
+    const hexPattern = /^([A-F0-9]{2})+$/i
+    let buf
+    if (base64Pattern.test(str)) {
+      buf = Buffer.from(str, 'base64')
+    } else if (hexPattern.test(str)) {
+      buf = Buffer.from(str, 'hex')
+    } else {
+      buf = Buffer.from(str)
+    }
+    return buf
+  },
+  /**
    * 获取本系统 Private Key
    * @param {String} cryptoType
    */
@@ -36,7 +53,7 @@ const cryptoUtils = {
       const keypair = await cryptoUtils.refreshPriKey()
       priKeyStr = keypair.priKey
     }
-    return Buffer.from(priKeyStr, consts.DEFAULT_ENCODE)
+    return this.keyBufferFrom(priKeyStr)
   },
   /**
    * 重置本系统的 Private Key
@@ -146,12 +163,12 @@ const cryptoUtils = {
    * @param {string?} [opts.encode='base64'] 签名返回结果encode(base64|hex)
    * @param {string?} [opts.accept='string'] 签名返回结果(string|object)
    * @param {boolean?} [opts.withoutTimestamp=false] 是否需要添加时间戳
-   * @param {boolean?} [opts.signWithTimestamp=false] 以时间戳为私钥
+   * @param {boolean?} [opts.authWithTimestamp=false] 以时间戳为私钥
    */
   async signInternal (data, timestamp = undefined, opts = {}) {
     // 强制设置withoutTimestamp
     opts.withoutTimestamp = opts.withoutTimestamp || timestamp === undefined
-    const withTs = opts.signWithTimestamp && !opts.withoutTimestamp
+    const withTs = opts.authWithTimestamp && !opts.withoutTimestamp
     let priKey = await cryptoUtils.getInternalPriKey(withTs ? timestamp : undefined)
     if (_.isString(data)) {
       return ecc.signString(data, timestamp, priKey, opts)
@@ -175,13 +192,13 @@ const cryptoUtils = {
    * @param {string?} [opts.encode='base64'] 签名返回结果encode(base64|hex)
    * @param {string?} [opts.accept='string'] 签名返回结果(string|object)
    * @param {boolean?} [opts.withoutTimestamp=false] 是否需要添加时间戳
-   * @param {boolean?} [opts.signWithTimestamp=false] 以时间戳为私钥
+   * @param {boolean?} [opts.authWithTimestamp=false] 以时间戳为私钥
    * @returns {Promise<boolean>} 是否认证通过
    */
   async verifyInternal (data, timestamp = undefined, sig, opts = {}) {
     // 强制设置withoutTimestamp
     opts.withoutTimestamp = opts.withoutTimestamp || timestamp === undefined
-    const withTs = opts.signWithTimestamp && !opts.withoutTimestamp
+    const withTs = opts.authWithTimestamp && !opts.withoutTimestamp
     let pubKey = await cryptoUtils.getInternalPubKey(withTs ? timestamp : undefined)
     if (_.isString(data)) {
       return ecc.verifyString(data, timestamp, sig, pubKey, opts)

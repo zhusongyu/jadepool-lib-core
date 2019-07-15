@@ -9,12 +9,12 @@ interface HashOptions {
 	sort: 'key-alphabet' | 'key' | 'kvpair' | 'value';
 	hash: 'sha3' | 'md5' | 'sha256';
 	encode: 'base64' | 'hex';
+	authWithTimestamp?: boolean;
 }
 
 interface SignOptions extends HashOptions {
 	accept: 'string' | 'object';
 	withoutTimestamp?: boolean;
-	signWithTimestamp?: boolean;
 }
 
 interface SigObject {
@@ -28,6 +28,12 @@ interface KeyPair {
 	pubKey: string;
 	pubKeyUnCompressed: string;
 }
+
+/**
+ * 解析字符串并创建一个KeyBuffer
+ * @param keystr 
+ */
+export function keyBufferFrom(keystr: string): Buffer;
 
 /**
  * 获取本系统 Private Key
