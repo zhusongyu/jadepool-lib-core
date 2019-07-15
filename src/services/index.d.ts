@@ -61,15 +61,20 @@ declare class ErrorCodeService extends BaseService {
 }
 
 declare interface JSONRPCOptions {
-  noAuth?: boolean
   acceptMethods: string[]
+  noAuth?: boolean
+  signerId?: string
+  signer?: Buffer | string
+  verifier?: Buffer | string
+	sort?: string
+	hash?: string
+	encode?: string
+  authWithTimestamp?: boolean
+  withoutTimestamp?: boolean
 }
 declare interface JSONRPCServerOptions extends JSONRPCOptions {
   host?: string
   port?: number
-  signerId?: string
-  signer?: Buffer | string | undefined
-  verifier?: Buffer | string | undefined
 }
 declare class JSONRpcService extends BaseService {
   constructor (services : any);
@@ -88,10 +93,7 @@ declare class JSONRpcService extends BaseService {
   requestJSONRPC (ws: any, methodName: string, args: any): Promise<any>;
 }
 
-declare interface RequestOptions {
-  noAuth?: boolean
-  signerId?: string
-  signer?: Buffer | string
+declare interface RequestOptions extends JSONRPCOptions {
   acceptNamespace?: string
 }
 declare class JSONRpcClientService extends BaseService {
@@ -113,6 +115,10 @@ declare class JSONRpcClientService extends BaseService {
    * @param url
    */
   closeRPCServer (url: string): Promise<void>
+  /**
+   * 检测连接状态
+   * @param url
+   */
   getClientReadyState (url: string): number
   /**
    * 请求JSONRPC

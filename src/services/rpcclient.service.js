@@ -56,8 +56,10 @@ class Service extends BaseService {
 
   async onDestroy () {
     this.clients.forEach(socket => {
-      socket.removeAllListeners()
-      socket.terminate()
+      try {
+        socket.removeAllListeners()
+        socket.terminate()
+      } catch (err) {}
     })
   }
 
@@ -88,7 +90,8 @@ class Service extends BaseService {
    * @param {object} opts 参数
    * @param {boolean} [opts.noAuth=false] 是否需要验证
    * @param {string} [opts.signerId=undefined] 签名用的AppId
-   * @param {string} [opts.signer=undefined] 签名用的
+   * @param {Buffer|string} [opts.signer=undefined] 签名用的
+   * @param {Buffer|string} [opts.verifier=undefined] 验证签名的
    * @param {string} [opts.acceptNamespace=undefined] 可接受的RPC请求指定的namespace
    */
   async joinRPCServer (url, opts = {}) {
@@ -109,13 +112,17 @@ class Service extends BaseService {
       }
     }
 
+    let rpcOpts = Object.assign({ noAuth: this.noAuth }, opts)
+    if (!rpcOpts.noAuth && !rpcOpts.verifier) {
+      throw new NBError(10001, `missing verifier`)
+    }
     // Step 1. 构建认证query的签名
     let headers = {}
-    if (!opts.noAuth && !this.noAuth) {
+    if (!rpcOpts.noAuth) {
       const timestamp = Date.now()
       const processKey = consts.PROCESS.TYPES.ROUTER + '-' + jp.env.server
       const key = encodeURI(`${processKey}_${Math.floor(Math.random() * 1e8)}_${timestamp}`)
-      let sig = await this._signObject(key, timestamp, opts.signerId, opts.signer)
+      let sig = await this._signObject(key, timestamp, opts.signerId, opts.signer, rpcOpts)
       headers['Authorization'] = [key, sig.timestamp, sig.signature].join(',')
     }
 
@@ -146,7 +153,7 @@ class Service extends BaseService {
       logger.tag('Closed').log(`url=${url},reason=${reason},code=${code}`)
     })
     ws.on('message', data => {
-      this._handleRPCMessage(ws, opts.acceptNamespace, data.valueOf())
+      this._handleRPCMessage(ws, data.valueOf(), rpcOpts)
     })
   }
   /**
@@ -334,10 +341,15 @@ class Service extends BaseService {
   /**
    * 消息处理函数
    * @param {WebSocket} ws 处理用的websocket客户端
-   * @param {String} namespace 可接受的RPC请求指定的namespace
    * @param {String} data 明确为string类型, 即JSONRpc的传输对象
+   * @param {object} opts 参数
+   * @param {boolean} [opts.noAuth=false] 是否需要验证
+   * @param {string} [opts.signerId=undefined] 签名用的AppId
+   * @param {Buffer|string} [opts.signer=undefined] 签名用的
+   * @param {Buffer|string} [opts.verifier=undefined] 验证签名的
+   * @param {string} [opts.acceptNamespace=undefined] 可接受的RPC请求指定的namespace
    */
-  async _handleRPCMessage (ws, namespace, data) {
+  async _handleRPCMessage (ws, data, opts) {
     let jsonData
     try {
       jsonData = JSON.parse(data)
@@ -353,13 +365,13 @@ class Service extends BaseService {
       let result = { jsonrpc: '2.0' }
       // 验证签名
       const sigData = jsonData.sig || jsonData.extra
-      if (!this.noAuth) {
+      if (!opts.noAuth) {
         if (sigData) {
           let isValid = false
           delete jsonData.sig
+          const pubKey = typeof opts.verifier === 'string' ? Buffer.from(opts.verifier, consts.DEFAULT_ENCODE) : opts.verifier
           try {
-            const pubKeys = await cryptoUtils.fetchPublicKeys(sigData.appid || consts.SYSTEM_APPIDS.DEFAULT)
-            isValid = pubKeys.some(pubKey => cryptoUtils.verify(jsonData, sigData.signature, pubKey, sigData))
+            isValid = cryptoUtils.verify(jsonData, sigData.signature, pubKey, sigData)
           } catch (err) {
             logger.error(`failed to verify sig`, err)
             isValid = false
@@ -381,8 +393,7 @@ class Service extends BaseService {
         logger.tag(`Invoke:${jsonData.method}`).log(`id=${jsonData.id}`)
         try {
           const params = jsonData.params
-          if (sigData) params.appid = sigData.appid || consts.SYSTEM_APPIDS.DEFAULT
-          result.result = await jp.invokeMethod(methodName, namespace || params.chain, params)
+          result.result = await jp.invokeMethod(methodName, opts.acceptNamespace || params.chain, params)
         } catch (err) {
           result.error = { code: err.code, message: err.message }
           logger.tag(`Invoked:${methodName}`, 'Error').logObj(result.error)

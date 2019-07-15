@@ -265,15 +265,19 @@ declare interface ChainConfig {
   ledgerMode: 'local' | 'rpc'
   ledgerOptions: {
     file?: string,
-    rpc?: string
+    rpc?: string,
+    rpcVerifier?: string,
+    rpcDevNoAuth?: boolean
   }
   generalOptions: {
     RescanMode: string
     AffirmativeConfirmation: number
     FailedAffirmativeConfirmation: number
-    sendOrdersInterval: number
-    waitingSendOrdersOnline: boolean
-    hotPermissionChangeable: boolean
+    AffirmativeConfirmationTime?: number
+    FailedAffirmativeConfirmationTime?: number
+    sendOrdersInterval?: number
+    waitingSendOrdersOnline?: boolean
+    hotPermissionChangeable?: boolean
   }
   closer: {
     softForkIgnoreCap: number
