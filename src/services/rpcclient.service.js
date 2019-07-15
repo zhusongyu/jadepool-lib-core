@@ -56,8 +56,10 @@ class Service extends BaseService {
 
   async onDestroy () {
     this.clients.forEach(socket => {
-      socket.removeAllListeners()
-      socket.terminate()
+      try {
+        socket.removeAllListeners()
+        socket.terminate()
+      } catch (err) {}
     })
   }
 
@@ -88,7 +90,8 @@ class Service extends BaseService {
    * @param {object} opts 参数
    * @param {boolean} [opts.noAuth=false] 是否需要验证
    * @param {string} [opts.signerId=undefined] 签名用的AppId
-   * @param {string} [opts.signer=undefined] 签名用的
+   * @param {Buffer|string} [opts.signer=undefined] 签名用的
+   * @param {Buffer|string} [opts.verifier=undefined] 验证签名的
    * @param {string} [opts.acceptNamespace=undefined] 可接受的RPC请求指定的namespace
    */
   async joinRPCServer (url, opts = {}) {
@@ -109,13 +112,14 @@ class Service extends BaseService {
       }
     }
 
+    let rpcOpts = Object.assign({ noAuth: this.noAuth }, opts)
     // Step 1. 构建认证query的签名
     let headers = {}
-    if (!opts.noAuth && !this.noAuth) {
+    if (!rpcOpts.noAuth) {
       const timestamp = Date.now()
       const processKey = consts.PROCESS.TYPES.ROUTER + '-' + jp.env.server
       const key = encodeURI(`${processKey}_${Math.floor(Math.random() * 1e8)}_${timestamp}`)
-      let sig = await this._signObject(key, timestamp, opts.signerId, opts.signer)
+      let sig = await this._signObject(key, timestamp, opts.signerId, opts.signer, rpcOpts)
       headers['Authorization'] = [key, sig.timestamp, sig.signature].join(',')
     }
 
@@ -146,7 +150,7 @@ class Service extends BaseService {
       logger.tag('Closed').log(`url=${url},reason=${reason},code=${code}`)
     })
     ws.on('message', data => {
-      this._handleRPCMessage(ws, opts.acceptNamespace, data.valueOf())
+      this._handleRPCMessage(ws, data.valueOf(), _.clone(rpcOpts))
     })
   }
   /**
@@ -331,19 +335,40 @@ class Service extends BaseService {
     })
   }
 
-  /**
-   * 消息处理函数
-   * @param {WebSocket} ws 处理用的websocket客户端
-   * @param {String} namespace 可接受的RPC请求指定的namespace
-   * @param {String} data 明确为string类型, 即JSONRpc的传输对象
-   */
-  async _handleRPCMessage (ws, namespace, data) {
+  async _handleRPCMessage (ws, data, opts) {
     let jsonData
     try {
       jsonData = JSON.parse(data)
     } catch (err) {
       return
     }
+    // handle batch request
+    let reqs = []
+    if (_.isArray(jsonData)) {
+      reqs = jsonData
+    } else {
+      reqs.push(jsonData)
+    }
+    // 逐条完成JSONRPC
+    for (const request of reqs) {
+      try {
+        await this._handleOneRPCMessage(ws, request, opts)
+      } catch (err) {}
+    } // end for
+  }
+
+  /**
+   * 消息处理函数
+   * @param {WebSocket} ws 处理用的websocket客户端
+   * @param {String} data 明确为string类型, 即JSONRpc的传输对象
+   * @param {object} opts 参数
+   * @param {boolean} [opts.noAuth=false] 是否需要验证
+   * @param {string} [opts.signerId=undefined] 签名用的AppId
+   * @param {Buffer|string} [opts.signer=undefined] 签名用的
+   * @param {Buffer|string} [opts.verifier=undefined] 验证签名的
+   * @param {string} [opts.acceptNamespace=undefined] 可接受的RPC请求指定的namespace
+   */
+  async _handleOneRPCMessage (ws, jsonData, opts) {
     if (jsonData.jsonrpc !== '2.0') {
       logger.tag('RPC Message').warn(`only accept JSONRPC 2.0 instead of "${jsonData.jsonrpc}"`)
       return
@@ -353,16 +378,23 @@ class Service extends BaseService {
       let result = { jsonrpc: '2.0' }
       // 验证签名
       const sigData = jsonData.sig || jsonData.extra
-      if (!this.noAuth) {
+      if (!opts.noAuth) {
         if (sigData) {
           let isValid = false
-          delete jsonData.sig
-          try {
-            const pubKeys = await cryptoUtils.fetchPublicKeys(sigData.appid || consts.SYSTEM_APPIDS.DEFAULT)
-            isValid = pubKeys.some(pubKey => cryptoUtils.verify(jsonData, sigData.signature, pubKey, sigData))
-          } catch (err) {
-            logger.error(`failed to verify sig`, err)
-            isValid = false
+          if (jsonData.sig) delete jsonData.sig
+          if (jsonData.extra) delete jsonData.extra
+          const opts = _.pick(sigData, ['sort', 'hash', 'encode'])
+          if (typeof sigData.internal === 'string' || sigData.authWithTimestamp !== undefined) {
+            opts.authWithTimestamp = sigData.authWithTimestamp || sigData.internal === 'timestamp'
+            isValid = cryptoUtils.verifyInternal(jsonData, sigData.timestamp, sigData.signature, opts)
+          } else if (opts.verifier !== undefined) {
+            const pubKey = typeof opts.verifier === 'string' ? Buffer.from(opts.verifier, consts.DEFAULT_ENCODE) : opts.verifier
+            try {
+              isValid = cryptoUtils.verify(jsonData, sigData.signature, pubKey, opts)
+            } catch (err) {
+              logger.error(`failed to verify sig`, err)
+              isValid = false
+            }
           }
           if (!isValid) {
             result.error = { code: 401, message: 'Request is not authorized.' }
@@ -381,8 +413,7 @@ class Service extends BaseService {
         logger.tag(`Invoke:${jsonData.method}`).log(`id=${jsonData.id}`)
         try {
           const params = jsonData.params
-          if (sigData) params.appid = sigData.appid || consts.SYSTEM_APPIDS.DEFAULT
-          result.result = await jp.invokeMethod(methodName, namespace || params.chain, params)
+          result.result = await jp.invokeMethod(methodName, opts.acceptNamespace || params.chain, params)
         } catch (err) {
           result.error = { code: err.code, message: err.message }
           logger.tag(`Invoked:${methodName}`, 'Error').logObj(result.error)
