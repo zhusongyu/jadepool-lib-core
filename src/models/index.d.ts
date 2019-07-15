@@ -264,9 +264,10 @@ declare interface ChainConfig {
   /** 区块链实现的形式 */
   ledgerMode: 'local' | 'rpc'
   ledgerOptions: {
-    file?: string,
-    rpc?: string,
-    rpcVerifier?: string,
+    file?: string
+    rpc?: string
+    rpcSignerId?: string
+    rpcVerifier?: string
     rpcDevNoAuth?: boolean
   }
   generalOptions: {

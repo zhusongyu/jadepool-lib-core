@@ -172,8 +172,9 @@ class JSONRPCService extends BaseService {
       }
       objToSend.sig = Object.assign({
         appid,
-        signature: sigData.signature
-      }, _.pick(opts, ['hash', 'sort', 'encode', 'accept', 'authWithTimestamp', 'withoutTimestamp']))
+        signature: sigData.signature,
+        internal: opts.signerId ? undefined : (opts.authWithTimestamp ? 'timestamp' : 'version')
+      }, _.pick(opts, ['hash', 'sort', 'encode', 'accept', 'withoutTimestamp']))
     }
     // 发起并等待请求
     const result = await new Promise((resolve, reject) => {
@@ -206,6 +207,22 @@ class JSONRPCService extends BaseService {
     } catch (err) {
       return
     }
+    // handle batch request
+    let reqs = []
+    if (_.isArray(jsonData)) {
+      reqs = jsonData
+    } else {
+      reqs.push(jsonData)
+    }
+    // 逐条完成JSONRPC
+    for (const request of reqs) {
+      try {
+        await this._handleOneRPCMessage(ws, request)
+      } catch (err) {}
+    } // end for
+  }
+
+  async _handleOneRPCMessage (ws, jsonData) {
     if (jsonData.jsonrpc !== '2.0') {
       logger.tag('RPC Message').warn(`only accept JSONRPC 2.0 instead of "${jsonData.jsonrpc}"`)
       return

@@ -113,9 +113,6 @@ class Service extends BaseService {
     }
 
     let rpcOpts = Object.assign({ noAuth: this.noAuth }, opts)
-    if (!rpcOpts.noAuth && !rpcOpts.verifier) {
-      throw new NBError(10001, `missing verifier`)
-    }
     // Step 1. 构建认证query的签名
     let headers = {}
     if (!rpcOpts.noAuth) {
@@ -153,7 +150,7 @@ class Service extends BaseService {
       logger.tag('Closed').log(`url=${url},reason=${reason},code=${code}`)
     })
     ws.on('message', data => {
-      this._handleRPCMessage(ws, data.valueOf(), rpcOpts)
+      this._handleRPCMessage(ws, data.valueOf(), _.clone(rpcOpts))
     })
   }
   /**
@@ -338,6 +335,28 @@ class Service extends BaseService {
     })
   }
 
+  async _handleRPCMessage (ws, data, opts) {
+    let jsonData
+    try {
+      jsonData = JSON.parse(data)
+    } catch (err) {
+      return
+    }
+    // handle batch request
+    let reqs = []
+    if (_.isArray(jsonData)) {
+      reqs = jsonData
+    } else {
+      reqs.push(jsonData)
+    }
+    // 逐条完成JSONRPC
+    for (const request of reqs) {
+      try {
+        await this._handleOneRPCMessage(ws, request, opts)
+      } catch (err) {}
+    } // end for
+  }
+
   /**
    * 消息处理函数
    * @param {WebSocket} ws 处理用的websocket客户端
@@ -349,13 +368,7 @@ class Service extends BaseService {
    * @param {Buffer|string} [opts.verifier=undefined] 验证签名的
    * @param {string} [opts.acceptNamespace=undefined] 可接受的RPC请求指定的namespace
    */
-  async _handleRPCMessage (ws, data, opts) {
-    let jsonData
-    try {
-      jsonData = JSON.parse(data)
-    } catch (err) {
-      return
-    }
+  async _handleOneRPCMessage (ws, jsonData, opts) {
     if (jsonData.jsonrpc !== '2.0') {
       logger.tag('RPC Message').warn(`only accept JSONRPC 2.0 instead of "${jsonData.jsonrpc}"`)
       return
@@ -368,13 +381,20 @@ class Service extends BaseService {
       if (!opts.noAuth) {
         if (sigData) {
           let isValid = false
-          delete jsonData.sig
-          const pubKey = typeof opts.verifier === 'string' ? Buffer.from(opts.verifier, consts.DEFAULT_ENCODE) : opts.verifier
-          try {
-            isValid = cryptoUtils.verify(jsonData, sigData.signature, pubKey, sigData)
-          } catch (err) {
-            logger.error(`failed to verify sig`, err)
-            isValid = false
+          if (jsonData.sig) delete jsonData.sig
+          if (jsonData.extra) delete jsonData.extra
+          const opts = _.pick(sigData, ['sort', 'hash', 'encode'])
+          if (typeof sigData.internal === 'string' || sigData.authWithTimestamp !== undefined) {
+            opts.authWithTimestamp = sigData.authWithTimestamp || sigData.internal === 'timestamp'
+            isValid = cryptoUtils.verifyInternal(jsonData, sigData.timestamp, sigData.signature, opts)
+          } else if (opts.verifier !== undefined) {
+            const pubKey = typeof opts.verifier === 'string' ? Buffer.from(opts.verifier, consts.DEFAULT_ENCODE) : opts.verifier
+            try {
+              isValid = cryptoUtils.verify(jsonData, sigData.signature, pubKey, opts)
+            } catch (err) {
+              logger.error(`failed to verify sig`, err)
+              isValid = false
+            }
           }
           if (!isValid) {
             result.error = { code: 401, message: 'Request is not authorized.' }

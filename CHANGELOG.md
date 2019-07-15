@@ -7,7 +7,8 @@ Improvement:
 * string.geneHashId移除0，O，I，l
 * crypto添加工具函数keyBufferFrom，创建buffer时自动识别字符串base64 or hex的encode
 * rpcclient.service在join时添加opts.verifier，制定验签公钥
-* jsonrpc.service可配置更多参数
+* jsonrpc.service可配置更多签名参数
+* jsonrpc.service支持batch reqeust
 
 ## V0.11.16
 
