@@ -20,7 +20,7 @@ function splitAddress (address) {
  */
 function generateHashId (str) {
   const hashed = crypto.createHash('sha256').update(str).digest()
-  const keys = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  const keys = '123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ'
   const keyLen = keys.length
   let ret = ''
   let k = 0
