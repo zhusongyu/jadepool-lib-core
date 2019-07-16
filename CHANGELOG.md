@@ -1,5 +1,16 @@
 # Change Logs
 
+## V0.11.18
+
+Fixes:
+
+* 移除tokenTypes覆盖
+
+Improvement:
+
+* 优化agendaJobs的db index
+* 优化redisMessager的日志
+
 ## V0.11.17
 
 Improvement:

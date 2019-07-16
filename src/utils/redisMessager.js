@@ -43,7 +43,7 @@ class RedisMessager {
         await xgroupAsync('CREATE', this._streamKey, groupName, '$', 'MKSTREAM')
         logger.tag(this._streamKey, 'Create Group').log(`group=${groupName}`)
       } catch (err) {
-        logger.tag(this._streamKey).warn('failed-to-create-group')
+        logger.tag(this._streamKey).warn(`failed-to-create-group. error(${err.message})`)
       }
     }
   }
@@ -104,12 +104,16 @@ class RedisMessager {
       reqArgs.push(['STREAMS', this._streamKey, '>'])
       // 试试拿新的
       msgData = await xreadgroupAsync(_.flatten(reqArgs))
-    } catch (err) {}
+    } catch (err) {
+      logger.tag(this._streamKey).warn(`failed-to-xreadgroup '>'. error(${err.message})`)
+    }
     if (!msgData) {
       // 试试拿老的
       try {
         msgData = await xreadgroupAsync(reqBasic.concat(['STREAMS', this._streamKey, '0']))
-      } catch (err) {}
+      } catch (err) {
+        logger.tag(this._streamKey).warn(`failed-to-xreadgroup. error(${err.message})`)
+      }
     }
     // 新数据设置
     if (msgData && msgData.length > 0) {
@@ -127,7 +131,12 @@ class RedisMessager {
       const idleIds = idleEnoughItems.map(pending => pending[0])
       if (idleIds.length > 0) {
         // 尝试claim无人处理的msg
-        const theMsgs = await xclaimAsync(this._streamKey, groupName, consumerName, idleTime, ...idleIds)
+        let theMsgs
+        try {
+          theMsgs = await xclaimAsync(this._streamKey, groupName, consumerName, idleTime, ...idleIds)
+        } catch (err) {
+          logger.tag(this._streamKey).warn(`failed-to-xclaim. error(${err.message})`)
+        }
         if (_.isArray(theMsgs) && _.isArray(theMsgs[0]) && theMsgs[0].length === 2) {
           msgs = theMsgs
         } else {
@@ -145,7 +154,7 @@ class RedisMessager {
         }
       }
       results.push({ id: msgId, data })
-      logger.tag(this._streamKey, 'Msg Found').log(`group=${groupName},id=${msgId},data=${JSON.stringify(data)},consumer=${consumerName}`)
+      logger.tag(this._streamKey, 'Msg Found').debug(`group=${groupName},id=${msgId},data=${JSON.stringify(data)},consumer=${consumerName}`)
     }
     return results
   }
@@ -161,7 +170,7 @@ class RedisMessager {
     const xackAsync = promisify(this._redisClient.XACK).bind(this._redisClient)
 
     const ids = await xackAsync(this._streamKey, groupName, ...msgIds)
-    logger.tag(this._streamKey, 'Msg Handled').log(`group=${groupName},ids=${msgIds}`)
+    logger.tag(this._streamKey, 'Msg Handled').debug(`group=${groupName},ids=${msgIds}`)
     return ids
   }
 }
