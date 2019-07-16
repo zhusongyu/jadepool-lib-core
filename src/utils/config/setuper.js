@@ -58,7 +58,6 @@ const configSetupMethods = {
       if (!chainInfo) continue
       // 跳过区块链已被禁用的货币
       if (chainInfo.config.disabled) continue
-      const tokenTypes = []
       const basicCfgs = []
       const jadepoolCfgs = []
       // 加载全部Tokens
@@ -74,18 +73,12 @@ const configSetupMethods = {
         const tokenInfo = defaultWallet.getTokenInfo(key, coinName, true)
         if (!tokenInfo) continue
         if (chainInfo.status.coinsEnabled.indexOf(coinName) === -1) continue
-        // set tokentypes
-        if (tokenTypes.indexOf(tokenInfo.shortcut.type) === -1) {
-          tokenTypes.push(tokenInfo.shortcut.type)
-        }
         basicCfgs.push(tokenInfo.config.coin)
         jadepoolCfgs.push(tokenInfo.config.jadepool)
       }
       // 设置到config
       jp.config.coin[key] = basicCfgs
       jp.config.jadepool[key] = jadepoolCfgs
-      // 以default的tokenTypes为准
-      chainInfo.config.tokenTypes = tokenTypes
       jp.config.chain[key] = chainInfo.config
     }
   }
