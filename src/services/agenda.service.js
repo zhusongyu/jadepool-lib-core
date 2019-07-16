@@ -179,9 +179,18 @@ class AgendaService extends BaseService {
       await this._agenda._ready
     }
     return new Promise((resolve, reject) => {
+      const coll = this._agenda._collection
+      const oneHour = 3600
       try {
-        this._agenda._collection.createIndex({ name: 1, nextRunAt: 1, lastRunAt: 1, lastFinishedAt: 1 }, { name: 'runningJobs1' })
-        this._agenda._collection.createIndex({ name: 1, 'data.id': 1, nextRunAt: 1, lastRunAt: 1, lastFinishedAt: 1 }, { name: 'runningJobs2' })
+        coll.createIndex({ name: 1, 'data.id': 1, nextRunAt: -1 }, {
+          name: 'runningCheck1',
+          partialFilterExpression: { nextRunAt: { $exists: true } },
+          expireAfterSeconds: oneHour
+        })
+        coll.createIndex({ name: 1, 'data.id': 1, lastFinishedAt: -1, lastRunAt: -1 }, {
+          name: 'runningCheck2',
+          expireAfterSeconds: oneHour
+        })
       } catch (err) {
         logger.error('Failed to create Agenda index!', err)
       }
