@@ -85,6 +85,17 @@ declare class JSONRpcService extends BaseService {
    */
   setAcceptMethods(acceptMethods: string[]): void;
   /**
+   * 添加可接受的RPC方法
+   * @param methodName 方法名
+   * @param methodFunc 可选，方法执行的代码
+   */
+  addAcceptableMethod(methodName: string, methodFunc?: Function): void;
+  /**
+   * 移除可接受的RPC方法
+   * @param methodName 方法名
+   */
+  removeAcceptableMethod(methodName: string): void;
+  /**
    * 请求RPC地址
    * @param ws 请求的客户端
    * @param methodName 方法名

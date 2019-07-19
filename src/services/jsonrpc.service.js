@@ -25,6 +25,11 @@ class JSONRPCService extends BaseService {
      * @type {Map<string, EventEmitter>}
      */
     this.requests = new Map()
+    /**
+     * 可接受的方法
+     * @type {Map<string, Function|Boolean>}
+     */
+    this.acceptMethods = new Map()
   }
   /**
    * 销毁
@@ -116,19 +121,53 @@ class JSONRPCService extends BaseService {
 
   /**
    * 设置可接受rpc方法
-   * @param {string[]} acceptMethods
+   * @param {string[]|string} acceptMethods
    */
   setAcceptMethods (acceptMethods) {
     // 定义acceptMethods
     let methods = []
     if (acceptMethods) {
       if (typeof acceptMethods === 'string') {
-        methods = acceptMethods.split(',')
+        methods = acceptMethods.split(',').map(method => ({ name: method }))
       } else if (Array.isArray(acceptMethods)) {
-        methods = acceptMethods
+        methods = acceptMethods.map(method => {
+          if (typeof method === 'string') {
+            return { name: method }
+          } else if (typeof method.name === 'string') {
+            return { name: method.name, func: typeof method.func === 'function' ? method.func : undefined }
+          } else {
+            return null
+          }
+        }).filter(m => !!m)
       }
     }
-    this.acceptMethods = methods
+    // 设置acceptMethods
+    methods.forEach(method => {
+      this.acceptMethods.set(method.name, method)
+    })
+  }
+
+  /**
+   * 添加新的可接受方法
+   * @param {string} methodName 方法名
+   * @param {Function|undefined} methodFunc
+   */
+  addAcceptableMethod (methodName, methodFunc) {
+    const methodData = { name: methodName }
+    if (typeof methodFunc === 'function') {
+      methodData.func = methodFunc
+    }
+    this.acceptMethods.set(methodName, methodData)
+  }
+
+  /**
+   * 移除新是可接受方法
+   * @param {string} methodName 方法名
+   */
+  removeAcceptableMethod (methodName) {
+    if (this.acceptMethods.has(methodName)) {
+      this.acceptMethods.delete(methodName)
+    }
   }
 
   /**
@@ -234,12 +273,18 @@ class JSONRPCService extends BaseService {
       let res = { jsonrpc: '2.0' }
       // 检测方法名是否可用
       const methodName = _.kebabCase(jsonRequest.method)
-      if (this.acceptMethods.indexOf(methodName) === -1) {
+      if (!this.acceptMethods.has(methodName)) {
         res.error = { code: 404, message: 'Method not found.' }
       } else {
+        const methodData = this.acceptMethods.get(methodName)
         // 进行本地调用
         try {
-          res.result = await jp.invokeMethod(methodName, jp.env.param, jsonRequest.params || {}, ws)
+          const params = jsonRequest.params || {}
+          if (!methodData.func) {
+            res.result = await jp.invokeMethod(methodName, jp.env.param, params, ws)
+          } else {
+            res.result = await methodData.func(params, ws)
+          }
         } catch (err) {
           let code = err.code
           let message = err.message
