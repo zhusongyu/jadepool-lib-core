@@ -383,14 +383,14 @@ class Service extends BaseService {
           let isValid = false
           if (jsonData.sig) delete jsonData.sig
           if (jsonData.extra) delete jsonData.extra
-          const opts = _.pick(sigData, ['sort', 'hash', 'encode'])
+          const verifyOpts = _.pick(sigData, ['sort', 'hash', 'encode'])
           if (typeof sigData.internal === 'string' || sigData.authWithTimestamp !== undefined) {
-            opts.authWithTimestamp = sigData.authWithTimestamp || sigData.internal === 'timestamp'
-            isValid = cryptoUtils.verifyInternal(jsonData, sigData.timestamp, sigData.signature, opts)
+            verifyOpts.authWithTimestamp = sigData.authWithTimestamp || sigData.internal === 'timestamp'
+            isValid = cryptoUtils.verifyInternal(jsonData, sigData.timestamp, sigData.signature, verifyOpts)
           } else if (opts.verifier !== undefined) {
             const pubKey = typeof opts.verifier === 'string' ? Buffer.from(opts.verifier, consts.DEFAULT_ENCODE) : opts.verifier
             try {
-              isValid = cryptoUtils.verify(jsonData, sigData.signature, pubKey, opts)
+              isValid = cryptoUtils.verify(jsonData, sigData.signature, pubKey, verifyOpts)
             } catch (err) {
               logger.error(`failed to verify sig`, err)
               isValid = false
