@@ -226,3 +226,11 @@ declare class SocketIOWorkerService extends BaseService {
   constructor (services : any);
   initialize (opts: SocketIOWorkerOptions): Promise<void>
 }
+
+declare interface ConfigOptions {
+  isHost: boolean
+}
+declare class ConfigService extends BaseService {
+  constructor (services : any);
+  initialize (opts: ConfigOptions): Promise<void>
+}

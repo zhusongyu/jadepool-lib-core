@@ -48,7 +48,14 @@ declare interface EnvObject {
 
 declare class JadepoolSingleton {
 	public env: EnvObject
+  /**
+   * 全局配置
+   */
 	public config: {}
+  /**
+   * 配置服务
+   */
+	public configSrv: services.ConfigService
   
 	/**
 	 * 注册服务
@@ -65,6 +72,7 @@ declare class JadepoolSingleton {
 	registerService(name: 'socket.io.worker', opts: services.SocketIOWorkerOptions): Promise<services.SocketIOWorkerService>;
 	registerService(name: 'child.process', opts: any): Promise<services.ProcessService>;
 	registerService(name: 'async.plan', opts: services.AsyncPlanOptions): Promise<services.AsyncPlanService>;
+	registerService(name: 'config', opts: services.ConfigOptions): Promise<services.ConfigService>;
 
 	/**
 	 * 获取服务
@@ -80,6 +88,7 @@ declare class JadepoolSingleton {
 	getService(name: 'socket.io.worker'): services.SocketIOWorkerService;
 	getService(name: 'child.process'): services.ProcessService;
 	getService(name: 'async.plan'): services.AsyncPlanService;
+	getService(name: 'config'): services.ConfigService;
 
 	/**
 	 * 获取模型

@@ -37,6 +37,8 @@ const SERVICE_NAMES = {
   CHILD_PROCESS: 'child.process',
   /** 异步计划任务服务 */
   ASYNC_PLAN: 'async.plan',
+  /** 配置服务 */
+  CONFIG: 'config',
   /** 基于ws的通用jsonrpc发送和接收服务 */
   JSONRPC: 'jsonrpc.client',
   /** 基于ws的通用jsonrpc服务端 */
@@ -251,6 +253,8 @@ const ORDER_DEFAULT_ACTIONS = {
   FREEZE: 'freeze',
   /** 烧掉token */
   BURN: 'burn',
+  /** 人为控制定义的充值 */
+  EXTRA_DEPOSIT: 'extra-deposit',
   /** 代理 */
   DELEGATE: 'delegate',
   /** 取消代理 */
