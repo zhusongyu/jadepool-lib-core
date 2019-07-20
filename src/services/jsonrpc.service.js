@@ -62,6 +62,10 @@ class JSONRPCService extends BaseService {
     // 定义ws server
     const host = opts.host || '0.0.0.0'
     const port = opts.port || 7897
+    Object.defineProperties(this, {
+      host: { value: host, writable: false, enumerable: true },
+      port: { value: port, writable: false, enumerable: true }
+    })
     this.wss = new WebSocket.Server({
       host,
       port,

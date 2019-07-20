@@ -77,6 +77,9 @@ declare interface JSONRPCServerOptions extends JSONRPCOptions {
   port?: number
 }
 declare class JSONRpcService extends BaseService {
+  public host: string
+  public port: number
+
   constructor (services : any);
   initialize (opts: JSONRPCServerOptions): Promise<void>
   /**
