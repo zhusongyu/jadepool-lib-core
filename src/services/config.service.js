@@ -146,7 +146,13 @@ class HostConfigService extends RedisConfigService {
     const allMethodDescs = Object.getOwnPropertyDescriptors(RedisConfigService.prototype)
     for (const methodKey in allMethodDescs) {
       if (methodKey === 'constructor' || methodKey === 'initialize' || methodKey === 'onDestroy') continue
-      rpcServer.addAcceptableMethod(methodKey, async (params, ws) => this[methodKey].apply(this, _.values(params)))
+      let handler
+      if (methodKey.startsWith('load')) {
+        handler = async (params, ws) => this['_' + methodKey].apply(this, _.values(params))
+      } else {
+        handler = async (params, ws) => this[methodKey].apply(this, _.values(params))
+      }
+      rpcServer.addAcceptableMethod(methodKey, handler)
     }
   }
   /**
@@ -169,18 +175,44 @@ class HostConfigService extends RedisConfigService {
   async loadChainCfg (chainKey) {
     let cfg = await super.loadChainCfg(chainKey)
     if (cfg) return cfg
+    return this._loadChainCfg(chainKey)
+  }
+  async loadCoinCfg (chainKey, tokenNameOrAssetIdOrContract) {
+    let cfg = await super.loadCoinCfg(chainKey, tokenNameOrAssetIdOrContract)
+    if (cfg) return cfg
+    return this._loadCoinCfg(chainKey, tokenNameOrAssetIdOrContract)
+  }
+  async loadAllChainNames (includeDisabled = false) {
+    let results = await super.loadAllChainNames(includeDisabled)
+    if (results && results.length > 0) return results
+    return this._loadAllChainNames(includeDisabled)
+  }
+  async loadAllCoinNames (chainKey, includeDisabled = false) {
+    let results = await super.loadAllCoinNames(chainKey, includeDisabled)
+    if (results && results.length > 0) return results
+    return this._loadAllCoinNames(chainKey, includeDisabled)
+  }
+  async loadConfigKeys (path, parent = undefined, includeDisabled = true) {
+    let results = await super.loadConfigKeys(path, parent, includeDisabled)
+    if (results && results.length > 0) return results
+    return this._loadConfigKeys(path, parent, includeDisabled)
+  }
+  async loadConfig (path, key, parent = undefined) {
+    let result = await super.loadConfig(path, key, parent)
+    if (result) return result
+    return this._loadConfig(path, key, parent)
+  }
+  // 私有方法
+  async _loadChainCfg (chainKey) {
     cfg = await this._loadConfig('chain', chainKey)
     if (!cfg) return null
     cfg.key = chainKey
     return cfg
   }
-  async loadCoinCfg (chainKey, tokenNameOrAssetIdOrContract) {
-    let cfg = await super.loadCoinCfg(chainKey, tokenNameOrAssetIdOrContract)
-    if (cfg) return cfg
+  async _loadCoinCfg (chainKey, coinName) {
     // 拉取chain信息
     const chainCfg = await this.loadChainCfg(chainKey)
     if (!chainCfg) return null
-    const coinName = tokenNameOrAssetIdOrContract
     // 此时读取时只能通过tokenName获取
     cfg = await this._loadConfig('tokens', coinName, chainCfg.id)
     if (!cfg) return null
@@ -205,29 +237,25 @@ class HostConfigService extends RedisConfigService {
     cfg.name = coinName
     return cfg
   }
-  async loadAllChainNames (includeDisabled = false) {
-    let results = await super.loadAllChainNames(includeDisabled)
-    if (results && results.length > 0) return results
+  async _loadAllChainNames (includeDisabled = false) {
     return this._loadConfigKeys('chain', undefined, includeDisabled)
   }
-  async loadAllCoinNames (chainKey, includeDisabled = false) {
-    let results = await super.loadAllCoinNames(chainKey, includeDisabled)
-    if (results && results.length > 0) return results
+  async _loadAllCoinNames (chainKey, includeDisabled = false) {
     // 拉取chain信息
     const chainCfg = await this.loadChainCfg(chainKey)
     if (!chainCfg) return null
     return this._loadConfigKeys('tokens', chainCfg.id, includeDisabled, true)
   }
-  // 通用方法
-  async loadConfigKeys (path, parent = undefined, includeDisabled = true) {
-    let results = await super.loadConfigKeys(path, parent, includeDisabled)
-    if (results && results.length > 0) return results
-    return this._loadConfigKeys(path, parent, includeDisabled)
-  }
-  async loadConfig (path, key, parent = undefined) {
-    let result = await super.loadConfig(path, key, parent)
-    if (result) return result
-    return this._loadConfig(path, key, parent)
+  async _loadConfigKeys (path, parent, includeDisabled, ignoreEmpty = false) {
+    let keys = await configLoader.loadConfigKeys(path, parent, includeDisabled)
+    if (ignoreEmpty) keys = keys.filter(key => key !== '' && key !== '_')
+    // 进行读取并写入redis
+    const pathId = path + `@${parent || 'root'}`
+    const redisKey = REDIS_CFG_CACHE_PREFIX + `KEYS:${pathId}:${includeDisabled ? 'ALL' : 'ENABLED'}`
+
+    const saddAsync = promisify(this.redisClient.SADD).bind(this.redisClient)
+    await saddAsync(redisKey, keys)
+    return keys
   }
   async _loadConfig (path, key, parent = undefined) {
     // 进行读取并写入redis
@@ -249,17 +277,6 @@ class HostConfigService extends RedisConfigService {
     multi.set(idRedisKey, id)
     multi.set(dataRedisKey, JSON.stringify(jsonData), 'EX', REDIS_CFG_CACHE_EXPIRE)
     return new Promise((resolve) => multi.exec(resolve))
-  }
-  async _loadConfigKeys (path, parent, includeDisabled, ignoreEmpty = false) {
-    let keys = await configLoader.loadConfigKeys(path, parent, includeDisabled)
-    if (ignoreEmpty) keys = keys.filter(key => key !== '' && key !== '_')
-    // 进行读取并写入redis
-    const pathId = path + `@${parent || 'root'}`
-    const redisKey = REDIS_CFG_CACHE_PREFIX + `KEYS:${pathId}:${includeDisabled ? 'ALL' : 'ENABLED'}`
-
-    const saddAsync = promisify(this.redisClient.SADD).bind(this.redisClient)
-    await saddAsync(redisKey, keys)
-    return keys
   }
   // 写入类方法
   setAutoSaveWhenLoad (value) {
