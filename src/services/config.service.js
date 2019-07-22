@@ -318,7 +318,96 @@ class ClientConfigService extends RedisConfigService {
    */
   async initialize (opts) {
     await super.initialize(opts)
-    // TODO
+    // 连接host
+    await this._tryConnectHost()
+  }
+  /**
+   * 该Service的优雅退出函数
+   * @param signal 退出信号
+   */
+  async onDestroy (signal) {
+    if (await this._isConnected()) {
+      const rpcClient = jadepool.getService(consts.SERVICE_NAMES.JSONRPC)
+      await rpcClient.closeRPCServer(this._currentHost)
+    }
+    // 退出rpcServer注册
+    await super.onDestroy(signal)
+  }
+  async _tryConnectHost () {
+    if (this._tryConnecting) return this._tryConnecting
+    this._tryConnecting = new Promise((resolve, reject) => {
+      this.redisClient.srandmember(REDIS_HOST_KEY, resolve)
+    }).then(pickUrl => {
+      if (!pickUrl) throw new NBError(10001, `missing host url`)
+      this._currentHost = pickUrl
+      let rpcClient = jadepool.getService(consts.SERVICE_NAMES.JSONRPC)
+      return rpcClient || jadepool.registerService(consts.SERVICE_NAMES.JSONRPC)
+    }).then(rpcClient => {
+      return rpcClient.joinRPCServer(this._currentHost)
+    }).then(() => {
+      this._tryConnecting = null
+    }).catch((err) => {
+      logger.tag('try-connect').error(`failed-to-connect-config-host`, err)
+      this._tryConnecting = null
+    })
+    return this._tryConnecting
+  }
+  async _isConnected () {
+    if (!this._currentHost) return false
+    const rpcClient = jadepool.getService(consts.SERVICE_NAMES.JSONRPC)
+    if (!rpcClient) return false
+    const readyState = rpcClient.getClientReadyState(this._currentHost)
+    return readyState === WebSocket.OPEN
+  }
+  async _request (method, params) {
+    if (!this._currentHost) return null
+    const rpcClient = jadepool.getService(consts.SERVICE_NAMES.JSONRPC)
+    if (!rpcClient) return null
+    return rpcClient.requestJSONRPC(this._currentHost, method, params)
+  }
+  // 便捷查询方法
+  async loadChainCfg (chainKey) {
+    let cfg = await super.loadChainCfg(chainKey)
+    if (cfg) return cfg
+    return this._request('loadChainCfg', arguments)
+  }
+  async loadCoinCfg (chainKey, tokenNameOrAssetIdOrContract) {
+    let cfg = await super.loadCoinCfg(chainKey, tokenNameOrAssetIdOrContract)
+    if (cfg) return cfg
+    return this._request('loadCoinCfg', arguments)
+  }
+  async loadAllChainNames (includeDisabled = false) {
+    let results = await super.loadAllChainNames(includeDisabled)
+    if (results && results.length > 0) return results
+    return this._request('loadAllChainNames', arguments)
+  }
+  async loadAllCoinNames (chainKey, includeDisabled = false) {
+    let results = await super.loadAllCoinNames(chainKey, includeDisabled)
+    if (results && results.length > 0) return results
+    return this._request('loadAllCoinNames', arguments)
+  }
+  async loadConfigKeys (path, parent = undefined, includeDisabled = true) {
+    let results = await super.loadConfigKeys(path, parent, includeDisabled)
+    if (results && results.length > 0) return results
+    return this._request('loadConfigKeys', arguments)
+  }
+  async loadConfig (path, key, parent = undefined) {
+    let result = await super.loadConfig(path, key, parent)
+    if (result) return result
+    return this._request('loadConfig', arguments)
+  }
+  // 写入型方法无默认实现
+  async setAutoSaveWhenLoad (flag) {
+    return this._request('setAutoSaveWhenLoad', arguments)
+  }
+  async setAliasConfigPath (cfgPath, key, aliasPath) {
+    return this._request('setAliasConfigPath', arguments)
+  }
+  async saveConfig (path, key, modJson, disabled = false, parent = undefined) {
+    return this._request('saveConfig', arguments)
+  }
+  async deleteConfig (path, key, parent = undefined) {
+    return this._request('deleteConfig', arguments)
   }
 }
 
