@@ -7,6 +7,7 @@ Features:
 * 新增config.service服务，全权处理全部的配置读取与写入事宜
 * 移除utils.configSetuper下的所有方法
 * 移除utils.config.fetch**系列方法
+* 移除utils.config.applyIgnoreKeys方法
 
 ## V0.11.18
 

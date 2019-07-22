@@ -47,7 +47,13 @@ class RedisConfigService extends ConfigService {
     this.redisClient.end()
   }
   // 便捷查询方法
-  async loadChainCfg (chainKey) {
+  async loadChainCfg (keyOrNameOrCoreType) {
+    const hgetAsync = promisify(this.redisClient.HGET).bind(this.redisClient)
+
+    const aliasKey = REDIS_CFG_CACHE_PREFIX + `CHAINS_ALIAS`
+    let chainKey = await hgetAsync(aliasKey, keyOrNameOrCoreType)
+    chainKey = chainKey || keyOrNameOrCoreType
+
     const chainCfg = await this.loadConfig('chain', chainKey)
     if (!chainCfg) return null
     chainCfg.key = chainKey
@@ -208,6 +214,15 @@ class HostConfigService extends RedisConfigService {
   async _loadChainCfg (chainKey) {
     let cfg = await this._loadConfig('chain', chainKey)
     if (!cfg) return null
+    // 设置别名缓存
+    const msetParams = []
+    if (cfg.Chain !== chainKey) msetParams.push(cfg.Chain, chainKey)
+    if (cfg.CoreType !== chainKey) msetParams.push(cfg.CoreType, chainKey)
+    if (msetParams.length > 0) {
+      const aliasKey = REDIS_CFG_CACHE_PREFIX + `CHAINS_ALIAS`
+      const msetAsync = promisify(this.redisClient.MSET).bind(this.redisClient)
+      await msetAsync(aliasKey, msetParams)
+    }
     cfg.key = chainKey
     return cfg
   }

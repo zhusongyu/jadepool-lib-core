@@ -244,13 +244,13 @@ declare class ConfigService extends BaseService {
   // 便捷查询方法
   /**
    * 获取实时的区块链配置
-   * @param chainKey
+   * @param keyOrNameOrCoreType
    */
-  loadChainCfg(chainKey: string): Promise<ChainConfig>
+  loadChainCfg(keyOrNameOrCoreType: string): Promise<ChainConfig>
   /**
    * 读取默认配置中的token配置信息
    * @param chainKey
-   * @param coinName
+   * @param tokenNameOrAssetIdOrContract
    */
   loadCoinCfg(chain: string, tokenNameOrAssetIdOrContract: string): Promise<TokenConfig>
   /**
