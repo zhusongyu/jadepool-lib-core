@@ -56,12 +56,12 @@ class RedisConfigService extends ConfigService {
   async loadCoinCfg (chainKey, tokenNameOrAssetIdOrContract) {
     const hgetAsync = promisify(this.redisClient.HGET).bind(this.redisClient)
     const getAsync = promisify(this.redisClient.GET).bind(this.redisClient)
-    
+
     const aliasKey = REDIS_CFG_CACHE_PREFIX + `CHAINS:${chainKey}:ALIAS`
     let coinName = await hgetAsync(aliasKey, tokenNameOrAssetIdOrContract)
     coinName = coinName || tokenNameOrAssetIdOrContract
-    
-    const idRedisKey = REDIS_CFG_CACHE_PREFIX + `ID:chain@root:${key}`
+
+    const idRedisKey = REDIS_CFG_CACHE_PREFIX + `ID:chain@root:${coinName}`
     let parentId = await getAsync(idRedisKey)
     if (!parentId) {
       const chainCfg = await this.loadConfig('chain', chainKey)
@@ -143,7 +143,7 @@ class HostConfigService extends RedisConfigService {
     }
     const saddAsync = promisify(this.redisClient.sadd).bind(this.redisClient)
     await saddAsync(REDIS_HOST_KEY, `ws://${rpcServer.host}:${rpcServer.port}`)
-    
+
     // 代理函数
     const allMethodDescs = Object.getOwnPropertyDescriptors(RedisConfigService.prototype)
     for (const methodKey in allMethodDescs) {
@@ -206,7 +206,7 @@ class HostConfigService extends RedisConfigService {
   }
   // 私有方法
   async _loadChainCfg (chainKey) {
-    cfg = await this._loadConfig('chain', chainKey)
+    let cfg = await this._loadConfig('chain', chainKey)
     if (!cfg) return null
     cfg.key = chainKey
     return cfg
@@ -216,7 +216,7 @@ class HostConfigService extends RedisConfigService {
     const chainCfg = await this.loadChainCfg(chainKey)
     if (!chainCfg) return null
     // 此时读取时只能通过tokenName获取
-    cfg = await this._loadConfig('tokens', coinName, chainCfg.id)
+    let cfg = await this._loadConfig('tokens', coinName, chainCfg.id)
     if (!cfg) return null
     // 设置别名缓存
     let msetParams = []
@@ -438,7 +438,7 @@ class Service extends ConfigService {
     for (const methodKey in allMethodDescs) {
       if (methodKey === 'constructor' || methodKey === 'initialize') continue
       Object.defineProperty(this, methodKey, {
-        value: serviceAgent[funcKey].bind(serviceAgent),
+        value: serviceAgent[methodKey].bind(serviceAgent),
         enumerable: false,
         writable: true,
         configurable: true
