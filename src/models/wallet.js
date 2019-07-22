@@ -106,7 +106,7 @@ Wallet.prototype.updateFromConfig = async function (chainDefaults) {
   // set all chains' data
   let ids = []
   for (const item of chainDefaults) {
-    ids.push(await _ensureWalletChain(this._id, item.key, item.WalletDefaults, !item.disabled))
+    ids.push(await _ensureWalletChain(this._id, item.key, item.WalletDefaults || {}, !item.disabled))
   }
   this.chains = ids
   this.version = jp.env.version
