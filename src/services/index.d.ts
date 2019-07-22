@@ -2,6 +2,10 @@ import Agenda from 'agenda'
 import BaseService = require('./core')
 import Task = require('./agenda.task')
 import { ProcessRunner } from '../utils';
+import {
+  ChainConfig,
+  TokenConfig
+} from "../models";
 
 export as namespace services
 
@@ -233,7 +237,74 @@ declare class SocketIOWorkerService extends BaseService {
 declare interface ConfigOptions {
   isHost: boolean
 }
+declare type GeneralConfig = { id: string, [key: string]: any }
 declare class ConfigService extends BaseService {
   constructor (services : any);
   initialize (opts: ConfigOptions): Promise<void>
+  // 便捷查询方法
+  /**
+   * 获取实时的区块链配置
+   * @param chainKey
+   */
+  loadChainCfg(chainKey: string): Promise<ChainConfig>
+  /**
+   * 读取默认配置中的token配置信息
+   * @param chainKey
+   * @param coinName
+   */
+  loadCoinCfg(chain: string, tokenNameOrAssetIdOrContract: string): Promise<TokenConfig>
+  /**
+   * 获取实时的全部链名称
+   */
+  loadAllChainNames(includeDisabled?: boolean): Promise<string[]>
+  /**
+   * 获取实时的可用coinNames
+   * @param chainKey
+   */
+  loadAllCoinNames(chain: string, includeDisabled?: boolean): Promise<string[]>
+  // 通用方法
+  /**
+   * 从数据库中读取配置，若该配置不存在，则从文件中读取并保存到数据库
+   * @param cfgPath 目录名
+   * @param key 子目录名
+   * @param parent
+   */
+  loadConfig(cfgPath: string, key: string, parent?: string): Promise<GeneralConfig>;
+  /**
+   * 从数据库中读取path相同的全部配置，同时也从文件夹中读取全部路径
+   * @param cfgPath 
+   * @param parent 
+   */
+  loadConfigKeys(cfgPath: string, parent?: string, includeDisabled?: boolean): Promise<string[]>;
+  // 写入型方法无默认实现
+  /**
+   * 设置是否自动保存
+   * @param value 
+   */
+  setAutoSaveWhenLoad(value : boolean): Promise<void>;
+  /**
+   * 设置path + key的别名目录
+   * 对于loadConfig来说，只取最后一个被设置的别名目录
+   * 对于loadConfigKeys来说，别名目录 + config目录下的结果都将累加到最终结果
+   * @param path 
+   * @param key 
+   * @param aliasPath 
+   */
+  setAliasConfigPath(path: string, key: string, aliasPath: string): Promise<void>;
+  /**
+   * 保存配置修改
+   * @param cfgPath 目录名
+   * @param key 子目录名
+   * @param modJson 配置修改Json，需Merge
+   * @param disabled 是否禁用
+   * @param parent
+   */
+  saveConfig(cfgPath: string, key: string, modJson?: object, disabled?: boolean, parent?: string): Promise<GeneralConfig>;
+  /**
+   * 从数据库中删除配置，该配置必须是customized的配置
+   * @param cfgPath 目录名
+   * @param key 子目录名
+   * @param parent 
+   */
+  deleteConfig(cfgPath: string, key: string, parent?: string): Promise<boolean>;
 }
