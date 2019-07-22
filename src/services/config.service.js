@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const WebSocket = require('ws')
 const { promisify } = require('util')
 const BaseService = require('./core')
 const consts = require('../consts')
@@ -109,10 +110,10 @@ class RedisConfigService extends ConfigService {
     }
   }
   // 写入型方法无默认实现
-  setAutoSaveWhenLoad (flag) {
+  async setAutoSaveWhenLoad (flag) {
     throw new NBError(20205, `invalid method: setAutoSaveWhenLoad`)
   }
-  setAliasConfigPath (cfgPath, key, aliasPath) {
+  async setAliasConfigPath (cfgPath, key, aliasPath) {
     throw new NBError(20205, `invalid method: setAliasConfigPath`)
   }
   async saveConfig (path, key, modJson, disabled = false, parent = undefined) {
@@ -140,7 +141,8 @@ class HostConfigService extends RedisConfigService {
       const port = DEFAULT_PORT
       rpcServer = await jadepool.registerService(consts.SERVICE_NAMES.JSONRPC_SERVER, { host, port })
     }
-    await this.redisClient.sadd(REDIS_HOST_KEY, `${rpcServer.host}:${rpcServer.port}`)
+    const saddAsync = promisify(this.redisClient.sadd).bind(this.redisClient)
+    await saddAsync(REDIS_HOST_KEY, `ws://${rpcServer.host}:${rpcServer.port}`)
     
     // 代理函数
     const allMethodDescs = Object.getOwnPropertyDescriptors(RedisConfigService.prototype)
@@ -279,10 +281,10 @@ class HostConfigService extends RedisConfigService {
     return new Promise((resolve) => multi.exec(resolve))
   }
   // 写入类方法
-  setAutoSaveWhenLoad (value) {
+  async setAutoSaveWhenLoad (value) {
     return configLoader.setAutoSaveWhenLoad(value)
   }
-  setAliasConfigPath (cfgPath, key, aliasPath) {
+  async setAliasConfigPath (cfgPath, key, aliasPath) {
     return configLoader.setAliasConfigPath(...arguments)
   }
   async deleteConfig (path, key, parent = undefined) {
