@@ -22,14 +22,14 @@ export declare function setAliasConfigPath(path: string, key: string, aliasPath:
  * @param key 子目录名
  * @param parent
  */
-export declare function loadConfig(cfgPath: string, key: string, parent: ConfigDatDocument): Promise<ConfigDatDocument>;
+export declare function loadConfig(cfgPath: string, key: string, parent?: ConfigDatDocument): Promise<ConfigDatDocument>;
 
 /**
  * 从数据库中读取path相同的全部配置，同时也从文件夹中读取全部路径
  * @param cfgPath 
  * @param parent 
  */
-export declare function loadConfigKeys(cfgPath: string, parent: ConfigDatDocument): Promise<string[]>;
+export declare function loadConfigKeys(cfgPath: string, parent?: ConfigDatDocument, includeDisabled?: boolean): Promise<string[]>;
 
 /**
  * 保存配置修改
@@ -39,7 +39,7 @@ export declare function loadConfigKeys(cfgPath: string, parent: ConfigDatDocumen
  * @param disabled 是否禁用
  * @param parent
  */
-export declare function saveConfig(cfgPath: string, key: string, modJson: object | undefined, disabled: boolean | undefined, parent: ConfigDatDocument): Promise<ConfigDatDocument>;
+export declare function saveConfig(cfgPath: string, key: string, modJson: object | undefined, disabled: boolean | undefined, parent?: ConfigDatDocument): Promise<ConfigDatDocument>;
 
 /**
  * 从数据库中删除配置，该配置必须是customized的配置

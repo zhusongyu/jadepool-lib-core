@@ -4,7 +4,7 @@ const mongoose = require('mongoose')
 const jp = require('../jadepool')
 const consts = require('../consts')
 const NBError = require('../NBError')
-const cfgloader = require('../utils/config/loader')
+
 const { fetchConnection, AutoIncrement } = require('../utils/db')
 const Schema = mongoose.Schema
 
@@ -106,7 +106,7 @@ Wallet.prototype.updateFromConfig = async function (chainDefaults) {
   // set all chains' data
   let ids = []
   for (const item of chainDefaults) {
-    ids.push(await _ensureWalletChain(this._id, item.key, item.WalletDefaults, !item.disabled))
+    ids.push(await _ensureWalletChain(this._id, item.key, item.WalletDefaults || {}, !item.disabled))
   }
   this.chains = ids
   this.version = jp.env.version
@@ -283,9 +283,9 @@ Wallet.prototype.populateChainConfig = async function (chainKey) {
     this.populatedCache.set(walletKey, doc.toObject())
   }
   const cfgKey = chainKey + '_config'
-  const chain = await cfgloader.loadConfig('chain', chainKey)
+  const chain = await jp.configSrv.loadChainCfg(chainKey)
   if (chain) {
-    this.populatedCache.set(cfgKey, chain.toMerged())
+    this.populatedCache.set(cfgKey, chain)
   }
   return this
 }
@@ -306,8 +306,8 @@ Wallet.prototype.populateTokenConfig = async function (chainKey, coinName) {
     if (doc) this.populatedCache.set(tokenWalletKey, doc.toObject())
 
     const tokenCfgKey = `${chainKey}.${coinName}_config`
-    const tokenDat = await cfgloader.loadConfig('tokens', coinName, { id: chain.id, path: 'chain', key: chain.key })
-    if (tokenDat) this.populatedCache.set(tokenCfgKey, tokenDat.toMerged())
+    const tokenCfg = await jp.configSrv.loadCoinCfg(chainKey, coinName)
+    if (tokenCfg) this.populatedCache.set(tokenCfgKey, tokenCfg)
   }
   return this
 }
