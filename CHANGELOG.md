@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.12.4
+
+Improvement:
+
+* rpcclient的error日志需为warn级别
+
 ## V0.12.3
 
 Fixes:

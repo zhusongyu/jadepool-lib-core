@@ -438,7 +438,7 @@ class Service extends BaseService {
         emiter.emit('response', jsonData.result)
       } else {
         const errData = jsonData.error
-        logger.tag(`ErrorResult`).debug(`id=${jsonData.id},code=${errData.code},message=${errData.message}`)
+        logger.tag(`ErrorResult`).warn(`id=${jsonData.id},error=${JSON.stringify(errData)}`)
         emiter.emit('error', new NBError(errData.code, errData.message))
       }
     } else {
