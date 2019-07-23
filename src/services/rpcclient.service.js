@@ -107,7 +107,7 @@ class Service extends BaseService {
         default:
           ws.removeAllListeners()
           ws.terminate()
-          logger.tag('Terminate').log(`readyState=${ws.readyState},jsonrpc=${url}`)
+          logger.tag('Terminate').info(`readyState=${ws.readyState},jsonrpc=${url}`)
           break
       }
     }
@@ -126,7 +126,7 @@ class Service extends BaseService {
     // Step.1 创建WebSocket
     ws = new WebSocket(url, { headers })
     this.clients.set(url, ws)
-    logger.tag('Create RPC').log(`url=${url}`)
+    logger.tag('Create RPC').debug(`url=${url}`)
 
     // Step.2 监听连接事件
     await new Promise((resolve, reject) => {
@@ -140,14 +140,14 @@ class Service extends BaseService {
         reject(new NBError(res.statusCode, res.statusMessage))
       })
       ws.once('open', () => {
-        logger.tag('Connected').log(`url=${url}`)
+        logger.tag('Connected').info(`url=${url}`)
         resolve()
       })
     })
     ws.removeAllListeners()
     // 正常处理
     ws.on('close', (code, reason) => {
-      logger.tag('Closed').log(`url=${url},reason=${reason},code=${code}`)
+      logger.tag('Closed').info(`url=${url},reason=${reason},code=${code}`)
     })
     ws.on('message', data => {
       this._handleRPCMessage(ws, data.valueOf(), _.clone(rpcOpts))
@@ -194,7 +194,7 @@ class Service extends BaseService {
       params: args,
       jsonrpc: '2.0'
     }
-    logger.tag(`Request:${methodName}`).log(`id=${reqData.id}`)
+    logger.tag(`Request:${methodName}`).debug(`id=${reqData.id}`)
     return requestFunc.call(this, url, reqData, opts)
   }
 
@@ -410,13 +410,13 @@ class Service extends BaseService {
       }
       // 进行本地调用
       if (!result.error) {
-        logger.tag(`Invoke:${jsonData.method}`).log(`id=${jsonData.id}`)
+        logger.tag(`Invoke:${jsonData.method}`).debug(`id=${jsonData.id}`)
         try {
           const params = jsonData.params
           result.result = await jp.invokeMethod(methodName, opts.acceptNamespace || params.chain, params)
         } catch (err) {
           result.error = { code: err.code, message: err.message }
-          logger.tag(`Invoked:${methodName}`, 'Error').logObj(result.error)
+          logger.tag(`Invoked:${methodName}`, 'Error').warn(JSON.stringify(result.error))
         }
       }
       // 若为方法调用, 则需返回结果
@@ -434,11 +434,11 @@ class Service extends BaseService {
         return
       }
       if (jsonData.result !== undefined) {
-        logger.tag(`Result`).log(`id=${jsonData.id},result=${JSON.stringify(jsonData.result)}`)
+        logger.tag(`Result`).debug(`id=${jsonData.id},result=${JSON.stringify(jsonData.result)}`)
         emiter.emit('response', jsonData.result)
       } else {
         const errData = jsonData.error
-        logger.tag(`ErrorResult`).log(`id=${jsonData.id},code=${errData.code},message=${errData.message}`)
+        logger.tag(`ErrorResult`).debug(`id=${jsonData.id},code=${errData.code},message=${errData.message}`)
         emiter.emit('error', new NBError(errData.code, errData.message))
       }
     } else {

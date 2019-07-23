@@ -190,7 +190,7 @@ class JSONRPCService extends BaseService {
       params: args,
       jsonrpc: '2.0'
     }
-    logger.tag(`Request:${methodName}`).log(`id=${reqData.id}`)
+    logger.tag(`Request:${methodName}`).debug(`id=${reqData.id}`)
     const emitter = new EventEmitter()
     this.requests.set(reqData.id, emitter)
     let objToSend = reqData
@@ -308,7 +308,7 @@ class JSONRPCService extends BaseService {
           }
         })
       }
-      logger.tag(`Invoked:${methodName}`).log(`id=${jsonRequest.id}`)
+      logger.tag(`Invoked:${methodName}`).debug(`id=${jsonRequest.id}`)
       return
     }
     // 回调类型判断
@@ -320,7 +320,7 @@ class JSONRPCService extends BaseService {
         logger.tag('Result').warn(`unknown id ${jsonResponse.id}`)
         return
       }
-      logger.tag(`Result`).log(`id=${jsonResponse.id}` + (!jsonResponse.error ? '' : `,code=${jsonResponse.error.code},message=${jsonResponse.error.message}`))
+      logger.tag(`Result`).debug(`id=${jsonResponse.id}` + (!jsonResponse.error ? '' : `,code=${jsonResponse.error.code},message=${jsonResponse.error.message}`))
       if (jsonResponse.result !== undefined) {
         emiter.emit('response', jsonResponse.result)
       } else if (jsonResponse.error !== undefined) {
