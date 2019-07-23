@@ -39,13 +39,6 @@ class RedisConfigService extends ConfigService {
     await redis.getOpts(redisClientKey)
     this.redisClient = redis.fetchClient(redisClientKey)
   }
-  /**
-   * 该Service的优雅退出函数
-   * @param signal 退出信号
-   */
-  async onDestroy (signal) {
-    this.redisClient.end()
-  }
   // 便捷查询方法
   async loadChainCfg (keyOrNameOrCoreType) {
     const hgetAsync = promisify(this.redisClient.HGET).bind(this.redisClient)
@@ -176,8 +169,6 @@ class HostConfigService extends RedisConfigService {
       if (methodKey === 'constructor' || methodKey === 'initialize' || methodKey === 'onDestroy') continue
       rpcServer.removeAcceptableMethod(methodKey)
     }
-    // 退出rpcServer注册
-    await super.onDestroy(signal)
   }
   // 便捷查询方法
   async loadChainCfg (chainKey) {
@@ -356,8 +347,6 @@ class ClientConfigService extends RedisConfigService {
       const rpcClient = jadepool.getService(consts.SERVICE_NAMES.JSONRPC)
       await rpcClient.closeRPCServer(this._currentHost)
     }
-    // 退出rpcServer注册
-    await super.onDestroy(signal)
   }
   async _tryConnectHost () {
     if (this._tryConnecting) return this._tryConnecting
