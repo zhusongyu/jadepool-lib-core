@@ -350,9 +350,8 @@ class ClientConfigService extends RedisConfigService {
   }
   async _tryConnectHost () {
     if (this._tryConnecting) return this._tryConnecting
-    this._tryConnecting = new Promise((resolve, reject) => {
-      this.redisClient.srandmember(REDIS_HOST_KEY, resolve)
-    }).then(pickUrl => {
+    const srandmemberAysnc = promisify(this.redisClient.srandmember).bind(this.redisClient)
+    this._tryConnecting = srandmemberAysnc(REDIS_HOST_KEY).then(pickUrl => {
       if (!pickUrl) throw new NBError(10001, `missing host url`)
       this._currentHost = pickUrl
       let rpcClient = jadepool.getService(consts.SERVICE_NAMES.JSONRPC)
