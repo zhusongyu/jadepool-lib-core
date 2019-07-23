@@ -25,11 +25,8 @@ class JadePool {
    * 环境变量对象
    */
   get env () { return this.ctx.env }
-  /**
-   * 全局配置
-   * @type {object}
-   */
   get config () { return this.ctx.config }
+  get configSrv () { return this.ctx.configSrv }
   /**
    * Context
    */

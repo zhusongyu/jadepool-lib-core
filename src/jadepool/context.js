@@ -52,6 +52,11 @@ class JadePoolContext {
   get config () { return this._config }
 
   /**
+   * 配置服务
+   */
+  get configSrv () { return this.getService(consts.SERVICE_NAMES.CONFIG) }
+
+  /**
    * @param {string} name
    */
   getModel (name) {
@@ -150,6 +155,9 @@ class JadePoolContext {
           break
         case consts.SERVICE_NAMES.ASYNC_PLAN:
           ClassToRegister = require('../services/asyncplan.service')
+          break
+        case consts.SERVICE_NAMES.CONFIG:
+          ClassToRegister = require('../services/config.service')
           break
         default:
           logger.warn(`failed to registerService: ${serviceClass}`)

@@ -185,7 +185,7 @@ const loadConfig = async (cfgPath, key = '', parent = null) => {
  * @param {any} parent
  * @returns {Promise<string[]>}
  */
-const loadConfigKeys = async (cfgPath, parent = null) => {
+const loadConfigKeys = async (cfgPath, parent = null, includeDisabled = true) => {
   const query = {
     path: cfgPath,
     key: { $ne: '' }
@@ -199,7 +199,8 @@ const loadConfigKeys = async (cfgPath, parent = null) => {
   // Config in DB
   const ConfigDat = jp.getModel(consts.MODEL_NAMES.CONFIG_DATA)
   const cfgs = (await ConfigDat.find(query).exec()) || []
-  let namesInDBs = _.map(cfgs, 'key')
+  let namesInDBs = cfgs.filter(cfg => includeDisabled || !cfg.disabled).map(cfg => cfg.key)
+  if (!includeDisabled) return namesInDBs
   // Config in Files
   let cfgFilePaths = getConfigPaths(cfgPath, '', parent)
   // 返回系列Keys
