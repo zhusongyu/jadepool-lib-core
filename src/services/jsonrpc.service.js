@@ -147,7 +147,8 @@ class JSONRPCService extends BaseService {
     }
     // 设置acceptMethods
     methods.forEach(method => {
-      this.acceptMethods.set(method.name, method)
+      const methodName = _.kebabCase(method.name)
+      this.acceptMethods.set(methodName, method)
     })
   }
 
@@ -157,6 +158,7 @@ class JSONRPCService extends BaseService {
    * @param {Function|undefined} methodFunc
    */
   addAcceptableMethod (methodName, methodFunc) {
+    methodName = _.kebabCase(methodName)
     const methodData = { name: methodName }
     if (typeof methodFunc === 'function') {
       methodData.func = methodFunc
@@ -169,6 +171,7 @@ class JSONRPCService extends BaseService {
    * @param {string} methodName 方法名
    */
   removeAcceptableMethod (methodName) {
+    methodName = _.kebabCase(methodName)
     if (this.acceptMethods.has(methodName)) {
       this.acceptMethods.delete(methodName)
     }
