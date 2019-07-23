@@ -14,6 +14,17 @@ const DEFAULT_PORT = 7380
 const REDIS_HOST_KEY = 'JADEPOOL_SERVICE:CONFIG:HOST'
 const REDIS_CFG_CACHE_EXPIRE = 15 * 60 // 15 min
 const REDIS_CFG_CACHE_PREFIX = 'JADEPOOL_SERVICE:CONFIG:CACHE:'
+const CHAIN_ALIAS_FIELDS = [
+  'CoreType',
+  'Chain'
+]
+const TOKEN_ALIAS_FIELDS = [
+  'TokenName',
+  'Contract',
+  'contract',
+  'assetId',
+  'address'
+]
 
 /**
  * 基类
@@ -47,8 +58,13 @@ class RedisConfigService extends ConfigService {
     let chainKey = await hgetAsync(aliasKey, keyOrNameOrCoreType)
     chainKey = chainKey || keyOrNameOrCoreType
 
-    const chainCfg = await this.loadConfig('chain', chainKey)
+    const chainCfg = await RedisConfigService.prototype.loadConfig.apply(this, ['chain', chainKey])
     if (!chainCfg) return null
+    // alias check
+    if (chainKey !== keyOrNameOrCoreType &&
+      !_.find(CHAIN_ALIAS_FIELDS, field => chainCfg[field] === keyOrNameOrCoreType)) {
+      return null
+    }
     chainCfg.key = chainKey
     return chainCfg
   }
@@ -63,17 +79,22 @@ class RedisConfigService extends ConfigService {
     const idRedisKey = REDIS_CFG_CACHE_PREFIX + `ID:chain@root:${coinName}`
     let parentId = await getAsync(idRedisKey)
     if (!parentId) {
-      const chainCfg = await this.loadConfig('chain', chainKey)
+      const chainCfg = await RedisConfigService.prototype.loadConfig.apply(this, ['chain', chainKey])
       if (chainCfg) parentId = chainCfg.id
     }
     if (!parentId) return null
-    const tokenCfg = await this.loadConfig('tokens', coinName, parentId)
+    const tokenCfg = await RedisConfigService.prototype.loadConfig.apply(this, ['tokens', coinName, parentId])
     if (!tokenCfg) return null
+    // alias check
+    if (coinName !== tokenNameOrAssetIdOrContract &&
+      !_.find(TOKEN_ALIAS_FIELDS, field => tokenCfg[field] === tokenNameOrAssetIdOrContract)) {
+      return null
+    }
     tokenCfg.name = coinName
     return tokenCfg
   }
   async loadAllChainNames (includeDisabled = false) {
-    return this.loadConfigKeys('chain', undefined, includeDisabled)
+    return RedisConfigService.prototype.loadConfigKeys.apply(this, ['chain', undefined, includeDisabled])
   }
   async loadAllCoinNames (chainKey, includeDisabled = false) {
     const idRedisKey = REDIS_CFG_CACHE_PREFIX + `ID:chain@root:${chainKey}`
@@ -81,11 +102,11 @@ class RedisConfigService extends ConfigService {
 
     let parentId = await getAsync(idRedisKey)
     if (!parentId) {
-      const chainCfg = await this.loadConfig('chain', chainKey)
+      const chainCfg = await RedisConfigService.prototype.loadConfig.apply(this, ['chain', chainKey])
       if (chainCfg) parentId = chainCfg.id
     }
     if (!parentId) return null
-    return this.loadConfigKeys('tokens', parentId, includeDisabled)
+    return RedisConfigService.prototype.loadConfigKeys.apply(this, ['tokens', parentId, includeDisabled])
   }
   // 通用方法
   async loadConfigKeys (path, parent = undefined, includeDisabled = true) {
@@ -211,8 +232,8 @@ class HostConfigService extends RedisConfigService {
     if (cfg.CoreType !== chainKey) msetParams.push(cfg.CoreType, chainKey)
     if (msetParams.length > 0) {
       const aliasKey = REDIS_CFG_CACHE_PREFIX + `CHAINS_ALIAS`
-      const msetAsync = promisify(this.redisClient.MSET).bind(this.redisClient)
-      await msetAsync(aliasKey, msetParams)
+      const hmsetAsync = promisify(this.redisClient.HMSET).bind(this.redisClient)
+      await hmsetAsync(aliasKey, msetParams)
     }
     cfg.key = chainKey
     return cfg
@@ -228,18 +249,15 @@ class HostConfigService extends RedisConfigService {
     let msetParams = []
     const coinCfg = cfg.coin || {}
     for (let key in coinCfg) {
-      if (key === 'TokenName' ||
-        key === 'Contract' ||
-        key === 'contract' ||
-        key === 'assetId' ||
-        key === 'address') {
+      if (!coinCfg[key]) continue
+      if (_.includes(TOKEN_ALIAS_FIELDS, key)) {
         msetParams.push(coinCfg[key], coinName)
       }
     }
     if (msetParams.length > 0) {
       const aliasKey = REDIS_CFG_CACHE_PREFIX + `CHAINS:${chainKey}:ALIAS`
-      const msetAsync = promisify(this.redisClient.MSET).bind(this.redisClient)
-      await msetAsync(aliasKey, msetParams)
+      const hmsetAsync = promisify(this.redisClient.HMSET).bind(this.redisClient)
+      await hmsetAsync(aliasKey, msetParams)
     }
     // 设置tokenName
     cfg.name = coinName

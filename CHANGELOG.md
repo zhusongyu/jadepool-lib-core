@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.12.3
+
+Fixes:
+
+* 修复config.service的alias机制
+
 ## V0.12.2
 
 Fixes:
