@@ -5,22 +5,26 @@ import {
 
 /**
  * 读取默认配置中的token配置信息
+ * @deprecated
  * @param chainKey
  * @param coinName
  */
 export function loadCoinCfg(chain: string | ChainConfig, coinName: string): Promise<TokenConfig>
 /**
  * 获取实时的可用coinNames
+ * @deprecated
  * @param chainKey
  */
 export function loadAllCoinNames(chain: string | ChainConfig, includeDisabled?: boolean): Promise<string[]>
 /**
  * 获取实时的区块链配置
+ * @deprecated
  * @param chainKey
  */
 export function loadChainCfg(chainKey: string): Promise<ChainConfig>
 /**
  * 获取实时的全部链名称
+ * @deprecated
  */
 export function loadAllChainNames(includeDisabled?: boolean): Promise<string[]>
 
