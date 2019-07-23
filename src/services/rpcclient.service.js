@@ -81,7 +81,7 @@ class Service extends BaseService {
      * 可接受的方法调用
      * @type {String[]}
      */
-    this.acceptMethods = methods
+    this.acceptMethods = _.map(methods, methodName => _.kebabCase(methodName))
   }
 
   /**
