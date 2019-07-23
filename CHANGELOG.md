@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.12.1
+
+Fixes:
+
+* 修复config.service onDestroy时redisClient失效
+
 ## V0.12.0
 
 Features:
