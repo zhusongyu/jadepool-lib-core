@@ -303,7 +303,18 @@ class HostConfigService extends RedisConfigService {
     return configLoader.setAliasConfigPath(...arguments)
   }
   async deleteConfig (path, key, parent = undefined) {
-    return configLoader.deleteConfig(path, key, parent)
+    const isSuccess = await configLoader.deleteConfig(path, key, parent)
+    // 移除Redis缓存
+    if (isSuccess) {
+      const delAsync = promisify(this.redisClient.DEL).bind(this.redisClient)
+      const pathId = path + `@${parent || 'root'}`
+      const idRedisKey = REDIS_CFG_CACHE_PREFIX + `ID:${pathId}:${key}`
+      const dataRedisKey = REDIS_CFG_CACHE_PREFIX + `DATA:${pathId}:${key}`
+      const key1 = REDIS_CFG_CACHE_PREFIX + `KEYS:${pathId}:ALL`
+      const key2 = REDIS_CFG_CACHE_PREFIX + `KEYS:${pathId}:ENABLED`
+      await delAsync(idRedisKey, dataRedisKey, key1, key2)
+    }
+    return isSuccess
   }
   async saveConfig (path, key, modJson, disabled = undefined, parent = undefined) {
     const dat = await configLoader.saveConfig(path, key, modJson, disabled, parent)
