@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.12.2
+
+Fixes:
+
+* 修复config.service load/save config时的null检测
+
 ## V0.12.1
 
 Fixes:
