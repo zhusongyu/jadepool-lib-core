@@ -257,17 +257,22 @@ class HostConfigService extends RedisConfigService {
   async _loadConfigKeys (path, parent, includeDisabled, ignoreEmpty = false) {
     let keys = await configLoader.loadConfigKeys(path, parent, includeDisabled)
     if (ignoreEmpty) keys = keys.filter(key => key !== '' && key !== '_')
-    // 进行读取并写入redis
-    const pathId = path + `@${parent || 'root'}`
-    const redisKey = REDIS_CFG_CACHE_PREFIX + `KEYS:${pathId}:${includeDisabled ? 'ALL' : 'ENABLED'}`
-
-    const saddAsync = promisify(this.redisClient.SADD).bind(this.redisClient)
-    await saddAsync(redisKey, keys)
+    if (keys.length > 0) {
+      // 进行读取并写入redis
+      const pathId = path + `@${parent || 'root'}`
+      const redisKey = REDIS_CFG_CACHE_PREFIX + `KEYS:${pathId}:${includeDisabled ? 'ALL' : 'ENABLED'}`
+      const saddAsync = promisify(this.redisClient.SADD).bind(this.redisClient)
+      await saddAsync(redisKey, keys)
+    }
     return keys
   }
   async _loadConfig (path, key, parent = undefined) {
     // 进行读取并写入redis
     const dat = await configLoader.loadConfig(path, key, parent)
+    if (!dat) {
+      logger.tag('failed-to-load-config').warn(`path=${path},key=${key},path=${parent}`)
+      return null
+    }
     const jsonCfg = dat.toMerged()
     jsonCfg.id = String(dat._id)
     await this._setDataToRedis(path, key, parent, jsonCfg.id, jsonCfg)
@@ -309,6 +314,10 @@ class HostConfigService extends RedisConfigService {
   }
   async saveConfig (path, key, modJson, disabled = undefined, parent = undefined) {
     const dat = await configLoader.saveConfig(path, key, modJson, disabled, parent)
+    if (!dat) {
+      logger.tag('failed-to-save-config').warn(`path=${path},key=${key},path=${parent}`)
+      return null
+    }
     const pathId = path + `@${parent || 'root'}`
     // 移除keys缓存
     if (disabled !== undefined) {
