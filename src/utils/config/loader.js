@@ -239,8 +239,9 @@ const saveConfig = async (cfgPath, key, modJson, disabled = undefined, parent = 
     cfgDat = new ConfigDat(data)
     if (parent) {
       cfgDat.parent = parent
+      await cfgDat.populate('parent').execPopulate()
       // 设置origin为parent的template
-      const templateJson = await geneTemplate(parent)
+      const templateJson = await geneTemplate(cfgDat.parent)
       if (templateJson) {
         // 设置配置内容
         cfgDat.origin = JSON.stringify(templateJson)
