@@ -2,6 +2,10 @@
 
 ## V0.12.4
 
+Fixes:
+
+* config.service host模式当setAutoSaveWhenLoad被设置时强制从db读取配置
+
 Improvement:
 
 * rpcclient的error日志需为warn级别
