@@ -193,33 +193,45 @@ class HostConfigService extends RedisConfigService {
   }
   // 便捷查询方法
   async loadChainCfg (chainKey) {
-    let cfg = await super.loadChainCfg(chainKey)
-    if (cfg) return cfg
+    if (!this._forceLoadFromDB) {
+      let cfg = await super.loadChainCfg(chainKey)
+      if (cfg) return cfg
+    }
     return this._loadChainCfg(chainKey)
   }
   async loadCoinCfg (chainKey, tokenNameOrAssetIdOrContract) {
-    let cfg = await super.loadCoinCfg(chainKey, tokenNameOrAssetIdOrContract)
-    if (cfg) return cfg
+    if (!this._forceLoadFromDB) {
+      let cfg = await super.loadCoinCfg(chainKey, tokenNameOrAssetIdOrContract)
+      if (cfg) return cfg
+    }
     return this._loadCoinCfg(chainKey, tokenNameOrAssetIdOrContract)
   }
   async loadAllChainNames (includeDisabled = false) {
-    let results = await super.loadAllChainNames(includeDisabled)
-    if (results && results.length > 0) return results
+    if (!this._forceLoadFromDB) {
+      let results = await super.loadAllChainNames(includeDisabled)
+      if (results && results.length > 0) return results
+    }
     return this._loadAllChainNames(includeDisabled)
   }
   async loadAllCoinNames (chainKey, includeDisabled = false) {
-    let results = await super.loadAllCoinNames(chainKey, includeDisabled)
-    if (results && results.length > 0) return results
+    if (!this._forceLoadFromDB) {
+      let results = await super.loadAllCoinNames(chainKey, includeDisabled)
+      if (results && results.length > 0) return results
+    }
     return this._loadAllCoinNames(chainKey, includeDisabled)
   }
   async loadConfigKeys (path, parent = undefined, includeDisabled = true) {
-    let results = await super.loadConfigKeys(path, parent, includeDisabled)
-    if (results && results.length > 0) return results
+    if (!this._forceLoadFromDB) {
+      let results = await super.loadConfigKeys(path, parent, includeDisabled)
+      if (results && results.length > 0) return results
+    }
     return this._loadConfigKeys(path, parent, includeDisabled)
   }
   async loadConfig (path, key, parent = undefined) {
-    let result = await super.loadConfig(path, key, parent)
-    if (result) return result
+    if (!this._forceLoadFromDB) {
+      let result = await super.loadConfig(path, key, parent)
+      if (result) return result
+    }
     return this._loadConfig(path, key, parent)
   }
   // 私有方法
@@ -311,6 +323,7 @@ class HostConfigService extends RedisConfigService {
   }
   // 写入类方法
   async setAutoSaveWhenLoad (value) {
+    this._forceLoadFromDB = value
     return configLoader.setAutoSaveWhenLoad(value)
   }
   async setAliasConfigPath (cfgPath, key, aliasPath) {
