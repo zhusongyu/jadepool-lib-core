@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.12.6
+
+Fixes:
+
+* 修复socketio.service缺少timeout的问题
+
 ## V0.12.5
 
 Fixes:
