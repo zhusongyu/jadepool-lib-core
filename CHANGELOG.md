@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.12.7
+
+Fixes:
+
+* config.service non host模式下自动重连
+
 ## V0.12.6
 
 Fixes:
