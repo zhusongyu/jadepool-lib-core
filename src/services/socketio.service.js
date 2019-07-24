@@ -19,10 +19,16 @@ class SocketService extends BaseService {
   /**
    * 该SocketIO将重用app.service的导出的server
    * @param {Object} opts
+   * @param {Number} [opts.timeout=120] 120秒请求过期
    * @param {Boolean} [opts.adapter=undefined] 启用adapter的配置
    * @param {Boolean} [opts.disableInternal=false] 是否禁用internal名字空间
    */
   async initialize (opts) {
+    /**
+     * 过期时间
+     * @type {number}
+     */
+    this.timeout = opts.timeout || 120
     // Step 0. 频道Map
     this._channels = new Map()
 
@@ -240,7 +246,7 @@ class SocketService extends BaseService {
     }
     // 执行远程调用
     logger.tag(`Invoke:${namespace}/Worker.${worker.sid}/${methodName}`).logObj(args)
-    let result = await _invokeInternalMethod(worker.socket, methodName, args)
+    let result = await this._invokeInternalMethod(worker.socket, methodName, args)
     return this._resultPostHandler(result, namespace, worker.sid)
   }
 
@@ -264,7 +270,7 @@ class SocketService extends BaseService {
     }
     // 执行远程调用
     logger.tag(`Invoke:${namespace}/Worker.${worker.sid}/${methodName}`).logObj(args)
-    let result = await _invokeInternalMethod(worker.socket, methodName, args)
+    let result = await this._invokeInternalMethod(worker.socket, methodName, args)
     return this._resultPostHandler(result, namespace, worker.sid)
   }
 
@@ -285,7 +291,7 @@ class SocketService extends BaseService {
     const allPromises = []
     const errors = []
     socketMap.forEach(worker => {
-      allPromises.push(_invokeInternalMethod(worker.socket, methodName, args)
+      allPromises.push(this._invokeInternalMethod(worker.socket, methodName, args)
         .then(res => this._resultPostHandler(res || {}, namespace, worker.sid))
         .catch(err => errors.push(err && err.message)))
     })
@@ -295,25 +301,28 @@ class SocketService extends BaseService {
     }
     return result
   }
-}
-
-/**
- * 进行内方法调用的实际执行函数
- * @param {SocketIO.Socket} socket
- * @param {String} methodName
- * @param {Object} args
- * @param {Function} callback
- */
-const _invokeInternalMethod = (socket, methodName, args) => {
-  return new Promise((resolve, reject) => {
-    socket.emit(consts.SIO_EVENTS.INVOKE_METHOD, methodName, args, function (err, data) {
-      if (err) {
-        reject(new NBError(err.code || 10001, err.message))
-      } else {
-        resolve(data || {})
-      }
+  /**
+   * 进行内方法调用的实际执行函数
+   * @param {SocketIO.Socket} socket
+   * @param {String} methodName
+   * @param {Object} args
+   * @param {Function} callback
+   */
+  _invokeInternalMethod (socket, methodName, args) {
+    return new Promise((resolve, reject) => {
+      // 30秒超时定义
+      const timeoutMs = this.timeout * 1000
+      const timeout = setTimeout(() => reject(new NBError(21005, `method=${methodName}`)), timeoutMs)
+      socket.emit(consts.SIO_EVENTS.INVOKE_METHOD, methodName, args, function (err, data) {
+        clearTimeout(timeout)
+        if (err) {
+          reject(new NBError(err.code || 10001, err.message))
+        } else {
+          resolve(data || {})
+        }
+      })
     })
-  })
+  }
 }
 
 module.exports = SocketService

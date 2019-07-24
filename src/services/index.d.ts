@@ -194,6 +194,7 @@ declare class ProcessService extends BaseService {
 }
 
 declare interface SocketIOOptions {
+  timeout?: number;
   disableInternal?: boolean;
   adapter?: {
     type: string
