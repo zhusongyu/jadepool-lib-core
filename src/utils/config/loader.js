@@ -131,17 +131,20 @@ const loadConfig = async (cfgPath, key = '', parent = null) => {
   let cfgDat = await ConfigDat.findOne(query).exec()
   if ((enableAutoSaveWhenLoad && (!cfgDat || semver.gt(jp.env.version, cfgDat.version))) ||
     (!jp.env.isProd && cfgDat && cfgDat.dirty)) {
+    let parentDat
+    if (query.parent) {
+      parentDat = await ConfigDat.findById(query.parent).exec()
+    }
     // 读取文件配置
-    let cfgFilePaths = getConfigPaths(cfgPath, key, parent)
+    let cfgFilePaths = getConfigPaths(cfgPath, key, parentDat)
     let cfgFilePath = cfgFilePaths[0]
     // 不存在文件配置，说明这个是自定义的配置
     if (!fs.existsSync(cfgFilePath)) {
       if (!cfgDat) return null
       // 若为自定义配置且存在parent，则说明origin为parent的template
       if (cfgDat.customized && cfgDat.parent) {
-        await cfgDat.populate('parent').execPopulate()
         // 重置origin为parent的template
-        const templateJson = await geneTemplate(cfgDat.parent)
+        const templateJson = await geneTemplate(parentDat)
         if (templateJson) {
           // 设置配置内容
           cfgDat.origin = JSON.stringify(templateJson)
@@ -239,8 +242,9 @@ const saveConfig = async (cfgPath, key, modJson, disabled = undefined, parent = 
     cfgDat = new ConfigDat(data)
     if (parent) {
       cfgDat.parent = parent
+      await cfgDat.populate('parent').execPopulate()
       // 设置origin为parent的template
-      const templateJson = await geneTemplate(parent)
+      const templateJson = await geneTemplate(cfgDat.parent)
       if (templateJson) {
         // 设置配置内容
         cfgDat.origin = JSON.stringify(templateJson)
