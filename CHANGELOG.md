@@ -1,5 +1,12 @@
 # Change Logs
 
+## V0.12.5
+
+Fixes:
+
+* 修复saveConfig无法geneTemplates的问题
+* 修复配置写入的问题
+
 ## V0.12.4
 
 Fixes:
