@@ -417,6 +417,10 @@ class ClientConfigService extends RedisConfigService {
     if (!this._currentHost) return null
     const rpcClient = jadepool.getService(consts.SERVICE_NAMES.JSONRPC)
     if (!rpcClient) return null
+    const readyState = rpcClient.getClientReadyState(this._currentHost)
+    if (readyState !== WebSocket.OPEN) {
+      await this._tryConnectHost()
+    }
     return rpcClient.requestJSONRPC(this._currentHost, method, params)
   }
   // 便捷查询方法
