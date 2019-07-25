@@ -36,23 +36,36 @@ declare class RedisMessager {
    * @param groupName
    */
   ensureGroup (groupName: string): Promise<void>;
-	/**
-	 * 发起请求
-	 * @param msgs 塞入队列的对象
-	 */
-  addMessages(msgs: object[], opts?: AddMessageOptions): Promise<string[]>;
   /**
    * 处理Message
    * @param consumerName 消费者名称
    * @param opts 参数
    */
   consumeMessages (consumerName: string, opts?: ConsumeMessageOptions): Promise<Message[]>
+	/**
+	 * 添加Messages，并递交redis
+	 * @param msgs 塞入队列的对象
+   * @param opts 参数
+	 */
+  addMessages(msgs: object[], opts?: AddMessageOptions): Promise<string[]>;
   /**
-   * 完成Message
+   * 添加Messages，返回Multi
+   * @param msgs 塞入队列的对象
+   * @param opts 参数
+   */
+  addMessagesMulti(msgs: object[], opts?: AddMessageOptions): redis.Multi;
+  /**
+   * 完成Message，并递交redis
    * @param msgIds
    * @param groupName 不传则使用默认组
    */
   ackMessages (msgIds: string[], groupName?: string): Promise<string[]>
+  /**
+   * 完成Message，返回Multi
+   * @param msgIds
+   * @param groupName 不传则使用默认组
+   */
+  ackMessagesMulti  (msgIds: string[], groupName?: string): redis.Multi;
 }
 
 export = RedisMessager
