@@ -53,13 +53,11 @@ class RedisMessager {
    * @param {Object} opts
    * @param {Number} [opts.maxLen=10000]
    */
-  async addMessages (msgs, opts = {}) {
-    if (typeof msgs.length !== 'number') return []
-    const xaddAsync = promisify(this._redisClient.xadd).bind(this._redisClient)
+  addMessagesMulti (msgs, opts = {}) {
+    const multi = this._redisClient.multi()
     const maxLen = opts.maxLen || 10000
     // 添加message
     msgs = msgs.filter(m => typeof m === 'object')
-    const ids = []
     for (let i = 0; i < msgs.length; i++) {
       const data = msgs[i]
       const record = []
@@ -67,9 +65,20 @@ class RedisMessager {
         if (!data.hasOwnProperty(key)) continue
         record.push(key, data[key])
       }
-      ids.push(await xaddAsync(this._streamKey, 'MAXLEN', '~', maxLen, '*', ...record))
+      multi.xadd(this._streamKey, 'MAXLEN', '~', maxLen, '*', ...record)
     }
-    return ids
+    return multi
+  }
+  /**
+   * 添加消息
+   * @param {Object[]} msgs
+   * @param {Object} opts
+   * @param {Number} [opts.maxLen=10000]
+   */
+  async addMessages (msgs, opts = {}) {
+    if (typeof msgs.length !== 'number') return []
+    const multi = this.addMessagesMulti(msgs, opts)
+    return new Promise((resolve, reject) => { multi.exec(resolve) })
   }
   /**
    * 处理Message
@@ -163,14 +172,23 @@ class RedisMessager {
    * @param {String[]} msgIds
    * @param {String|undefined} groupName 默认使用初始化时的defaultGroup
    */
-  async ackMessages (msgIds, groupName = undefined) {
+  ackMessagesMulti (msgIds, groupName = undefined) {
+    const multi = this._redisClient.multi()
     if (typeof msgIds === 'string') msgIds = [ msgIds ]
     groupName = groupName || this._defaultGroup
-    if (typeof groupName !== 'string') return []
-    const xackAsync = promisify(this._redisClient.XACK).bind(this._redisClient)
-
-    const ids = await xackAsync(this._streamKey, groupName, ...msgIds)
+    if (typeof groupName !== 'string') return multi
+    multi.xack(this._streamKey, groupName, ...msgIds)
     logger.tag(this._streamKey, 'Msg Handled').debug(`group=${groupName},ids=${msgIds}`)
+    return multi
+  }
+  /**
+   * 完成Message
+   * @param {String[]} msgIds
+   * @param {String|undefined} groupName 默认使用初始化时的defaultGroup
+   */
+  async ackMessages (msgIds, groupName = undefined) {
+    const multi = this.addMessagesMulti(msgIds, groupName)
+    const ids = await new Promise((resolve, reject) => { multi.exec(resolve) })
     return ids
   }
 }

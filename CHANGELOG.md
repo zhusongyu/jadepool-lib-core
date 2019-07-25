@@ -1,5 +1,12 @@
 # Change Logs
 
+## V0.12.8
+
+Improvement:
+
+* App Model添加state delete_at 字段
+* RedisManager添加返回Multi的方法
+
 ## V0.12.7
 
 Fixes:

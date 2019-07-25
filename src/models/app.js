@@ -45,13 +45,21 @@ const schema = new Schema({
   data: {
     type: Schema.Types.Mixed,
     default: () => ({})
-  }
+  },
+  // 软删除配置
+  state: {
+    type: String,
+    enum: ['used', 'blocked', 'deleted'],
+    default: 'used'
+  },
+  // 软删除
+  delete_at: Date
 }, {
   timestamps: { createdAt: 'create_at', updatedAt: 'update_at' }
 })
 
 schema.index({ id: 1 }, { name: 'uniqueIndex', unique: true })
-schema.index({ wallet: 1 }, { name: 'walletIndex' })
+schema.index({ wallet: 1, state: 1 }, { name: 'walletIndex' })
 
 const AppConfig = fetchConnection(consts.DB_KEYS.CONFIG).model(consts.MODEL_NAMES.APPLICATION, schema)
 
