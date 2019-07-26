@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.12.9
+
+Fixes:
+
+* 修复config.service alias判断的bug
+
 ## V0.12.8
 
 Improvement:
