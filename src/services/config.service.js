@@ -87,7 +87,7 @@ class RedisConfigService extends ConfigService {
     if (!tokenCfg) return null
     // alias check
     if (coinName !== tokenNameOrAssetIdOrContract &&
-      !_.find(TOKEN_ALIAS_FIELDS, field => tokenCfg[field] === tokenNameOrAssetIdOrContract)) {
+      !_.find(TOKEN_ALIAS_FIELDS, field => _.get(tokenCfg, `coin.${field}`) === tokenNameOrAssetIdOrContract)) {
       return null
     }
     tokenCfg.name = coinName
