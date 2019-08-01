@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.12.11
+
+Fixes:
+
+* configLoader.loadConfigKeys当存在parent时无法正确找到别名
+
 ## V0.12.10
 
 Fixes:
