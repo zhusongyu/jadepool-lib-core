@@ -49,7 +49,7 @@ const redisLib = {
       opts.url = jp.config.redis
     } else if (_.isObject(jp.config.redis)) {
       const cfg = (jp.config.redis[name] || jp.config.redis[consts.DEFAULT_KEY]) || jp.config.redis
-      opts = _.clone(cfg)
+      opts = _.isString(cfg) ? { url: cfg } : _.clone(cfg)
     }
     // dev环境中，若无法获得地址则使用默认数据
     if (_.isEmpty(opts) && !jp.env.isProd) {
