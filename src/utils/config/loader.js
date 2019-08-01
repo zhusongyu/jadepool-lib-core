@@ -204,8 +204,12 @@ const loadConfigKeys = async (cfgPath, parent = null, includeDisabled = true) =>
   const cfgs = (await ConfigDat.find(query).exec()) || []
   let namesInDBs = cfgs.filter(cfg => includeDisabled || !cfg.disabled).map(cfg => cfg.key)
   if (!includeDisabled) return namesInDBs
+  let parentDat
+  if (parent) {
+    parentDat = await ConfigDat.findById(query.parent).exec()
+  }
   // Config in Files
-  let cfgFilePaths = getConfigPaths(cfgPath, '', parent)
+  let cfgFilePaths = getConfigPaths(cfgPath, '', parentDat)
   // 返回系列Keys
   return _.reduce(cfgFilePaths, (allNames, currPath) => {
     if (fs.existsSync(currPath)) {
