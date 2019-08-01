@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.12.10
+
+Fixes:
+
+* 修复连接redis时配置可能异常
+
 ## V0.12.9
 
 Fixes:
