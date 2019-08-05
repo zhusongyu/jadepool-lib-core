@@ -11,7 +11,6 @@ const BaseService = require('./core')
 const jp = require('../jadepool')
 const consts = require('../consts')
 const NBError = require('../NBError')
-const cfgLoader = require('../utils/config/loader')
 const logger = require('@jadepool/logger').of('Service', 'Express')
 
 class AppService extends BaseService {
@@ -24,7 +23,8 @@ class AppService extends BaseService {
 
   /**
    * @param {object} opts
-   * @param {boolean} opts.listenManually
+   * @param {boolean} [opts.listenManually=false]
+   * @param {object} [opts.server=undefined]
    * @param {number} [opts.defaultErrorStatus=500]
    * @param {(app: Express) => void} opts.routes
    */
@@ -103,17 +103,25 @@ class AppService extends BaseService {
     })
 
     // Start the server
-    const processKey = consts.PROCESS.TYPES.ROUTER + '-' + jp.env.server
-    const serviceDat = await cfgLoader.loadConfig('services', processKey)
-    if (!serviceDat) {
-      throw new NBError(10001, `missing services config: ${processKey}`)
+    // { host: string, http: { port: number, disabled: boolean }, https: { port: number, key: string, cert: string, ca: string } }
+    let serviceCfg
+    if (!opts.server) {
+      const processKey = consts.PROCESS.TYPES.ROUTER + '-' + jp.env.server
+      const cfgLoader = require('../utils/config/loader')
+      const serviceDat = await cfgLoader.loadConfig('services', processKey)
+      if (!serviceDat) {
+        throw new NBError(10001, `missing services config: ${processKey}`)
+      }
+      serviceCfg = serviceDat.toMerged()
+      if (serviceCfg.host !== jp.env.host) {
+        serviceDat.applyModify({ host: jp.env.host })
+        await serviceDat.save()
+        logger.log(`host.modified=${jp.env.host}`)
+      }
+    } else {
+      serviceCfg = _.clone(opts.server)
     }
-    let serviceCfg = serviceDat.toMerged()
-    if (serviceCfg.host !== jp.env.host) {
-      serviceDat.applyModify({ host: jp.env.host })
-      await serviceDat.save()
-      logger.log(`host.modified=${jp.env.host}`)
-    }
+
     if (!serviceCfg.http.disabled) {
       // 设置常量
       Object.defineProperties(this, {
