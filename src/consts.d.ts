@@ -9,12 +9,6 @@ export declare const DEFAULT_ENCODE: 'base64';
  */
 export declare namespace PROCESS {
   const NAME_PREFIX: 'Jadepool';
-  /** @deprecated */
-  const CLUSTER_MODES: {
-    AUTO: 'auto',
-    NODE: 'node',
-    PM2: 'pm2'
-  }
   const LAUNCH_MODES: {
     /**
      * 全进程单进程执行，已废弃

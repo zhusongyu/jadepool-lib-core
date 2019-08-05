@@ -34,7 +34,6 @@ module.exports = function buildEnvObject (serverType, version) {
     obj[prop] = val
     return obj
   }, {
-    clusterMode: consts.PROCESS.CLUSTER_MODES.AUTO, // 可通过环境变量 JP_CLUSTER_MODE 覆盖
     script: require.main.filename || process.env.JP_SCRIPT, // 可通过环境变量 JP_SCRIPT 覆盖
     host: '127.0.0.1', // 可通过环境变量 JP_HOST 覆盖
     defaultMongo: '127.0.0.1:27017', // 可通过环境变量 JP_DEFAULT_MONGO 覆盖

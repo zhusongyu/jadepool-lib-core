@@ -4,12 +4,6 @@ const DEFAULT_ENCODE = 'base64'
 // --------- MAP ---------
 const PROCESS = {
   NAME_PREFIX: 'Jadepool',
-  /** @deprecated */
-  CLUSTER_MODES: {
-    AUTO: 'auto',
-    NODE: 'node',
-    PM2: 'pm2'
-  },
   LAUNCH_MODES: {
     /** @deprecated */
     ALL_IN_ONE: 'allinone',
