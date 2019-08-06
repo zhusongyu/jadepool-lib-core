@@ -1,5 +1,7 @@
 const _ = require('lodash')
 const uuid = require('uuid')
+const url = require('url')
+const http = require('http')
 const WebSocket = require('ws')
 const { EventEmitter } = require('events')
 
@@ -59,58 +61,30 @@ class JSONRPCService extends BaseService {
   async initialize (opts) {
     // 设置签名和验签规则
     this.opts = _.clone(opts)
+    this.wss = new WebSocket.Server({ noServer: true })
     // 定义ws server
-    const host = opts.host || '0.0.0.0'
-    const port = opts.port || 7897
+    let httpServer
+    let host
+    let port
+    let attachPath
+    const appServer = jp.getService(consts.SERVICE_NAMES.APP)
+    if (appServer && appServer.server) {
+      host = appServer.host
+      port = appServer.port
+      attachPath = '/rpc'
+      httpServer = appServer.server
+      logger.tag('AttachTo').log(`host=${host},port=${port}`)
+    } else {
+      host = opts.host || '0.0.0.0'
+      port = opts.port || 7897
+      attachPath = '/'
+      httpServer = http.createServer()
+    }
+    // 设置常量
     Object.defineProperties(this, {
       host: { value: host, writable: false, enumerable: true },
       port: { value: port, writable: false, enumerable: true }
     })
-    this.wss = new WebSocket.Server({
-      host,
-      port,
-      /**
-       * @param {{ origin: string; secure: boolean; req: IncomingMessage }} info
-       * @param {(res: boolean, code?: number, message?: string, headers?: http.OutgoingHttpHeaders) => void} done
-       * @return {boolean}
-       */
-      verifyClient: (info, done) => {
-        // 无需验证
-        if (opts.noAuth) {
-          return done(true)
-        }
-        if (!info.req.headers || !info.req.headers.authorization) {
-          logger.warn(`missing headers.authorization. client: ${info.origin}`)
-          return done(false)
-        }
-        const authString = info.req.headers.authorization
-        let [key, timestamp, sig] = authString.split(',')
-        let promise
-        if (!opts.verifier) {
-          promise = cryptoUtils.verifyInternal(key, parseInt(timestamp), sig, opts)
-        } else {
-          const pubKey = typeof opts.verifier === 'string' ? Buffer.from(opts.verifier, consts.DEFAULT_ENCODE) : opts.verifier
-          promise = new Promise((resolve, reject) => {
-            try {
-              resolve(cryptoUtils.verifyString(key, parseInt(timestamp), sig, pubKey, opts))
-            } catch (err) { reject(err) }
-          })
-        }
-        promise.then(result => {
-          if (!result) {
-            logger.warn(`authorization failed. client: ${info.origin}`)
-          }
-          done(!!result)
-        }).catch(err => {
-          logger.error(`verify from jadepool: ${authString}`, err)
-          done(false)
-        })
-      }
-    })
-    this.wss.once('listening', () => { logger.log(`JSONRPC Service listen to ${host}:${port}`) })
-
-    // 设置acceptMethods
-    this.setAcceptMethods(opts.acceptMethods)
 
     // 设置Websocket.Server的事件监听
     this.wss.on('connection', (client) => {
@@ -121,6 +95,65 @@ class JSONRPCService extends BaseService {
         this._handleRPCMessage(client, data.valueOf())
       })
     })
+
+    // 设置acceptMethods
+    this.setAcceptMethods(opts.acceptMethods)
+
+    /**
+     * @param {IncomingMessage} req
+     * @return {Promise<boolean>}
+     */
+    const verifyClient = async (req) => {
+      if (!req.headers || !req.headers.authorization) {
+        logger.warn(`missing headers.authorization. client: ${req.url}`)
+        return false
+      }
+      const authString = req.headers.authorization
+      let [key, timestamp, sig] = authString.split(',')
+      let result
+      if (!opts.verifier) {
+        result = await cryptoUtils.verifyInternal(key, parseInt(timestamp), sig, opts)
+      } else {
+        const pubKey = typeof opts.verifier === 'string' ? Buffer.from(opts.verifier, consts.DEFAULT_ENCODE) : opts.verifier
+        result = await cryptoUtils.verifyString(key, parseInt(timestamp), sig, pubKey, opts)
+      }
+      if (!result) {
+        logger.warn(`authorization failed. client: ${req.url}`)
+      }
+      return result
+    }
+
+    // 仅监听http server, 设置upgrade
+    httpServer.on('upgrade', async (request, socket, head) => {
+      const pathname = url.parse(request.url).pathname
+      if (pathname !== attachPath) {
+        socket.destroy()
+        return
+      }
+      // 进行验证
+      if (!opts.noAuth) {
+        let result 
+        try {
+          result = await verifyClient(request)
+        } catch (err) {
+          logger.tag('failed-to-verify-client').error(null, err)
+        }
+        if (!result) {
+          socket.destroy()
+          return
+        }
+      }
+      // upgrade it
+      this.wss.handleUpgrade(request, socket, head, (ws) => {
+        this.wss.emit('connection', ws, request);
+      })
+    })
+
+    // 开新的port监听
+    if (!appServer) {
+      await new Promise(resolve => { httpServer.listen(port, resolve) })
+      logger.tag('Listen').log(`url=ws://${host}:${port}`)
+    }
   }
 
   /**

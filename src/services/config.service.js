@@ -176,6 +176,7 @@ class HostConfigService extends RedisConfigService {
       }
       rpcServer.addAcceptableMethod(methodKey, handler)
     }
+    logger.tag('Inited').log(`mode=host`)
   }
   /**
    * 该Service的优雅退出函数
@@ -377,6 +378,7 @@ class ClientConfigService extends RedisConfigService {
     await super.initialize(opts)
     // 连接host
     await this._tryConnectHost()
+    logger.tag('Inited').log(`mode=client`)
   }
   /**
    * 该Service的优雅退出函数

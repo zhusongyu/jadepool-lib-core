@@ -103,7 +103,7 @@ class AppService extends BaseService {
     })
 
     // Start the server
-    // { host: string, http: { port: number, disabled: boolean }, https: { port: number, key: string, cert: string, ca: string } }
+    // { host: string, http: { port: number, disabled: boolean }, https: { port: number, disabled: boolean, key: string, cert: string, ca: string } }
     let serviceCfg
     if (!opts.server) {
       const processKey = consts.PROCESS.TYPES.ROUTER + '-' + jp.env.server
@@ -122,11 +122,14 @@ class AppService extends BaseService {
       serviceCfg = _.clone(opts.server)
     }
 
+    // set host
+    Object.defineProperty(this, 'host', { value: serviceCfg.host })
+
     if (!serviceCfg.http.disabled) {
       // 设置常量
       Object.defineProperties(this, {
-        '_server': { value: http.createServer(app) },
-        '_port': { value: serviceCfg.http.port }
+        'server': { value: http.createServer(app) },
+        'port': { value: serviceCfg.http.port }
       })
     }
     if (!serviceCfg.https.disabled) {
@@ -138,8 +141,8 @@ class AppService extends BaseService {
       }
       // 设置常量
       Object.defineProperties(this, {
-        '_serverSSL': { value: https.createServer(opts, app) },
-        '_portSSL': { value: serviceCfg.https.port }
+        'serverSSL': { value: https.createServer(opts, app) },
+        'portSSL': { value: serviceCfg.https.port }
       })
     }
     // 若非手动监听，则直接启动
@@ -147,10 +150,6 @@ class AppService extends BaseService {
       await this.listen()
     }
   }
-
-  // Accessors
-  get server () { return this._serverSSL || this._server }
-  get port () { return this._portSSL || this._port }
 
   // Methods
   async listen () {

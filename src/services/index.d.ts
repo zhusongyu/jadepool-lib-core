@@ -6,6 +6,8 @@ import {
   ChainConfig,
   TokenConfig
 } from "../models";
+import * as http from 'http';
+import * as https from 'https';
 
 export as namespace services
 
@@ -50,7 +52,12 @@ declare interface AppOptions {
 }
 declare class AppService extends BaseService {
   constructor (services : any);
-  port: number
+  host: string
+  port?: number
+  server?: http.Server
+  portSSL?: number
+  serverSSL?: https.Server
+
   initialize (opts: AppOptions): Promise<void>
   listen (): Promise<void>
 }
