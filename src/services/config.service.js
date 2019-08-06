@@ -47,8 +47,8 @@ class RedisConfigService extends ConfigService {
   async initialize (opts) {
     const redisClientKey = 'ConfigRedisClient'
     // 确保redis配置正常, 若无法获取该方法将throw error
-    await redis.getOpts(redisClientKey)
     this.redisClient = redis.fetchClient(redisClientKey)
+    await new Promise(resolve => this.redisClient.once('state_change', resolve))
   }
   // 便捷查询方法
   async loadChainCfg (keyOrNameOrCoreType) {

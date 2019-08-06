@@ -26,8 +26,8 @@ class ErrorCodeService extends BaseService {
   async initialize (opts) {
     const redisClientKey = 'ErrorCodeRedisClient'
     // 确保redis配置正常, 若无法获取该方法将throw error
-    await redis.getOpts(redisClientKey)
     this.redisClient = redis.fetchClient(redisClientKey)
+    await new Promise(resolve => this.redisClient.once('state_change', resolve))
 
     // 从文件中读取error code, 并写入redis
     if (opts.isHost) {

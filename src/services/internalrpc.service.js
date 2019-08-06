@@ -5,6 +5,7 @@ const NBError = require('../NBError')
 const jadepool = require('../jadepool')
 const redis = require('../utils/redis')
 const rpcHelper = require('../utils/rpcHelper')
+const cryptoUtils = require('../utils/crypto')
 
 const logger = require('@jadepool/logger').of('Service', 'Internal RPC')
 
@@ -14,6 +15,13 @@ const REDIS_HOST_PREFIX = 'JADEPOOL_SERVICE:INTERNAL_RPC:HOST:'
  * 导出函数
  */
 class Service extends BaseService {
+  /**
+   * @param {Object} services 服务列表
+   */
+  constructor (services) {
+    super(consts.SERVICE_NAMES.INTERNAL_RPC, services)
+  }
+
   /**
    * 初始化
    * @param {Object} opts
@@ -25,11 +33,6 @@ class Service extends BaseService {
     this.port = opts.port || 50000
     /** @type {Map<string, string>} */
     this.cachedNspMap = new Map()
-
-    const redisClientKey = 'InternalRPC'
-    // 确保redis配置正常, 若无法获取该方法将throw error
-    await redis.getOpts(redisClientKey)
-    this.redisClient = redis.fetchClient(redisClientKey)
   }
   /**
    * 该Service的优雅退出函数
@@ -37,13 +40,10 @@ class Service extends BaseService {
    */
   async onDestroy (signal) {
     // end client
-    for (const rpcUrl of this.cachedNspMap.values) {
-      const rpcClient = jadepool.getService(consts.SERVICE_NAMES.JSONRPC)
-      await rpcClient.closeRPCServer(rpcUrl)
-    }
+    this.cachedNspMap.clear()
     // end server
     const rpcServer = jadepool.getService(consts.SERVICE_NAMES.JSONRPC_SERVER)
-    if (rpcServer && this.redisClient.connected) {
+    if (rpcServer && this.redisClient && this.redisClient.connected) {
       const redisHostKey = REDIS_HOST_PREFIX + this.namespace
       await this.redisClient.srem(redisHostKey, `${rpcServer.host}:${rpcServer.port}`)
     }
@@ -51,10 +51,17 @@ class Service extends BaseService {
   /**
    * 确保redis连接
    */
-  _ensureRedisConnected () {
+  async _ensureRedisConnected () {
+    const redisClientKey = 'InternalRPC'
+    // 确保redis配置正常, 若无法获取该方法将throw error
+    this.redisClient = redis.fetchClient(redisClientKey)
+
     if (!this.redisClient.connected) {
-      logger.warn(`redisClient is not connected`)
-      throw new NBError(50000)
+      const result = await new Promise(resolve => this.redisClient.once('state_change', resolve))
+      if (!result.ok) {
+        logger.warn(`redisClient is not connected`)
+        throw new NBError(50000)
+      }
     }
   }
   /**
@@ -70,7 +77,7 @@ class Service extends BaseService {
    * @param {string[]|{method:string, func?:Function}[]} methods
    */
   async registerRPCMethods (methods) {
-    this._ensureRedisConnected()
+    await this._ensureRedisConnected()
 
     // find service
     let rpcServer = jadepool.getService(consts.SERVICE_NAMES.JSONRPC_SERVER)
@@ -108,12 +115,16 @@ class Service extends BaseService {
   async invokeRPCMethod (namespace, method, params) {
     // 本地调用
     if (namespace === this.namespace) {
-      return jadepool.invokeMethod(method, namespace, params)
+      let result = await jadepool.invokeMethod(method, namespace, params)
+      if (typeof result === 'object' && result.encrypted) {
+        result = await cryptoUtils.decryptInternal(result.encrypted)
+      }
+      return result
     }
     // 远程调用
     let rpcUrl = this.cachedNspMap.get(namespace)
     if (!rpcUrl || !(await rpcHelper.isRPCConnected(rpcUrl))) {
-      this._ensureRedisConnected()
+      await this._ensureRedisConnected()
       const srandmemberAysnc = promisify(this.redisClient.srandmember).bind(this.redisClient)
       rpcUrl = await srandmemberAysnc(REDIS_HOST_PREFIX + namespace)
       if (!rpcUrl) throw new NBError(10001, `missing rpc url for namespace: ${namespace}`)

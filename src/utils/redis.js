@@ -82,10 +82,13 @@ const redisLib = {
         } else if (err instanceof redis.AbortError) {
           logger.tag('Abort').error(`name=${name}`, err)
         }
+        client.emit('state_change', { event: 'error', code: err.code })
       }).on('ready', function () {
         logger.tag('Ready').log(`name=${name}`)
+        client.emit('state_change', { event: 'ready', ok: true })
       }).on('reconnecting', function () {
         logger.tag('Reconnecting').log(`name=${name}`)
+        client.emit('state_change', { event: 'reconnecting' })
       })
       clientMap.set(name, client)
     }
