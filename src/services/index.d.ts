@@ -152,6 +152,33 @@ declare class JSONRpcClientService extends BaseService {
   requestJSONRPC (url: string, methodName: string, args: any, opts?: RequestOptions): Promise<any>
 }
 
+declare interface InternalRPCOptions {
+  namespace: string
+  port?: number
+}
+declare class InternalRpcService extends BaseService {
+  constructor (services : any);
+  initialize(opts: InternalRPCOptions): Promise<void>
+  /**
+   * 注册本服务的方法
+   * @param {String} methodName
+   * @param {Function} [func=undefined]
+   */
+  registerRPCMethod(method: string, methodFunc?: Function): Promise<void>;
+  /**
+   * 注册一堆本服务的方法
+   * @param methods 方法定义
+   */
+  registerRPCMethods(methods: string[] | { method: string, func?: Function }[] ): Promise<void>;
+  /**
+   * 调用rpc方法
+   * @param {String} namespace
+   * @param {String} method
+   * @param {any} params
+   */
+  invokeRPCMethod(namespace: string, method: string, params: any): Promise<any>
+}
+
 declare interface ScriptOptions {
   onStartup: Function;
   onExit: Function;

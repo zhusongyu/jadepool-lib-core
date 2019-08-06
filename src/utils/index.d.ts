@@ -40,7 +40,7 @@ export declare namespace rpcHelper {
   /**
    * 查询是否连接成功
    */
-  function isRPCConnected(rpcUrl: string): boolean;
+  function isRPCConnected(rpcUrl: string): Promise<boolean>;
   /**
    * 直接连接rpc 服务
    */

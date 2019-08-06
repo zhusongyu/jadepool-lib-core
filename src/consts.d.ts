@@ -53,6 +53,8 @@ export declare const SERVICE_NAMES: {
   JSONRPC: 'jsonrpc.client',
   /** 基于ws的通用jsonrpc服务端 */
   JSONRPC_SERVER: 'jsonrpc.server',
+  /** 基于ws内部rpc服务 */
+  INTERNAL_RPC: 'jsonrpc.internal',
   /** Socket.io服务 */
   SOCKET_IO: 'socket.io',
   /** Socket.io的worker服务中心 */

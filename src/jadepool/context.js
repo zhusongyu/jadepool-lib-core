@@ -141,6 +141,9 @@ class JadePoolContext {
         case consts.SERVICE_NAMES.JSONRPC_SERVER:
           ClassToRegister = require('../services/jsonrpc.service')
           break
+        case consts.SERVICE_NAMES.INTERNAL_RPC:
+          ClassToRegister = require('../services/internalrpc.service')
+          break
         case consts.SERVICE_NAMES.SIO_WORKER:
           ClassToRegister = require('../services/sioworker.service')
           break
