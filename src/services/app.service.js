@@ -84,22 +84,31 @@ class AppService extends BaseService {
         status = 500
       }
       // 设置错误结果
+      let promise
       if (!errResult) {
         const errSrv = jp.getService(consts.SERVICE_NAMES.ERROR_CODE)
         if (errSrv && errCode) {
           const reqData = Object.assign({}, req.query, req.body)
           const locale = (reqData.lang || reqData.locale) || consts.SUPPORT_LOCALES.ZH_CN
-          errResult = errSrv.getErrObj(errCode, locale)
-          const category = errResult.category ? [ errResult.category ] : []
-          logger.error(errResult.message, err, category)
-          if (err.message) {
-            errResult.result = { info: err.message }
-          }
-        } else {
-          errResult = { code: errCode || status, message: err && err.message }
+          promise = errSrv.getErrorInfo(errCode, locale).then(errResult => {
+            const category = errResult.category ? [ errResult.category ] : []
+            logger.error(errResult.message, err, category)
+            if (err.message) {
+              errResult.result = { info: err.message }
+            }
+            return errResult
+          })
         }
       }
-      res.status(status).json(errResult)
+      if (!promise) {
+        promise = Promise.resolve({ code: errCode || status, message: err && err.message })
+      }
+      // 发送
+      promise.then(errResult => {
+        res.status(status).json(errResult)
+      }).catch(err => {
+        res.status(500).json({ code: errCode, message: err.message })
+      })
     })
 
     // Start the server

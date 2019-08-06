@@ -63,12 +63,13 @@ declare class AppService extends BaseService {
 }
 
 declare interface ErrorCodeOptions {
+  isHost: Boolean
   localePath?: string
 }
 declare class ErrorCodeService extends BaseService {
   constructor (services : any);
   initialize (opts: ErrorCodeOptions): Promise<void>
-  getErrObj (code: number, locale: string): { code: number, status: number, category: string, message: string }
+  getErrorInfo (code: number, locale: string): Promise<{ code: number, category: string, message: string }>
 }
 
 declare interface JSONRPCOptions {

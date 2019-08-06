@@ -19,6 +19,8 @@ class ErrorCodeService extends BaseService {
   /**
    * 初始化
    * @param {Object} opts
+   * @param {Boolean} [opts.isHost=false]
+   * @param {String} [opts.localePath=undefined]
    */
   async initialize (opts) {
     const cwdPath = process.cwd()
@@ -70,13 +72,12 @@ class ErrorCodeService extends BaseService {
     })
   }
 
-  getErrObj (code, locale = consts.SUPPORT_LOCALES.ZH_CN) {
+  async getErrorInfo (code, locale = consts.SUPPORT_LOCALES.ZH_CN) {
     const obj = this._errMap.get(code.toString())
     if (!obj) return { code, status: code }
     const localeMessage = obj.locales[locale] || obj.locales[consts.SUPPORT_LOCALES.ZH_CN]
     return {
       code: obj.code,
-      status: obj.code,
       category: obj.category,
       message: localeMessage
     }
