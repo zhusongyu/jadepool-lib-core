@@ -1,7 +1,7 @@
 const WebSocket = require('ws')
 const EventEmitter = require('events').EventEmitter
 
-const utils = require('./')
+const cryptoUtils = require('./crypto')
 const consts = require('../consts')
 const NBError = require('../NBError')
 const jadepool = require('../jadepool')
@@ -88,7 +88,7 @@ async function requestRPC (rpcUrl, method, params, opts) {
   // 使用瑶池数据库私钥进行签名
   let result = await jsonrpcSrv.requestJSONRPC(rpcUrl, method, params, opts)
   if (result.encrypted) {
-    result = await utils.crypto.decryptInternal(result.encrypted)
+    result = await cryptoUtils.decryptInternal(result.encrypted)
   }
   return result
 }
