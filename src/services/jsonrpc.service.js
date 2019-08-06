@@ -125,14 +125,15 @@ class JSONRPCService extends BaseService {
 
     // 仅监听http server, 设置upgrade
     httpServer.on('upgrade', async (request, socket, head) => {
-      const pathname = url.parse(request.url).pathname
-      if (pathname !== attachPath) {
+      /* eslint-disable-next-line node/no-deprecated-api */
+      const requrl = url.parse(request.url)
+      if (requrl.pathname !== attachPath) {
         socket.destroy()
         return
       }
       // 进行验证
       if (!opts.noAuth) {
-        let result 
+        let result
         try {
           result = await verifyClient(request)
         } catch (err) {
@@ -145,7 +146,7 @@ class JSONRPCService extends BaseService {
       }
       // upgrade it
       this.wss.handleUpgrade(request, socket, head, (ws) => {
-        this.wss.emit('connection', ws, request);
+        this.wss.emit('connection', ws, request)
       })
     })
 
