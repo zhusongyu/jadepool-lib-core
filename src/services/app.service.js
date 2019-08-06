@@ -96,7 +96,7 @@ class AppService extends BaseService {
             errResult.result = { info: err.message }
           }
         } else {
-          errResult = { code: err.code || status, message: err && err.message }
+          errResult = { code: errCode || status, message: err && err.message }
         }
       }
       res.status(status).json(errResult)
