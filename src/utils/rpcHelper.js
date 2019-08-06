@@ -8,12 +8,28 @@ const jadepool = require('../jadepool')
 
 const logger = require('@jadepool/logger').of('RPC', 'Helper')
 
+let _tryFetchPromise
+async function fetchRPCClientService () {
+  const jsonrpcSrv = jadepool.getService(consts.SERVICE_NAMES.JSONRPC)
+  if (jsonrpcSrv) return jsonrpcSrv
+  // 异步并发
+  if (_tryFetchPromise) return _tryFetchPromise
+  _tryFetchPromise = jadepool.registerService(consts.SERVICE_NAMES.JSONRPC).then(rpcClient => {
+    _tryFetchPromise = null
+    return rpcClient
+  }).catch(err => {
+    _tryFetchPromise = null
+    logger.warn(`failed-to-register-jsonrpc, err(${err.message})`)
+  })
+  return _tryFetchPromise
+}
+
 /**
  * 检测RPC是否连接
  * @param {string} rpcUrl
  */
-function isRPCConnected (rpcUrl) {
-  const jsonrpcSrv = jadepool.getService(consts.SERVICE_NAMES.JSONRPC)
+async function isRPCConnected (rpcUrl) {
+  const jsonrpcSrv = await fetchRPCClientService()
   const state = jsonrpcSrv.getClientReadyState(rpcUrl)
   return state === WebSocket.OPEN
 }
@@ -37,7 +53,7 @@ async function joinRPCServer (rpcUrl, opts) {
   const emitter = new EventEmitter()
   joinEmitters.set(rpcUrl, emitter)
 
-  const jsonrpcSrv = jadepool.getService(consts.SERVICE_NAMES.JSONRPC)
+  const jsonrpcSrv = await fetchRPCClientService()
   try {
     // 使用瑶池数据库私钥进行签名
     await jsonrpcSrv.joinRPCServer(rpcUrl, opts)
@@ -60,14 +76,14 @@ async function joinRPCServer (rpcUrl, opts) {
  * @param {string} opts.signerId
  */
 async function requestRPC (rpcUrl, method, params, opts) {
-  const isConnected = isRPCConnected(rpcUrl)
+  const isConnected = await isRPCConnected(rpcUrl)
   if (!isConnected) {
     const joined = await joinRPCServer(rpcUrl, opts)
     if (!joined) {
       throw new NBError(21004, `join server failed (url: ${rpcUrl})`)
     }
   }
-  const jsonrpcSrv = jadepool.getService(consts.SERVICE_NAMES.JSONRPC)
+  const jsonrpcSrv = await fetchRPCClientService()
   // 使用瑶池数据库私钥进行签名
   let result = await jsonrpcSrv.requestJSONRPC(rpcUrl, method, params, opts)
   if (result.encrypted) {
