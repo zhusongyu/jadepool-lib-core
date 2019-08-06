@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.12.12
+
+Fixes:
+
+* jadepool.createAsyncPlan sourceId missing
+
 ## V0.12.11
 
 Fixes:
