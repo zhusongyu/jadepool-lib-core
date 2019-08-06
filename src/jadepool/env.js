@@ -47,10 +47,7 @@ module.exports = function buildEnvObject (serverType, version) {
 
   // 设置process相关变量
   let launchMode, processType
-  if (cluster.isMaster && !envOpts.mode) {
-    launchMode = consts.PROCESS.LAUNCH_MODES.ALL_IN_ONE
-    processType = consts.PROCESS.TYPES.ROUTER
-  } else if (envOpts.mode === 'app') {
+  if (cluster.isMaster && (!envOpts.mode || envOpts.mode === 'app')) {
     if (!envOpts.param || envOpts.param === 'master') {
       launchMode = consts.PROCESS.LAUNCH_MODES.MASTER
       processType = consts.PROCESS.TYPES.ROUTER

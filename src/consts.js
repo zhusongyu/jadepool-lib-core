@@ -5,8 +5,6 @@ const DEFAULT_ENCODE = 'base64'
 const PROCESS = {
   NAME_PREFIX: 'Jadepool',
   LAUNCH_MODES: {
-    /** @deprecated */
-    ALL_IN_ONE: 'allinone',
     MASTER: 'master', // 中心管理者，同一项目不同机器同一时间仅存在一个进程
     AGENT: 'agent', // 附属管理者，同一项目在每台机器上仅存在一个进程
     WORKER: 'worker' // 具体事务执行者，同一项目存在多个进程

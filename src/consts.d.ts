@@ -10,11 +10,6 @@ export declare const DEFAULT_ENCODE: 'base64';
 export declare namespace PROCESS {
   const NAME_PREFIX: 'Jadepool';
   const LAUNCH_MODES: {
-    /**
-     * 全进程单进程执行，已废弃
-     * @deprecated
-     */
-    ALL_IN_ONE: 'allinone',
     /** 中心管理者，同一项目不同机器同一时间仅存在一个进程 */
     MASTER: 'master',
     /** 附属管理者，同一项目在每台机器上仅存在一个进程 */
