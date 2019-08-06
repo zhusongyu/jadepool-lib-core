@@ -9,6 +9,7 @@ const cryptoUtils = require('../utils/crypto')
 
 const logger = require('@jadepool/logger').of('Service', 'Internal RPC')
 
+const DEFAULT_PORT = 7380
 const REDIS_HOST_PREFIX = 'JADEPOOL_SERVICE:INTERNAL_RPC:HOST:'
 
 /**
@@ -26,11 +27,11 @@ class Service extends BaseService {
    * 初始化
    * @param {Object} opts
    * @param {String} [opts.namespace=undefined]
-   * @param {Number} [opts.port=50000]
+   * @param {Number} [opts.port=7380]
    */
   async initialize (opts) {
     this.namespace = opts.namespace || consts.DEFAULT_KEY
-    this.port = opts.port || 50000
+    this.port = opts.port || DEFAULT_PORT
     /** @type {Map<string, string>} */
     this.cachedNspMap = new Map()
   }
@@ -45,9 +46,13 @@ class Service extends BaseService {
     const rpcServer = jadepool.getService(consts.SERVICE_NAMES.JSONRPC_SERVER)
     if (rpcServer && this.redisClient && this.redisClient.connected) {
       const redisHostKey = REDIS_HOST_PREFIX + this.namespace
-      await this.redisClient.srem(redisHostKey, `${rpcServer.host}:${rpcServer.port}`)
+      await this.redisClient.srem(redisHostKey, this._getHostUrl(rpcServer.host, rpcServer.port))
     }
   }
+  /**
+   * 构建url
+   */
+  _getHostUrl (host, port) { return `ws://${host}:${port}` }
   /**
    * 确保redis连接
    */
@@ -88,7 +93,7 @@ class Service extends BaseService {
 
     const redisHostKey = REDIS_HOST_PREFIX + this.namespace
     const saddAsync = promisify(this.redisClient.sadd).bind(this.redisClient)
-    await saddAsync(redisHostKey, `ws://${rpcServer.host}:${rpcServer.port}`)
+    await saddAsync(redisHostKey, this._getHostUrl(rpcServer.host, rpcServer.port))
 
     // 注册method到jsonrpc service
     for (let item of methods) {

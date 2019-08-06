@@ -151,6 +151,7 @@ class HostConfigService extends RedisConfigService {
   /**
    * 初始化
    * @param {Object} opts
+   * @param {Number} opts.port
    */
   async initialize (opts) {
     await super.initialize(opts)
@@ -158,11 +159,12 @@ class HostConfigService extends RedisConfigService {
     let rpcServer = jadepool.getService(consts.SERVICE_NAMES.JSONRPC_SERVER)
     if (!rpcServer) {
       const host = jadepool.env.host || '127.0.0.1'
-      const port = DEFAULT_PORT
+      const port = opts.port || DEFAULT_PORT
       rpcServer = await jadepool.registerService(consts.SERVICE_NAMES.JSONRPC_SERVER, { host, port })
     }
     const saddAsync = promisify(this.redisClient.sadd).bind(this.redisClient)
-    await saddAsync(REDIS_HOST_KEY, `ws://${rpcServer.host}:${rpcServer.port}`)
+    const url = this._getHostUrl(rpcServer.host, rpcServer.port)
+    await saddAsync(REDIS_HOST_KEY, url)
 
     // 代理函数
     const allMethodDescs = Object.getOwnPropertyDescriptors(RedisConfigService.prototype)
@@ -176,7 +178,7 @@ class HostConfigService extends RedisConfigService {
       }
       rpcServer.addAcceptableMethod(methodKey, handler)
     }
-    logger.tag('Inited').log(`mode=host`)
+    logger.tag('Inited').log(`mode=host,url=${url}`)
   }
   /**
    * 该Service的优雅退出函数
@@ -184,7 +186,8 @@ class HostConfigService extends RedisConfigService {
    */
   async onDestroy (signal) {
     const rpcServer = jadepool.getService(consts.SERVICE_NAMES.JSONRPC_SERVER)
-    await this.redisClient.srem(REDIS_HOST_KEY, `${rpcServer.host}:${rpcServer.port}`)
+    const url = this._getHostUrl(rpcServer.host, rpcServer.port)
+    await this.redisClient.srem(REDIS_HOST_KEY, url)
     // 移除方法
     const allMethodDescs = Object.getOwnPropertyDescriptors(RedisConfigService.prototype)
     for (const methodKey in allMethodDescs) {
@@ -192,6 +195,10 @@ class HostConfigService extends RedisConfigService {
       rpcServer.removeAcceptableMethod(methodKey)
     }
   }
+  /**
+   * 构建url
+   */
+  _getHostUrl (host, port) { return `ws://${host}:${port}` }
   // 便捷查询方法
   async loadChainCfg (chainKey) {
     if (!this._forceLoadFromDB) {
@@ -378,7 +385,7 @@ class ClientConfigService extends RedisConfigService {
     await super.initialize(opts)
     // 连接host
     await this._tryConnectHost()
-    logger.tag('Inited').log(`mode=client`)
+    logger.tag('Inited').log(`mode=client,host=${this._currentHost}`)
   }
   /**
    * 该Service的优雅退出函数
@@ -504,6 +511,14 @@ class Service extends ConfigService {
         configurable: true
       })
     }
+    // 设置agent
+    this._serviceAgent = serviceAgent
+  }
+  async onDestroy (signal) {
+    if (this._serviceAgent) {
+      await this._serviceAgent.onDestroy(signal)
+    }
+    delete this._serviceAgent
   }
 }
 
