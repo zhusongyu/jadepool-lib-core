@@ -76,11 +76,12 @@ async function joinRPCServer (rpcUrl, opts) {
  * @param {string} opts.signerId
  */
 async function requestRPC (rpcUrl, method, params, opts) {
-  const isConnected = await isRPCConnected(rpcUrl)
-  if (!isConnected) {
-    const joined = await joinRPCServer(rpcUrl, opts)
-    if (!joined) {
-      throw new NBError(21004, `join server failed (url: ${rpcUrl})`)
+  const isWs = rpcUrl.startsWith('ws')
+  if (isWs) {
+    const isConnected = await isRPCConnected(rpcUrl)
+    if (!isConnected) {
+      const joined = await joinRPCServer(rpcUrl, opts)
+      if (!joined) throw new NBError(21004, `join server failed (url: ${rpcUrl})`)
     }
   }
   const jsonrpcSrv = await fetchRPCClientService()
