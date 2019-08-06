@@ -106,6 +106,11 @@ class Service extends BaseService {
    * @param {any} params
    */
   async invokeRPCMethod (namespace, method, params) {
+    // 本地调用
+    if (namespace === this.namespace) {
+      return jadepool.invokeMethod(method, namespace, params)
+    }
+    // 远程调用
     let rpcUrl = this.cachedNspMap.get(namespace)
     if (!rpcUrl || !(await rpcHelper.isRPCConnected(rpcUrl))) {
       this._ensureRedisConnected()
