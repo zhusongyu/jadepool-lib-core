@@ -89,7 +89,7 @@ class JSONRPCService extends BaseService {
     // 设置Websocket.Server的事件监听
     this.wss.on('connection', (client) => {
       client.addListener('close', (code, reason) => {
-        logger.tag('Closed').log(`reason=${reason},code=${code}`)
+        logger.tag('Closed').log(`code=${code}` + (!reason ? '' : `,reason=${reason}`))
         client.removeAllListeners()
       }).addListener('message', data => {
         this._handleRPCMessage(client, data.valueOf())
@@ -147,6 +147,7 @@ class JSONRPCService extends BaseService {
       // upgrade it
       this.wss.handleUpgrade(request, socket, head, (ws) => {
         this.wss.emit('connection', ws, request)
+        logger.tag('Connected').log(`url=${request.url},auth=${request.headers.authorization}`)
       })
     })
 

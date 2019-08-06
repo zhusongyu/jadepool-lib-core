@@ -147,7 +147,7 @@ class Service extends BaseService {
     ws.removeAllListeners()
     // 正常处理
     ws.on('close', (code, reason) => {
-      logger.tag('Closed').info(`url=${url},reason=${reason},code=${code}`)
+      logger.tag('Closed').info(`url=${url},code=${code}` + (!reason ? '' : `,reason=${reason}`))
     })
     ws.on('message', data => {
       this._handleRPCMessage(ws, data.valueOf(), _.clone(rpcOpts))
