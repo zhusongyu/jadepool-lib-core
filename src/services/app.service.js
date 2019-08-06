@@ -28,7 +28,7 @@ class AppService extends BaseService {
    * @param {number} [opts.defaultErrorStatus=500]
    * @param {(app: Express) => void} opts.routes
    */
-  async initialize (opts) {
+  async initialize (opts = {}) {
     const app = express()
 
     // Middleware
@@ -119,7 +119,7 @@ class AppService extends BaseService {
         logger.log(`host.modified=${jp.env.host}`)
       }
     } else {
-      serviceCfg = _.clone(opts.server)
+      serviceCfg = opts.server
     }
 
     // set host
@@ -153,13 +153,13 @@ class AppService extends BaseService {
 
   // Methods
   async listen () {
-    if (this._server && !this._server.listening) {
-      await new Promise(resolve => { this._server.listen(this._port, resolve) })
-      logger.log(`port=${this._port}`, ['HTTP Listening'])
+    if (this.server && !this.server.listening) {
+      await new Promise(resolve => { this.server.listen(this.port, resolve) })
+      logger.log(`port=${this.port}`, ['HTTP Listening'])
     }
-    if (this._serverSSL && !this._serverSSL.listening) {
-      await new Promise(resolve => { this._serverSSL.listen(this._portSSL, resolve) })
-      logger.log(`port=${this._portSSL}`, ['HTTPS Listening'])
+    if (this.serverSSL && !this.serverSSL.listening) {
+      await new Promise(resolve => { this.serverSSL.listen(this.portSSL, resolve) })
+      logger.log(`port=${this.portSSL}`, ['HTTPS Listening'])
     }
   }
 }
