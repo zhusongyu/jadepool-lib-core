@@ -105,7 +105,7 @@ class JadePoolContext {
       // 基础信息
       mode,
       source,
-      sourceId,
+      source_id: sourceId,
       // 设置计划
       plans: plans.map(p => _.pick(p, ['category', 'namespace', 'method', 'params'])),
       run_at: runAt,
