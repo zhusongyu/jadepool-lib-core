@@ -37,9 +37,18 @@ class SocketService extends BaseService {
     // 检查app.service是否存在
     const appService = jp.getService(consts.SERVICE_NAMES.APP)
     let listenPort
-    if (appService && appService.server) {
-      listenPort = appService.port
-      this.io = socketio(appService.server, ioOpts)
+    if (appService) {
+      let server
+      if (appService.serverSSL) {
+        listenPort = appService.portSSL
+        server = appService.serverSSL
+      } else if (appService.server) {
+        listenPort = appService.port
+        server = appService.server
+      } else {
+        throw new NBError(10001, `missing tcp server`)
+      }
+      this.io = socketio(server, ioOpts)
     } else {
       const cfgLoader = require('../utils/configLoader')
       const processKey = consts.PROCESS.TYPES.ROUTER + '-' + jp.env.server

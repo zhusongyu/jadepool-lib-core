@@ -68,6 +68,7 @@ declare class JadepoolSingleton {
 	registerService(name: 'script', opts: services.ScriptOptions): Promise<services.ScriptService>;
 	registerService(name: 'jsonrpc.server', opts: services.JSONRPCServerOptions): Promise<services.JSONRpcService>;
 	registerService(name: 'jsonrpc.client', opts: services.JSONRPCOptions): Promise<services.JSONRpcClientService>;
+	registerService(name: 'jsonrpc.internal', opts: services.InternalRPCOptions): Promise<services.InternalRpcService>;
 	registerService(name: 'socket.io', opts: services.SocketIOOptions): Promise<services.SocketIOService>;
 	registerService(name: 'socket.io.worker', opts: services.SocketIOWorkerOptions): Promise<services.SocketIOWorkerService>;
 	registerService(name: 'child.process', opts: any): Promise<services.ProcessService>;
@@ -84,6 +85,7 @@ declare class JadepoolSingleton {
 	getService(name: 'script'): services.ScriptService;
 	getService(name: 'jsonrpc.server'): services.JSONRpcService;
 	getService(name: 'jsonrpc.client'): services.JSONRpcClientService;
+	getService(name: 'jsonrpc.internal'): services.InternalRpcService;
 	getService(name: 'socket.io'): services.SocketIOService;
 	getService(name: 'socket.io.worker'): services.SocketIOWorkerService;
 	getService(name: 'child.process'): services.ProcessService;

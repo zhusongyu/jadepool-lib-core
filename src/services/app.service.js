@@ -11,7 +11,6 @@ const BaseService = require('./core')
 const jp = require('../jadepool')
 const consts = require('../consts')
 const NBError = require('../NBError')
-const cfgLoader = require('../utils/config/loader')
 const logger = require('@jadepool/logger').of('Service', 'Express')
 
 class AppService extends BaseService {
@@ -24,11 +23,12 @@ class AppService extends BaseService {
 
   /**
    * @param {object} opts
-   * @param {boolean} opts.listenManually
+   * @param {boolean} [opts.listenManually=false]
+   * @param {object} [opts.server=undefined]
    * @param {number} [opts.defaultErrorStatus=500]
    * @param {(app: Express) => void} opts.routes
    */
-  async initialize (opts) {
+  async initialize (opts = {}) {
     const app = express()
 
     // Middleware
@@ -84,41 +84,61 @@ class AppService extends BaseService {
         status = 500
       }
       // 设置错误结果
+      let promise
       if (!errResult) {
         const errSrv = jp.getService(consts.SERVICE_NAMES.ERROR_CODE)
         if (errSrv && errCode) {
           const reqData = Object.assign({}, req.query, req.body)
           const locale = (reqData.lang || reqData.locale) || consts.SUPPORT_LOCALES.ZH_CN
-          errResult = errSrv.getErrObj(errCode, locale)
-          const category = errResult.category ? [ errResult.category ] : []
-          logger.error(errResult.message, err, category)
-          if (err.message) {
-            errResult.result = { info: err.message }
-          }
-        } else {
-          errResult = { code: err.code || status, message: err && err.message }
+          promise = errSrv.getErrorInfo(errCode, locale).then(errResult => {
+            const category = errResult.category ? [ errResult.category ] : []
+            logger.error(errResult.message, err, category)
+            if (err.message) {
+              errResult.result = { info: err.message }
+            }
+            return errResult
+          })
         }
       }
-      res.status(status).json(errResult)
+      if (!promise) {
+        promise = Promise.resolve({ code: errCode || status, message: err && err.message })
+      }
+      // 发送
+      promise.then(errResult => {
+        res.status(status).json(errResult)
+      }).catch(err => {
+        res.status(500).json({ code: errCode, message: err.message })
+      })
     })
 
     // Start the server
-    const processKey = consts.PROCESS.TYPES.ROUTER + '-' + jp.env.server
-    const serviceDat = await cfgLoader.loadConfig('services', processKey)
-    if (!serviceDat) {
-      throw new NBError(10001, `missing services config: ${processKey}`)
+    // { host: string, http: { port: number, disabled: boolean }, https: { port: number, disabled: boolean, key: string, cert: string, ca: string } }
+    let serviceCfg
+    if (!opts.server) {
+      const processKey = consts.PROCESS.TYPES.ROUTER + '-' + jp.env.server
+      const cfgLoader = require('../utils/config/loader')
+      const serviceDat = await cfgLoader.loadConfig('services', processKey)
+      if (!serviceDat) {
+        throw new NBError(10001, `missing services config: ${processKey}`)
+      }
+      serviceCfg = serviceDat.toMerged()
+      if (serviceCfg.host !== jp.env.host) {
+        serviceDat.applyModify({ host: jp.env.host })
+        await serviceDat.save()
+        logger.log(`host.modified=${jp.env.host}`)
+      }
+    } else {
+      serviceCfg = opts.server
     }
-    let serviceCfg = serviceDat.toMerged()
-    if (serviceCfg.host !== jp.env.host) {
-      serviceDat.applyModify({ host: jp.env.host })
-      await serviceDat.save()
-      logger.log(`host.modified=${jp.env.host}`)
-    }
+
+    // set host
+    Object.defineProperty(this, 'host', { value: serviceCfg.host })
+
     if (!serviceCfg.http.disabled) {
       // 设置常量
       Object.defineProperties(this, {
-        '_server': { value: http.createServer(app) },
-        '_port': { value: serviceCfg.http.port }
+        'server': { value: http.createServer(app) },
+        'port': { value: serviceCfg.http.port }
       })
     }
     if (!serviceCfg.https.disabled) {
@@ -130,8 +150,8 @@ class AppService extends BaseService {
       }
       // 设置常量
       Object.defineProperties(this, {
-        '_serverSSL': { value: https.createServer(opts, app) },
-        '_portSSL': { value: serviceCfg.https.port }
+        'serverSSL': { value: https.createServer(opts, app) },
+        'portSSL': { value: serviceCfg.https.port }
       })
     }
     // 若非手动监听，则直接启动
@@ -140,19 +160,15 @@ class AppService extends BaseService {
     }
   }
 
-  // Accessors
-  get server () { return this._serverSSL || this._server }
-  get port () { return this._portSSL || this._port }
-
   // Methods
   async listen () {
-    if (this._server && !this._server.listening) {
-      await new Promise(resolve => { this._server.listen(this._port, resolve) })
-      logger.log(`port=${this._port}`, ['HTTP Listening'])
+    if (this.server && !this.server.listening) {
+      await new Promise(resolve => { this.server.listen(this.port, resolve) })
+      logger.log(`port=${this.port}`, ['HTTP Listening'])
     }
-    if (this._serverSSL && !this._serverSSL.listening) {
-      await new Promise(resolve => { this._serverSSL.listen(this._portSSL, resolve) })
-      logger.log(`port=${this._portSSL}`, ['HTTPS Listening'])
+    if (this.serverSSL && !this.serverSSL.listening) {
+      await new Promise(resolve => { this.serverSSL.listen(this.portSSL, resolve) })
+      logger.log(`port=${this.portSSL}`, ['HTTPS Listening'])
     }
   }
 }

@@ -176,7 +176,7 @@ class Task {
     const errCodeSrv = jp.getService(consts.SERVICE_NAMES.ERROR_CODE)
     // 处理定制错误 NBError
     if (errCodeSrv && err && typeof err.code === 'number') {
-      const errDesc = errCodeSrv.getErrObj(err.code)
+      const errDesc = await errCodeSrv.getErrorInfo(err.code)
       // Warning记录
       if (errDesc) {
         const Warning = jp.getModel(consts.MODEL_NAMES.WARNING)

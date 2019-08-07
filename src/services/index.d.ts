@@ -6,6 +6,8 @@ import {
   ChainConfig,
   TokenConfig
 } from "../models";
+import * as http from 'http';
+import * as https from 'https';
 
 export as namespace services
 
@@ -50,18 +52,24 @@ declare interface AppOptions {
 }
 declare class AppService extends BaseService {
   constructor (services : any);
-  port: number
+  host: string
+  port?: number
+  server?: http.Server
+  portSSL?: number
+  serverSSL?: https.Server
+
   initialize (opts: AppOptions): Promise<void>
   listen (): Promise<void>
 }
 
 declare interface ErrorCodeOptions {
+  isHost: Boolean
   localePath?: string
 }
 declare class ErrorCodeService extends BaseService {
   constructor (services : any);
   initialize (opts: ErrorCodeOptions): Promise<void>
-  getErrObj (code: number, locale: string): { code: number, status: number, category: string, message: string }
+  getErrorInfo (code: number, locale: string): Promise<{ code: number, category: string, message: string }>
 }
 
 declare interface JSONRPCOptions {
@@ -142,6 +150,33 @@ declare class JSONRpcClientService extends BaseService {
    * 请求JSONRPC
    */
   requestJSONRPC (url: string, methodName: string, args: any, opts?: RequestOptions): Promise<any>
+}
+
+declare interface InternalRPCOptions {
+  namespace: string
+  port?: number
+}
+declare class InternalRpcService extends BaseService {
+  constructor (services : any);
+  initialize(opts: InternalRPCOptions): Promise<void>
+  /**
+   * 注册本服务的方法
+   * @param {String} methodName
+   * @param {Function} [func=undefined]
+   */
+  registerRPCMethod(method: string, methodFunc?: Function): Promise<void>;
+  /**
+   * 注册一堆本服务的方法
+   * @param methods 方法定义
+   */
+  registerRPCMethods(methods: string[] | { method: string, func?: Function }[] ): Promise<void>;
+  /**
+   * 调用rpc方法
+   * @param {String} namespace
+   * @param {String} method
+   * @param {any} params
+   */
+  invokeRPCMethod(namespace: string, method: string, params: any): Promise<any>
 }
 
 declare interface ScriptOptions {
