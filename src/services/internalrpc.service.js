@@ -88,8 +88,13 @@ class Service extends BaseService {
     // find service
     let rpcServer = jadepool.getService(consts.SERVICE_NAMES.JSONRPC_SERVER)
     if (!rpcServer) {
-      const host = jadepool.env.host || '127.0.0.1'
-      rpcServer = await jadepool.registerService(consts.SERVICE_NAMES.JSONRPC_SERVER, { host, port: this.port })
+      rpcServer = await jadepool.registerService(consts.SERVICE_NAMES.JSONRPC_SERVER, {
+        // 可能被app service替换，此为默认值
+        host: jadepool.env.host || '127.0.0.1',
+        port: this.port,
+        // 内部签名以timestamp为私钥参数
+        authWithTimestamp: true
+      })
     }
 
     const redisHostKey = REDIS_HOST_PREFIX + this.namespace
@@ -125,8 +130,8 @@ class Service extends BaseService {
     // 本地调用
     if (namespace === this.namespace) {
       let result = await jadepool.invokeMethod(method, namespace, params)
-      if (typeof result === 'object' && result.encrypted) {
-        result = await cryptoUtils.decryptInternal(result.encrypted)
+      if (typeof result === 'object' && typeof result.encrypted === 'string') {
+        result = await cryptoUtils.decryptData(result)
       }
       return result
     }

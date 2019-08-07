@@ -14,7 +14,10 @@ async function fetchRPCClientService () {
   if (jsonrpcSrv) return jsonrpcSrv
   // 异步并发
   if (_tryFetchPromise) return _tryFetchPromise
-  _tryFetchPromise = jadepool.registerService(consts.SERVICE_NAMES.JSONRPC).then(rpcClient => {
+  _tryFetchPromise = jadepool.registerService(consts.SERVICE_NAMES.JSONRPC, {
+    // 内部签名以timestamp为私钥参数
+    authWithTimestamp: true
+  }).then(rpcClient => {
     _tryFetchPromise = null
     return rpcClient
   }).catch(err => {
@@ -87,8 +90,8 @@ async function requestRPC (rpcUrl, method, params, opts) {
   const jsonrpcSrv = await fetchRPCClientService()
   // 使用瑶池数据库私钥进行签名
   let result = await jsonrpcSrv.requestJSONRPC(rpcUrl, method, params, opts)
-  if (result.encrypted) {
-    result = await cryptoUtils.decryptInternal(result.encrypted)
+  if (typeof result === 'object' && typeof result.encrypted === 'string') {
+    result = await cryptoUtils.decryptData(result)
   }
   return result
 }
