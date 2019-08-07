@@ -1,5 +1,13 @@
 # Change Logs
 
+## V0.13.1
+
+Improvement:
+
+* 更新一些库
+* config, internalrpc等内部jsonrpc调用使用authWithTimestamp方式
+* cryptoUtils新增方法encryptData，decryptData 并支持timestamp模式的内部签名
+
 ## V0.13.0
 
 Feature:

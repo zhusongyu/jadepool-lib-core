@@ -29,6 +29,11 @@ interface KeyPair {
 	pubKeyUnCompressed: string;
 }
 
+interface EncryptData {
+	encrypted: string
+	timestamp?: number
+}
+
 /**
  * 解析字符串并创建一个KeyBuffer
  * @param keystr 
@@ -138,10 +143,23 @@ export function verify (obj: object, sig: object | string, publicKey: Buffer, op
  * 内部对称性加密
  * @param data
  */
-export function encryptInternal (data: object | string): Promise<string>;
+export function encryptInternal (data: object | string, timestamp?: number): Promise<string>;
 
 /**
  * 内部对称性解密
  * @param data
  */
-export function decryptInternal (data: string): Promise<string|object>;
+export function decryptInternal (data: string, timestamp?: number): Promise<string|object>;
+
+/**
+ * 输出内部对称加密数据
+ * @param raw 需加密数据
+ * @param useTimestampMode 若为false或undefined则使用version模式
+ */
+export function encryptData (raw: object | string, useTimestampMode?: boolean): Promise<EncryptData>
+
+/**
+ * 解析内部对称加密的数据并返回结果
+ * @param data 已加密的数据
+ */
+export function decryptData (data: EncryptData): Promise<object | string>

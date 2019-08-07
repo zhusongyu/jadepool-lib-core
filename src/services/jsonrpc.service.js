@@ -29,7 +29,7 @@ class JSONRPCService extends BaseService {
     this.requests = new Map()
     /**
      * 可接受的方法
-     * @type {Map<string, Function|Boolean>}
+     * @type {Map<string, {name: string, func?: boolean, encryptResult?: boolean}>}
      */
     this.acceptMethods = new Map()
   }
@@ -173,7 +173,11 @@ class JSONRPCService extends BaseService {
           if (typeof method === 'string') {
             return { name: method }
           } else if (typeof method.name === 'string') {
-            return { name: method.name, func: typeof method.func === 'function' ? method.func : undefined }
+            return {
+              name: method.name,
+              func: typeof method.func === 'function' ? method.func : undefined,
+              encryptResult: !!method.encryptResult
+            }
           } else {
             return null
           }
@@ -191,13 +195,15 @@ class JSONRPCService extends BaseService {
    * 添加新的可接受方法
    * @param {string} methodName 方法名
    * @param {Function|undefined} methodFunc
+   * @param {boolean} [encryptResult=false]
    */
-  addAcceptableMethod (methodName, methodFunc) {
+  addAcceptableMethod (methodName, methodFunc, encryptResult) {
     methodName = _.kebabCase(methodName)
     const methodData = { name: methodName }
     if (typeof methodFunc === 'function') {
       methodData.func = methodFunc
     }
+    methodData.encryptResult = !!encryptResult
     this.acceptMethods.set(methodName, methodData)
   }
 
@@ -326,6 +332,10 @@ class JSONRPCService extends BaseService {
             res.result = await jp.invokeMethod(methodName, jp.env.param, params, ws)
           } else {
             res.result = await methodData.func(params, ws)
+          }
+          // 若需要加密，直接进行加密
+          if (methodData.encryptResult) {
+            res.result = await cryptoUtils.encryptData(res.result, !!this.opts.authWithTimestamp)
           }
         } catch (err) {
           let code = err.code

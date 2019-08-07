@@ -20,4 +20,12 @@ describe('Utils: crypto', () => {
     const decrypted = await utils.crypto.decryptInternal(encrypted)
     assert.equal(decrypted, txt, 'decrypted should be same')
   })
+
+  it('encryptInternal && decryptInternal with timestamp', async () => {
+    const txt = 'ABCCDDSDDSD'
+    const timestamp = Date.now()
+    const encrypted = await utils.crypto.encryptInternal(txt, timestamp)
+    const decrypted = await utils.crypto.decryptInternal(encrypted, timestamp)
+    assert.equal(decrypted, txt, 'decrypted should be same')
+  })
 })
