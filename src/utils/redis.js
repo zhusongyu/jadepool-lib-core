@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const url = require('url')
 const redis = require('redis')
 const jp = require('../jadepool')
 const consts = require('../consts')
@@ -67,7 +68,10 @@ const redisLib = {
   fetchClient (name = consts.DEFAULT_KEY) {
     let client = clientMap.get(name)
     if (!client) {
-      client = redis.createClient(_.assign({}, redisLib.getOpts(name), defaultOpts))
+      const redisOpts = _.assign({}, redisLib.getOpts(name), defaultOpts)
+      client = redis.createClient(redisOpts)
+      const redisHost = redisOpts.host || new url.URL(redisOpts.url).host
+      const logStr = `name=${name},url.host=${redisHost}`
       client.on('error', function (err) {
         if (err.code === 'CONNECTION_BROKEN') {
           // 无法重连时
@@ -75,17 +79,20 @@ const redisLib = {
             clientMap.delete(name)
             client.quit()
           }
-          logger.tag('Broken').warn(`name=${name}`)
+          logger.tag('Broken').warn(logStr)
         } else if (err.code === 'NR_CLOSED') {
           // 连接断开时
-          logger.tag('Closed').warn(`name=${name}`)
+          logger.tag('Closed').warn(logStr)
         } else if (err instanceof redis.AbortError) {
-          logger.tag('Abort').error(`name=${name}`, err)
+          logger.tag('Abort').error(logStr, err)
         }
+        client.emit('state_change', { event: 'error', code: err.code })
       }).on('ready', function () {
-        logger.tag('Ready').log(`name=${name}`)
+        logger.tag('Ready').log(logStr)
+        client.emit('state_change', { event: 'ready', ok: true })
       }).on('reconnecting', function () {
-        logger.tag('Reconnecting').log(`name=${name}`)
+        logger.tag('Reconnecting').log(logStr)
+        client.emit('state_change', { event: 'reconnecting' })
       })
       clientMap.set(name, client)
     }

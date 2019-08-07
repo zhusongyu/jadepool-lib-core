@@ -7,6 +7,7 @@ import * as db from './db';
 import * as redis from './redis';
 import ProcessRunner from './processRunner';
 import RedisMessager from './redisMessager';
+import { RequestOptions } from '../services';
 
 /**
  * 验证value
@@ -30,6 +31,24 @@ export declare namespace string {
    * @param str
    */
   function generateHashId (str: string): string
+}
+
+/**
+ * 便捷的rpc service使用方法
+ */
+export declare namespace rpcHelper {
+  /**
+   * 查询是否连接成功
+   */
+  function isRPCConnected(rpcUrl: string): Promise<boolean>;
+  /**
+   * 直接连接rpc 服务
+   */
+  function joinRPCServer(rpcUrl: string, opts?: RequestOptions): Promise<boolean>;
+  /**
+   * 请求方法，若尚未连接则将连接到ws rpc服务
+   */
+  function requestRPC(rpcUrl: string, method: string, params: any, opts?: RequestOptions): Promise<any>
 }
 
 export {

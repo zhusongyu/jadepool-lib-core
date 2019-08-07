@@ -9,18 +9,7 @@ export declare const DEFAULT_ENCODE: 'base64';
  */
 export declare namespace PROCESS {
   const NAME_PREFIX: 'Jadepool';
-  /** @deprecated */
-  const CLUSTER_MODES: {
-    AUTO: 'auto',
-    NODE: 'node',
-    PM2: 'pm2'
-  }
   const LAUNCH_MODES: {
-    /**
-     * 全进程单进程执行，已废弃
-     * @deprecated
-     */
-    ALL_IN_ONE: 'allinone',
     /** 中心管理者，同一项目不同机器同一时间仅存在一个进程 */
     MASTER: 'master',
     /** 附属管理者，同一项目在每台机器上仅存在一个进程 */
@@ -59,6 +48,8 @@ export declare const SERVICE_NAMES: {
   JSONRPC: 'jsonrpc.client',
   /** 基于ws的通用jsonrpc服务端 */
   JSONRPC_SERVER: 'jsonrpc.server',
+  /** 基于ws内部rpc服务 */
+  INTERNAL_RPC: 'jsonrpc.internal',
   /** Socket.io服务 */
   SOCKET_IO: 'socket.io',
   /** Socket.io的worker服务中心 */
