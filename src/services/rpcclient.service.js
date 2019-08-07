@@ -43,8 +43,7 @@ class Service extends BaseService {
    * @param {string[]|string} opts.acceptMethods 可接受的RPC请求
    */
   async initialize (opts) {
-    /** 是否需要验证 */
-    this.noAuth = !!opts.noAuth
+    this.defaultRpcOpts = _.clone(opts)
     /**
      * 过期时间
      * @type {number}
@@ -112,7 +111,7 @@ class Service extends BaseService {
       }
     }
 
-    let rpcOpts = Object.assign({ noAuth: this.noAuth }, opts)
+    let rpcOpts = Object.assign({}, this.defaultRpcOpts, opts)
     // Step 1. 构建认证query的签名
     let headers = {}
     if (!rpcOpts.noAuth) {
@@ -252,13 +251,14 @@ class Service extends BaseService {
   async _requestHttpRPC (url, reqData, opts = {}) {
     let extra = { lang: opts.lang || 'zh-cn' }
     let data = Object.assign({}, reqData)
-    if (!opts.noAuth && !this.noAuth) {
-      extra.appid = opts.signerId || 'jadepool'
-      extra.hash = opts.hash || 'sha256'
-      extra.sort = opts.sort || 'key'
-      extra.encode = opts.encode || 'hex'
+    const rpcOpts = Object.assign({}, this.defaultRpcOpts, opts)
+    if (!rpcOpts.noAuth) {
+      extra.appid = rpcOpts.signerId || 'jadepool'
+      extra.hash = rpcOpts.hash || 'sha256'
+      extra.sort = rpcOpts.sort || 'key'
+      extra.encode = rpcOpts.encode || 'hex'
       // 进行签名
-      let sig = await this._signObject(reqData, undefined, opts.signerId, opts.signer, extra)
+      let sig = await this._signObject(reqData, undefined, rpcOpts.signerId, opts.signer, extra)
       extra.sig = sig.signature
     }
     data.extra = extra

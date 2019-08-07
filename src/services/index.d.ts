@@ -72,6 +72,11 @@ declare class ErrorCodeService extends BaseService {
   getErrorInfo (code: number, locale: string): Promise<{ code: number, category: string, message: string }>
 }
 
+declare interface RPCMethodDefine {
+  name: string,
+  func?: Function,
+  encryptResult?: boolean
+}
 declare interface JSONRPCOptions {
   acceptMethods: string[]
   noAuth?: boolean
@@ -98,13 +103,13 @@ declare class JSONRpcService extends BaseService {
    * 设置可接受rpc方法
    * @param acceptMethods 方法名
    */
-  setAcceptMethods(acceptMethods: string[]): void;
+  setAcceptMethods(acceptMethods: string[] | RPCMethodDefine[]): void;
   /**
    * 添加可接受的RPC方法
    * @param methodName 方法名
    * @param methodFunc 可选，方法执行的代码
    */
-  addAcceptableMethod(methodName: string, methodFunc?: Function): void;
+  addAcceptableMethod(methodName: string, methodFunc?: Function, encryptResult?: boolean): void;
   /**
    * 移除可接受的RPC方法
    * @param methodName 方法名
@@ -169,7 +174,7 @@ declare class InternalRpcService extends BaseService {
    * 注册一堆本服务的方法
    * @param methods 方法定义
    */
-  registerRPCMethods(methods: string[] | { method: string, func?: Function }[] ): Promise<void>;
+  registerRPCMethods(methods: string[] | RPCMethodDefine[] ): Promise<void>;
   /**
    * 调用rpc方法
    * @param {String} namespace

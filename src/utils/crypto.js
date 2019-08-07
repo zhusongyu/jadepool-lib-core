@@ -217,11 +217,11 @@ const cryptoUtils = {
    * @param {string|object} data
    * @returns {string}
    */
-  async encryptInternal (data) {
-    data = typeof data === 'string' ? data : JSON.stringify(data)
+  async encryptInternal (data, timestamp) {
+    data = typeof data === 'string' ? data : JSON.stringify(data || {})
     const algorithm = 'aes-192-cbc'
     const iv = Buffer.alloc(16, 0)
-    const key = await cryptoUtils.getInternalPriKey()
+    const key = await cryptoUtils.getInternalPriKey(timestamp)
     const cipher = crypto.createCipheriv(algorithm, key.slice(0, 24), iv)
     let encrypted = cipher.update(data, 'utf8', 'hex')
     encrypted += cipher.final('hex')
@@ -231,10 +231,10 @@ const cryptoUtils = {
    * 使用AES进行对称解谜密
    * @param {string} data
    */
-  async decryptInternal (data) {
+  async decryptInternal (data, timestamp) {
     const algorithm = 'aes-192-cbc'
     const iv = Buffer.alloc(16, 0)
-    const key = await cryptoUtils.getInternalPriKey()
+    const key = await cryptoUtils.getInternalPriKey(timestamp)
     const decipher = crypto.createDecipheriv(algorithm, key.slice(0, 24), iv)
     let decrypted = decipher.update(data, 'hex', 'utf8')
     decrypted += decipher.final('utf8')
@@ -245,6 +245,29 @@ const cryptoUtils = {
       result = decrypted
     }
     return result
+  },
+  /**
+   * 输出内部对称加密数据
+   * @param raw 需加密数据
+   * @param useTimestampMode 若为false或undefined则使用version模式
+   */
+  async encryptData (raw, useTimestampMode = false) {
+    const timestamp = useTimestampMode ? Date.now() : undefined
+    const encrypted = await cryptoUtils.encryptInternal(raw, timestamp)
+    const result = { encrypted }
+    if (useTimestampMode) result.timestamp = timestamp
+    return result
+  },
+  /**
+   * 解析内部对称加密的数据并返回结果
+   * @param data 已加密的数据
+   * @param useTimestampMode 若为false或undefined则使用version模式
+   */
+  async decryptData (data) {
+    // 若不符合规则，直接返回
+    if (!data || typeof data.encrypted !== 'string') return data
+    const { encrypted, timestamp } = data
+    return cryptoUtils.decryptInternal(encrypted, timestamp)
   }
 }
 

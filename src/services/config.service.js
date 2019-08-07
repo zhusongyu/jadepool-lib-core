@@ -158,9 +158,13 @@ class HostConfigService extends RedisConfigService {
     // check required
     let rpcServer = jadepool.getService(consts.SERVICE_NAMES.JSONRPC_SERVER)
     if (!rpcServer) {
-      const host = jadepool.env.host || '127.0.0.1'
-      const port = opts.port || DEFAULT_PORT
-      rpcServer = await jadepool.registerService(consts.SERVICE_NAMES.JSONRPC_SERVER, { host, port })
+      rpcServer = await jadepool.registerService(consts.SERVICE_NAMES.JSONRPC_SERVER, {
+        // 可能被app service替换，此为默认值
+        host: jadepool.env.host || '127.0.0.1',
+        port: opts.port || DEFAULT_PORT,
+        // 内部签名以timestamp为私钥参数
+        authWithTimestamp: true
+      })
     }
     const saddAsync = promisify(this.redisClient.sadd).bind(this.redisClient)
     const url = this._getHostUrl(rpcServer.host, rpcServer.port)
