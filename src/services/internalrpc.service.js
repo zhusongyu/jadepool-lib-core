@@ -46,7 +46,8 @@ class Service extends BaseService {
     const rpcServer = jadepool.getService(consts.SERVICE_NAMES.JSONRPC_SERVER)
     if (rpcServer && this.redisClient && this.redisClient.connected) {
       const redisHostKey = REDIS_HOST_PREFIX + this.namespace
-      await this.redisClient.srem(redisHostKey, this._getHostUrl(rpcServer.host, rpcServer.port))
+      const url = this._getHostUrl(rpcServer.host, rpcServer.port)
+      await this.redisClient.srem(redisHostKey, url)
     }
   }
   /**
@@ -93,7 +94,9 @@ class Service extends BaseService {
 
     const redisHostKey = REDIS_HOST_PREFIX + this.namespace
     const saddAsync = promisify(this.redisClient.sadd).bind(this.redisClient)
-    await saddAsync(redisHostKey, this._getHostUrl(rpcServer.host, rpcServer.port))
+
+    const url = this._getHostUrl(rpcServer.host, rpcServer.port)
+    await saddAsync(redisHostKey, url)
 
     // 注册method到jsonrpc service
     for (let item of methods) {
@@ -108,8 +111,9 @@ class Service extends BaseService {
         continue
       }
       rpcServer.addAcceptableMethod(methodName, methodFunc)
-      logger.tag('Registered').info(`namespace=${this.namespace},method=${methodName}`)
+      logger.tag('Registered').log(`namespace=${this.namespace},method=${methodName}`)
     }
+    logger.tag('Attach To').log(`url=${url},methods.amount=${methods.length}`)
   }
   /**
    * 调用rpc方法

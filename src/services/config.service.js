@@ -1,11 +1,11 @@
 const _ = require('lodash')
-const WebSocket = require('ws')
 const { promisify } = require('util')
 const BaseService = require('./core')
 const consts = require('../consts')
 const NBError = require('../NBError')
 const jadepool = require('../jadepool')
 const redis = require('../utils/redis')
+const rpcHelper = require('../utils/rpcHelper')
 const configLoader = require('../utils/config/loader')
 
 const logger = require('@jadepool/logger').of('Service', 'Config')
@@ -387,50 +387,23 @@ class ClientConfigService extends RedisConfigService {
     await this._tryConnectHost()
     logger.tag('Inited').log(`mode=client,host=${this._currentHost}`)
   }
-  /**
-   * 该Service的优雅退出函数
-   * @param signal 退出信号
-   */
-  async onDestroy (signal) {
-    if (await this._isConnected()) {
-      const rpcClient = jadepool.getService(consts.SERVICE_NAMES.JSONRPC)
-      await rpcClient.closeRPCServer(this._currentHost)
-    }
-  }
   async _tryConnectHost () {
-    if (this._tryConnecting) return this._tryConnecting
-    const srandmemberAysnc = promisify(this.redisClient.srandmember).bind(this.redisClient)
-    this._tryConnecting = srandmemberAysnc(REDIS_HOST_KEY).then(pickUrl => {
+    if (!this._currentHost) {
+      const srandmemberAysnc = promisify(this.redisClient.srandmember).bind(this.redisClient)
+      const pickUrl = await srandmemberAysnc(REDIS_HOST_KEY)
       if (!pickUrl) throw new NBError(10001, `missing host url`)
       this._currentHost = pickUrl
-      let rpcClient = jadepool.getService(consts.SERVICE_NAMES.JSONRPC)
-      return rpcClient || jadepool.registerService(consts.SERVICE_NAMES.JSONRPC)
-    }).then(rpcClient => {
-      return rpcClient.joinRPCServer(this._currentHost)
-    }).then(() => {
-      this._tryConnecting = null
-    }).catch((err) => {
-      logger.tag('try-connect').error(`failed-to-connect-config-host`, err)
-      this._tryConnecting = null
-    })
-    return this._tryConnecting
-  }
-  async _isConnected () {
-    if (!this._currentHost) return false
-    const rpcClient = jadepool.getService(consts.SERVICE_NAMES.JSONRPC)
-    if (!rpcClient) return false
-    const readyState = rpcClient.getClientReadyState(this._currentHost)
-    return readyState === WebSocket.OPEN
+    }
+    const isConnected = await rpcHelper.isRPCConnected(this._currentHost)
+    if (!isConnected) {
+      await rpcHelper.joinRPCServer(this._currentHost)
+    }
   }
   async _request (method, params) {
-    if (!this._currentHost) return null
-    const rpcClient = jadepool.getService(consts.SERVICE_NAMES.JSONRPC)
-    if (!rpcClient) return null
-    const readyState = rpcClient.getClientReadyState(this._currentHost)
-    if (readyState !== WebSocket.OPEN) {
+    if (!this._currentHost || !(await rpcHelper.isRPCConnected(this._currentHost))) {
       await this._tryConnectHost()
     }
-    return rpcClient.requestJSONRPC(this._currentHost, method, params)
+    return rpcHelper.requestRPC(this._currentHost, method, params)
   }
   // 便捷查询方法
   async loadChainCfg (chainKey) {
@@ -515,7 +488,7 @@ class Service extends ConfigService {
     this._serviceAgent = serviceAgent
   }
   async onDestroy (signal) {
-    if (this._serviceAgent) {
+    if (this._serviceAgent && this._serviceAgent.onDestroy) {
       await this._serviceAgent.onDestroy(signal)
     }
     delete this._serviceAgent
