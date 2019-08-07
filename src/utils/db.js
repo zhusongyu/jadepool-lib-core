@@ -1,4 +1,5 @@
 const _ = require('lodash')
+const url = require('url')
 const mongoose = require('mongoose')
 const AutoIncrement = require('mongoose-sequence')(mongoose)
 const jp = require('../jadepool')
@@ -48,8 +49,10 @@ const getUri = (dbKey = consts.DEFAULT_KEY) => {
 const initialize = async () => {
   // 连接默认配置
   try {
-    await mongoose.connect(getUri(consts.DEFAULT_KEY), mongoOptions)
-    logger.log(`connected`)
+    const mongoUrl = getUri(consts.DEFAULT_KEY)
+    await mongoose.connect(mongoUrl, mongoOptions)
+    const urlObj = new url.URL(mongoUrl)
+    logger.tag('Connected').log(`url.host=${urlObj.host},url.path=${urlObj.pathname}`)
   } catch (err) {
     logger.error(null, err, ['Initialization-failed'])
   }
