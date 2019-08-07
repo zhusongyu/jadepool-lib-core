@@ -104,7 +104,7 @@ declare class JSONRpcService extends BaseService {
    * @param methodName 方法名
    * @param methodFunc 可选，方法执行的代码
    */
-  addAcceptableMethod(methodName: string, methodFunc?: Function): void;
+  addAcceptableMethod(methodName: string, methodFunc?: Function, encryptResult?: boolean): void;
   /**
    * 移除可接受的RPC方法
    * @param methodName 方法名
@@ -169,7 +169,7 @@ declare class InternalRpcService extends BaseService {
    * 注册一堆本服务的方法
    * @param methods 方法定义
    */
-  registerRPCMethods(methods: string[] | { method: string, func?: Function }[] ): Promise<void>;
+  registerRPCMethods(methods: string[] | { method: string, func?: Function, encryptResult?: boolean }[] ): Promise<void>;
   /**
    * 调用rpc方法
    * @param {String} namespace

@@ -5,7 +5,6 @@ const NBError = require('../NBError')
 const jadepool = require('../jadepool')
 const redis = require('../utils/redis')
 const rpcHelper = require('../utils/rpcHelper')
-const cryptoUtils = require('../utils/crypto')
 
 const logger = require('@jadepool/logger').of('Service', 'Internal RPC')
 
@@ -76,11 +75,11 @@ class Service extends BaseService {
    * @param {Function} [func=undefined]
    */
   async registerRPCMethod (methodName, methodFunc = undefined) {
-    return this.registerRPCMethods([{ method: methodName, func: methodFunc }])
+    return this.registerRPCMethods([{ method: methodName, func: methodFunc, encryptResult: false }])
   }
   /**
    * 注册大量服务
-   * @param {string[]|{method:string, func?:Function}[]} methods
+   * @param {string[]|{method:string, func?:Function, encryptResult?: boolean}[]} methods
    */
   async registerRPCMethods (methods) {
     await this._ensureRedisConnected()
@@ -107,15 +106,17 @@ class Service extends BaseService {
     for (let item of methods) {
       let methodName
       let methodFunc
+      let encryptResult
       if (typeof item === 'string') {
         methodName = item
       } else if (typeof item === 'object' && typeof item.method === 'string') {
         methodName = item.method
         methodFunc = item.func
+        encryptResult = item.encryptResult
       } else {
         continue
       }
-      rpcServer.addAcceptableMethod(methodName, methodFunc)
+      rpcServer.addAcceptableMethod(methodName, methodFunc, encryptResult)
       logger.tag('Registered').log(`namespace=${this.namespace},method=${methodName}`)
     }
     logger.tag('Attach To').log(`url=${url},methods.amount=${methods.length}`)
@@ -129,11 +130,7 @@ class Service extends BaseService {
   async invokeRPCMethod (namespace, method, params) {
     // 本地调用
     if (namespace === this.namespace) {
-      let result = await jadepool.invokeMethod(method, namespace, params)
-      if (typeof result === 'object' && typeof result.encrypted === 'string') {
-        result = await cryptoUtils.decryptData(result)
-      }
-      return result
+      return jadepool.invokeMethod(method, namespace, params)
     }
     // 远程调用
     let rpcUrl = this.cachedNspMap.get(namespace)
