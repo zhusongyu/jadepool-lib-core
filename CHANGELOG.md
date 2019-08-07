@@ -1,5 +1,31 @@
 # Change Logs
 
+## V0.13.0
+
+Feature:
+
+* 新增InternalRPCService, 依赖JSONRPCService和JSONRPCClientService，可实现内部任意微服务间的RPC调用
+* 新增utils.rpcHelper工具类，以便捷地使用JSONRPCClientService
+
+Improvement:
+
+* AppService可通过直接的参数传入设置监听端口
+* ErrorCodeService现在依赖Redis
+  * 目前仅需要一个host进行配置读取并写入redis
+  * 非host serice将直接从redis中读取error code配置
+* ConfigService使用rpcHelper进行rpc调用
+* 修改JSONRPCService的验证实现
+  * 可以直接使用AppService的监听端口
+  * 使用显式upgrade的方法进行连接
+
+Fixes:
+
+* 修复ConfigServic host模式下url无法从redis中移除的bug
+
+Breaking Chagnes:
+
+* 移除不再使用的常量： CLUSTER_MODES， LAUNCH_MODES.ALL_IN_ONE
+
 ## V0.12.12
 
 Fixes:
