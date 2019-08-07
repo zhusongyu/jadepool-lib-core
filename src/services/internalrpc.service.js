@@ -79,7 +79,7 @@ class Service extends BaseService {
   }
   /**
    * 注册大量服务
-   * @param {string[]|{method:string, func?:Function, encryptResult?: boolean}[]} methods
+   * @param {string[]|{name:string, func?:Function, encryptResult?: boolean}[]} methods
    */
   async registerRPCMethods (methods) {
     await this._ensureRedisConnected()
@@ -109,8 +109,8 @@ class Service extends BaseService {
       let encryptResult
       if (typeof item === 'string') {
         methodName = item
-      } else if (typeof item === 'object' && typeof item.method === 'string') {
-        methodName = item.method
+      } else if (typeof item === 'object' && typeof item.name === 'string') {
+        methodName = item.name
         methodFunc = item.func
         encryptResult = item.encryptResult
       } else {
