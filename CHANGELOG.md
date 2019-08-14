@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.13.2
+
+Fixes:
+
+* agenda.task出错时，save warning报错
+
 ## V0.13.1
 
 Improvement:
