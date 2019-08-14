@@ -182,7 +182,7 @@ class Task {
         const Warning = jp.getModel(consts.MODEL_NAMES.WARNING)
         const warn = new Warning()
         warn.level = level
-        warn.category = errDesc.status
+        warn.category = `${errDesc.code}` || 'unknown'
         let errMsg = err.message || ''
         if (errMsg) {
           const arr = _.map(errMsg.split(','), value => {
