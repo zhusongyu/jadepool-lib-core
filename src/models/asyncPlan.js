@@ -85,7 +85,7 @@ const schema = new Schema({
 })
 
 // Admin查询
-schema.index({ source: 1, source_id: 1, mode: 1, result: 1 }, { name: 'planSources' })
+schema.index({ source: 1, source_id: 1, mode: 1, status: 1 }, { name: 'planSources' })
 // 代码查询
 schema.index({ started_at: 1, status: 1, finished_at: 1 }, { name: 'planResult' })
 schema.index({ run_at: 1 }, { name: 'planRunAt', sparse: true })
