@@ -35,7 +35,8 @@ module.exports = function buildEnvObject (serverType, version) {
     return obj
   }, {
     script: require.main.filename || process.env.JP_SCRIPT, // 可通过环境变量 JP_SCRIPT 覆盖
-    host: '127.0.0.1', // 可通过环境变量 JP_HOST 覆盖
+    host: '127.0.0.1', // 可通过环境变量 JP_HOST 覆盖，本服务使用的host
+    defaultConsul: 'http://127.0.0.1:8500', // 可通过环境 JP_DEFAULT_CONSUL 覆盖，服务发现的host地址
     defaultMongo: '127.0.0.1:27017', // 可通过环境变量 JP_DEFAULT_MONGO 覆盖
     defaultRedis: '127.0.0.1:6379', // 可通过环境变量 JP_DEFAULT_REDIS 覆盖
     secret: 'JadePoolSeCreT', // 可通过环境变量 JP_SECRET 覆盖，用于内部私钥

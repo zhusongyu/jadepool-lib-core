@@ -349,3 +349,11 @@ declare class ConfigService extends BaseService {
    */
   deleteConfig(cfgPath: string, key: string, parent?: string): Promise<boolean>;
 }
+
+declare interface ConsulOptions {
+  url?: string
+}
+declare class ConsulService extends BaseService {
+  constructor (services : any);
+  initialize (opts: ConsulOptions): Promise<void>
+}

@@ -36,6 +36,8 @@ declare interface EnvObject {
 	defaultMongo: string;
 	/** 默认Redis */
 	defaultRedis: string;
+	/** 默认Consul地址 */
+	defaultConsul: string;
 	/** 内部签名Secret */
 	secret: string;
 	/** 设置后worker将自动启动, 默认true */
@@ -74,6 +76,7 @@ declare class JadepoolSingleton {
 	registerService(name: 'child.process', opts: any): Promise<services.ProcessService>;
 	registerService(name: 'async.plan', opts: services.AsyncPlanOptions): Promise<services.AsyncPlanService>;
 	registerService(name: 'config', opts: services.ConfigOptions): Promise<services.ConfigService>;
+	registerService(name: 'consul', opts: services.ConsulOptions): Promise<services.ConsulService>;
 
 	/**
 	 * 获取服务
@@ -91,6 +94,7 @@ declare class JadepoolSingleton {
 	getService(name: 'child.process'): services.ProcessService;
 	getService(name: 'async.plan'): services.AsyncPlanService;
 	getService(name: 'config'): services.ConfigService;
+	getService(name: 'consul'): services.ConsulService;
 
 	/**
 	 * 获取模型
