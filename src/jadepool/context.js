@@ -166,6 +166,9 @@ class JadePoolContext {
         case consts.SERVICE_NAMES.CONFIG:
           ClassToRegister = require('../services/config.service')
           break
+        case consts.SERVICE_NAMES.CONSUL:
+          ClassToRegister = require('../services/consul.service')
+          break
         default:
           logger.warn(`failed to registerService: ${serviceClass}`)
           return
@@ -198,7 +201,8 @@ class JadePoolContext {
    * Jadepool初始化
    */
   async hookInitialize (jadepool) {
-    // NOTHING
+    // 默认加载consul服务, 使用defaultConsul配置
+    await this.registerService(consts.SERVICE_NAMES.CONSUL)
   }
   hookPluginMounted (jadepool, plugin) {
     if (plugin && plugin.name) {

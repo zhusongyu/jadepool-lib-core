@@ -22,7 +22,6 @@ class Service extends BaseService {
    * @param {String} opts.url 获取配置
    */
   async initialize (opts) {
-    if (typeof opts.name !== 'string') throw new NBError(10002, `missing name`)
     // 设置properties
     Object.defineProperties(this, {
       // 设置consul url
@@ -46,8 +45,7 @@ class Service extends BaseService {
    */
   async onDestroy (signal) {
     for (const iter of this._registeredServices) {
-      const serviceName = iter[0]
-      await this.deregisterService(serviceName)
+      await this.deregisterService(iter[0])
     }
   }
 
@@ -74,7 +72,9 @@ class Service extends BaseService {
 
     // 设置 ttl 为 5s 一次
     const interval = setInterval(async () => {
-      const result = await this._put(`/v1/agent/check/pass/${checkId}`)
+      const result = await this._put(`/v1/agent/check/pass/${checkId}`, {
+        note: `${serviceName} alive and reachable. (ttl by consul.service)`
+      })
       if (!result) {
         logger.warn(`failed-to-ttl-${serviceName}`)
       }
@@ -98,19 +98,18 @@ class Service extends BaseService {
     const data = this._registeredServices.get(serviceName)
     if (!data) {
       logger.warn(`service(${serviceName}) not registered`)
-      return
+      return false
     }
     // remove iterval
     if (data.interval !== undefined) {
       clearInterval(data.interval)
     }
     // remove deregister
-    const result = await this._put(`/v1/agent/service/deregister/${data.id}`, {
-      note: `${serviceName} alive and reachable. (ttl by consul.service)`
-    })
-    if (result) {
-      logger.tag('Deregistered').log(`service=${serviceName}`)
-    }
+    const result = await this._put(`/v1/agent/service/deregister/${data.id}`)
+    if (!result) return false
+
+    logger.tag('Deregistered').log(`service=${serviceName}`)
+    return true
   }
 
   /**
@@ -123,7 +122,7 @@ class Service extends BaseService {
     if (!results || results.length === 0) {
       throw new NBError(50001, `failed to find service(${serviceName})`)
     }
-    const pickOne = results[0]
+    const pickOne = results[Math.floor((Math.random() * results.length))]
     if (!pickOne || !pickOne.Service || !pickOne.Service.Port) {
       throw new NBError(50001, `failed to get service data: ${JSON.stringify(pickOne)}`)
     }

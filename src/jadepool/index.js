@@ -41,7 +41,6 @@ class JadePool {
    * 注册服务
    * @param {typeof BaseService|string} serviceClass
    * @param {Object} opts 传入的初始化参数
-   * @returns {BaseService}
    */
   async registerService (serviceClass, opts) {
     return this.ctx.registerService.apply(this.ctx, arguments)
@@ -54,7 +53,14 @@ class JadePool {
   getService (name) {
     return this.ctx.getService.apply(this.ctx, arguments)
   }
-
+  /**
+   * 确保服务
+   * @param {typeof BaseService|string} serviceClass
+   * @param {Object} opts 传入的初始化参数
+   */
+  async ensureService (name, opts) {
+    return this.ctx.ensureService.apply(this.ctx, arguments)
+  }
   /**
    * 获取模型对象
    * @param {string} name

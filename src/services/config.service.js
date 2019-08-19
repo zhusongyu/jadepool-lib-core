@@ -11,7 +11,6 @@ const configLoader = require('../utils/config/loader')
 const logger = require('@jadepool/logger').of('Service', 'Config')
 
 const DEFAULT_PORT = 7380
-const REDIS_HOST_KEY = 'JADEPOOL_SERVICE:CONFIG:HOST'
 const REDIS_CFG_CACHE_EXPIRE = 15 * 60 // 15 min
 const REDIS_CFG_CACHE_PREFIX = 'JADEPOOL_SERVICE:CONFIG:CACHE:'
 const CHAIN_ALIAS_FIELDS = [
@@ -156,19 +155,21 @@ class HostConfigService extends RedisConfigService {
   async initialize (opts) {
     await super.initialize(opts)
     // check required
-    let rpcServer = jadepool.getService(consts.SERVICE_NAMES.JSONRPC_SERVER)
-    if (!rpcServer) {
-      rpcServer = await jadepool.registerService(consts.SERVICE_NAMES.JSONRPC_SERVER, {
-        // 可能被app service替换，此为默认值
-        host: jadepool.env.host || '127.0.0.1',
-        port: opts.port || DEFAULT_PORT,
-        // 内部签名以timestamp为私钥参数
-        authWithTimestamp: true
-      })
-    }
-    const saddAsync = promisify(this.redisClient.sadd).bind(this.redisClient)
-    const url = this._getHostUrl(rpcServer.host, rpcServer.port)
-    await saddAsync(REDIS_HOST_KEY, url)
+    const rpcServer = await jadepool.ensureService(consts.SERVICE_NAMES.JSONRPC_SERVER, {
+      // 可能被app service替换，此为默认值
+      host: jadepool.env.host || '127.0.0.1',
+      port: opts.port || DEFAULT_PORT,
+      // 内部签名以timestamp为私钥参数
+      authWithTimestamp: true
+    })
+    // Add to consul service
+    const url = `ws://${rpcServer.host}:${rpcServer.port}`
+    await jadepool.consulSrv.registerService(consts.SERVICE_NAMES.CONFIG, rpcServer.port, {
+      host: rpcServer.host,
+      url,
+      service: 'config.service',
+      processKey: jadepool.env.processKey
+    })
 
     // 代理函数
     const allMethodDescs = Object.getOwnPropertyDescriptors(RedisConfigService.prototype)
@@ -189,9 +190,8 @@ class HostConfigService extends RedisConfigService {
    * @param signal 退出信号
    */
   async onDestroy (signal) {
+    // Remove from consul service
     const rpcServer = jadepool.getService(consts.SERVICE_NAMES.JSONRPC_SERVER)
-    const url = this._getHostUrl(rpcServer.host, rpcServer.port)
-    await this.redisClient.srem(REDIS_HOST_KEY, url)
     // 移除方法
     const allMethodDescs = Object.getOwnPropertyDescriptors(RedisConfigService.prototype)
     for (const methodKey in allMethodDescs) {
@@ -199,10 +199,6 @@ class HostConfigService extends RedisConfigService {
       rpcServer.removeAcceptableMethod(methodKey)
     }
   }
-  /**
-   * 构建url
-   */
-  _getHostUrl (host, port) { return `ws://${host}:${port}` }
   // 便捷查询方法
   async loadChainCfg (chainKey) {
     if (!this._forceLoadFromDB) {
@@ -393,10 +389,9 @@ class ClientConfigService extends RedisConfigService {
   }
   async _tryConnectHost () {
     if (!this._currentHost) {
-      const srandmemberAysnc = promisify(this.redisClient.srandmember).bind(this.redisClient)
-      const pickUrl = await srandmemberAysnc(REDIS_HOST_KEY)
-      if (!pickUrl) throw new NBError(10001, `missing host url`)
-      this._currentHost = pickUrl
+      // load from consul service
+      const serviceData = await jadepool.consulSrv.getServiceData(consts.SERVICE_NAMES.CONFIG)
+      this._currentHost = serviceData.meta.url || `ws://${serviceData.host}:${serviceData.port}`
     }
     const isConnected = await rpcHelper.isRPCConnected(this._currentHost)
     if (!isConnected) {
