@@ -52,7 +52,6 @@ declare interface AppOptions {
 }
 declare class AppService extends BaseService {
   constructor (services : any);
-  host: string
   port?: number
   server?: http.Server
   portSSL?: number
@@ -353,7 +352,7 @@ declare class ConfigService extends BaseService {
 declare interface ConsulOptions {
   url?: string
 }
-declare type KeyValueMeta = { [key: string]: string | number | boolean }
+declare type KeyValueMeta = { [key: string]: string }
 declare type ServiceData = {
   host: string
   port: number

@@ -46,7 +46,6 @@ class Service extends BaseService {
   async onDestroy (signal) {
     for (const iter of this._registeredServices) {
       const name = iter[0]
-      logger.tag('DeregisterService').log(`service=${name}`)
       await this.deregisterService(name)
     }
   }
@@ -61,6 +60,7 @@ class Service extends BaseService {
     const result = await this._put(`/v1/agent/service/register`, {
       Name: serviceName,
       ID: serviceId,
+      Address: jadepool.env.host,
       Port: port,
       Meta: meta,
       Check: {
