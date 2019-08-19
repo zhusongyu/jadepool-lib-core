@@ -182,11 +182,11 @@ class AgendaService extends BaseService {
       const coll = this._agenda._collection
       try {
         coll.createIndex({ name: 1, 'data.id': 1, nextRunAt: -1 }, {
-          name: 'runningCheck1',
+          name: 'checkNextRun',
           partialFilterExpression: { nextRunAt: { $exists: true } }
         })
         coll.createIndex({ name: 1, 'data.id': 1, lastFinishedAt: -1, lastRunAt: -1 }, {
-          name: 'runningCheck2'
+          name: 'checkLastRun'
         })
       } catch (err) {
         logger.error('Failed to create Agenda index!', err)
