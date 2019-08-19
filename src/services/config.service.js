@@ -391,7 +391,8 @@ class ClientConfigService extends RedisConfigService {
     if (!this._currentHost) {
       // load from consul service
       const serviceData = await jadepool.consulSrv.getServiceData(consts.SERVICE_NAMES.CONFIG)
-      this._currentHost = serviceData.meta.url || `ws://${serviceData.host}:${serviceData.port}`
+      logger.tag('TryConnect').log(`host=${serviceData.host},port=${serviceData.port},meta=${JSON.stringify(serviceData.meta)}`)
+      this._currentHost = `ws://${serviceData.host}:${serviceData.port}`
     }
     const isConnected = await rpcHelper.isRPCConnected(this._currentHost)
     if (!isConnected) {

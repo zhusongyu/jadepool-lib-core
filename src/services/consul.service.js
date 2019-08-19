@@ -45,7 +45,9 @@ class Service extends BaseService {
    */
   async onDestroy (signal) {
     for (const iter of this._registeredServices) {
-      await this.deregisterService(iter[0])
+      const name = iter[0]
+      logger.tag('DeregisterService').log(`service=${name}`)
+      await this.deregisterService(name)
     }
   }
 
@@ -56,7 +58,6 @@ class Service extends BaseService {
    */
   async registerService (serviceName, port, meta = {}) {
     const serviceId = `${serviceName}-${jadepool.env.processKey}`
-    const checkId = `check-${serviceId}`
     const result = await this._put(`/v1/agent/service/register`, {
       Name: serviceName,
       ID: serviceId,
@@ -64,21 +65,20 @@ class Service extends BaseService {
       Meta: meta,
       Check: {
         Name: `service:${serviceName}`,
-        ID: checkId,
-        TTL: '15s'
+        TTL: '10s',
+        Notes: `${serviceName} for Jadepool. (ttl by consul.service)`
       }
     })
     if (!result) return false
 
-    // 设置 ttl 为 5s 一次
+    // 设置 ttl 为 2s 一次
     const interval = setInterval(async () => {
-      const result = await this._put(`/v1/agent/check/pass/${checkId}`, {
-        note: `${serviceName} alive and reachable. (ttl by consul.service)`
-      })
+      const checkId = `service:${serviceId}`
+      const result = await this._put(`/v1/agent/check/pass/${checkId}`)
       if (!result) {
-        logger.warn(`failed-to-ttl-${serviceName}`)
+        logger.tag('TTL').warn(`failed-to-ttl-${serviceName}`)
       }
-    }, 5000)
+    }, 2000)
     // 添加到_registeredServices
     this._registeredServices.set(serviceName, {
       name: serviceName,
@@ -108,7 +108,7 @@ class Service extends BaseService {
     const result = await this._put(`/v1/agent/service/deregister/${data.id}`)
     if (!result) return false
 
-    logger.tag('Deregistered').log(`service=${serviceName}`)
+    logger.tag('Deregistered').log(`service=${serviceName},result=${JSON.stringify(result)}`)
     return true
   }
 
@@ -127,7 +127,7 @@ class Service extends BaseService {
       throw new NBError(50001, `failed to get service data: ${JSON.stringify(pickOne)}`)
     }
     return {
-      host: pickOne.Service.Address || '127.0.0.1',
+      host: pickOne.Service.Address || pickOne.Node.Address || '127.0.0.1',
       port: pickOne.Service.Port,
       meta: pickOne.Service.Meta || {}
     }
@@ -151,14 +151,23 @@ class Service extends BaseService {
    * 设置
    */
   async _put (uri, data) {
+    let result
+    let res
     try {
-      const res = await axios.put(uri, data, { baseURL: this.baseURL, proxy: false })
-      return res.data
+      res = await axios.put(uri, data, { baseURL: this.baseURL, proxy: false })
     } catch (err) {
       const info = err.response ? JSON.stringify(err.response.data) : null
       logger.error(info, err)
+      return null
     }
-    return null
+    if (res && res.data) {
+      result = res.data
+    } else if (res && res.status >= 200 && res.status < 400) {
+      result = true
+    } else {
+      result = false
+    }
+    return result
   }
 }
 

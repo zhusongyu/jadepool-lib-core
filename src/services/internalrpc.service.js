@@ -105,7 +105,8 @@ class Service extends BaseService {
     if (!rpcUrl || !(await rpcHelper.isRPCConnected(rpcUrl))) {
       const serviceName = `rpc-${namespace}`
       const serviceData = await jadepool.consulSrv.getServiceData(serviceName)
-      rpcUrl = serviceData.meta.url || `ws://${serviceData.host}:${serviceData.port}`
+      logger.tag('TryConnect').log(`host=${serviceData.host},port=${serviceData.port},meta=${JSON.stringify(serviceData.meta)}`)
+      rpcUrl = `ws://${serviceData.host}:${serviceData.port}`
       // 设置缓存
       this.cachedNspMap.set(namespace, rpcUrl)
     }
