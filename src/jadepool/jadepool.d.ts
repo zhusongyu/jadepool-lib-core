@@ -83,6 +83,25 @@ declare class JadepoolSingleton {
 	registerService(name: 'consul', opts: services.ConsulOptions): Promise<services.ConsulService>;
 
 	/**
+	 * 确保服务已注册
+	 * @param serviceClass 
+	 * @param opts 
+	 */
+	ensureService(name: 'agenda', opts: services.AgendaOptions): Promise<services.AgendaService>;
+	ensureService(name: 'express', opts: services.AppOptions): Promise<services.AppService>;
+	ensureService(name: 'error.code', opts: services.ErrorCodeOptions): Promise<services.ErrorCodeService>;
+	ensureService(name: 'script', opts: services.ScriptOptions): Promise<services.ScriptService>;
+	ensureService(name: 'jsonrpc.server', opts: services.JSONRPCServerOptions): Promise<services.JSONRpcService>;
+	ensureService(name: 'jsonrpc.client', opts: services.JSONRPCOptions): Promise<services.JSONRpcClientService>;
+	ensureService(name: 'jsonrpc.internal', opts: services.InternalRPCOptions): Promise<services.InternalRpcService>;
+	ensureService(name: 'socket.io', opts: services.SocketIOOptions): Promise<services.SocketIOService>;
+	ensureService(name: 'socket.io.worker', opts: services.SocketIOWorkerOptions): Promise<services.SocketIOWorkerService>;
+	ensureService(name: 'child.process', opts: any): Promise<services.ProcessService>;
+	ensureService(name: 'async.plan', opts: services.AsyncPlanOptions): Promise<services.AsyncPlanService>;
+	ensureService(name: 'config', opts: services.ConfigOptions): Promise<services.ConfigService>;
+	ensureService(name: 'consul', opts: services.ConsulOptions): Promise<services.ConsulService>;
+
+	/**
 	 * 获取服务
 	 * @param name
 	 */

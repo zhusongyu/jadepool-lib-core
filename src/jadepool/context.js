@@ -125,7 +125,6 @@ class JadePoolContext {
    * 注册服务
    * @param {typeof BaseService|string} serviceClass
    * @param {Object} opts 传入的初始化参数
-   * @returns {BaseService}
    */
   async registerService (serviceClass, opts) {
     let ClassToRegister
@@ -183,6 +182,15 @@ class JadePoolContext {
    */
   getService (name) {
     return this.services.get(name)
+  }
+  /**
+   * 确保Service存在
+   * @param {typeof BaseService|string} serviceClass
+   * @param {Object} opts 传入的初始化参数
+   * @returns {BaseService}
+   */
+  async ensureService (name, opts) {
+    return this.getService(name) || this.registerService(name, opts)
   }
 
   // Hook方法
