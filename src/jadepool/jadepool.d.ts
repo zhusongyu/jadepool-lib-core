@@ -58,6 +58,10 @@ declare class JadepoolSingleton {
    * 配置服务
    */
 	public configSrv: services.ConfigService
+	/**
+	 * 服务发现
+	 */
+	public consulSrv: services.ConsulService
   
 	/**
 	 * 注册服务

@@ -12,8 +12,8 @@ class Service extends BaseService {
    */
   constructor (services) {
     super(consts.SERVICE_NAMES.CONSUL, services)
-    /** @type {string[]} */
-    this._registeredServices = []
+    /** @type {Map<string, { name: string, id: string, interval: * }>} */
+    this._registeredServices = new Map()
   }
 
   /**
@@ -41,31 +41,97 @@ class Service extends BaseService {
   }
 
   /**
+   * 该Service的优雅退出函数
+   * @param signal 退出信号
+   */
+  async onDestroy (signal) {
+    for (const iter of this._registeredServices) {
+      const serviceName = iter[0]
+      await this.deregisterService(serviceName)
+    }
+  }
+
+  /**
    * 向consul注册某个名字+端口
    * @param {String} serviceName
    * @param {Number} port
    */
   async registerService (serviceName, port, meta = {}) {
     const serviceId = `${serviceName}-${jadepool.env.processKey}`
-    await this._put()
-    // TODO
+    const checkId = `check-${serviceId}`
+    const result = await this._put(`/v1/agent/service/register`, {
+      Name: serviceName,
+      ID: serviceId,
+      Port: port,
+      Meta: meta,
+      Check: {
+        Name: `service:${serviceName}`,
+        ID: checkId,
+        TTL: '15s'
+      }
+    })
+    if (!result) return false
+
+    // 设置 ttl 为 5s 一次
+    const interval = setInterval(async () => {
+      const result = await this._put(`/v1/agent/check/pass/${checkId}`)
+      if (!result) {
+        logger.warn(`failed-to-ttl-${serviceName}`)
+      }
+    }, 5000)
+    // 添加到_registeredServices
+    this._registeredServices.set(serviceName, {
+      name: serviceName,
+      id: serviceId,
+      interval
+    })
+    // Registered
     logger.tag('Registered').log(`service=${serviceName},port=${port}`)
+    return true
+  }
+
+  /**
+   * 向consul
+   * @param {String} serviceName
+   */
+  async deregisterService (serviceName) {
+    const data = this._registeredServices.get(serviceName)
+    if (!data) {
+      logger.warn(`service(${serviceName}) not registered`)
+      return
+    }
+    // remove iterval
+    if (data.interval !== undefined) {
+      clearInterval(data.interval)
+    }
+    // remove deregister
+    const result = await this._put(`/v1/agent/service/deregister/${data.id}`, {
+      note: `${serviceName} alive and reachable. (ttl by consul.service)`
+    })
+    if (result) {
+      logger.tag('Deregistered').log(`service=${serviceName}`)
+    }
   }
 
   /**
    * 获取一个服务的地址和端口
    * @param {string} serviceName
-   * @returns {{host: string, port: number}}
+   * @returns {{host: string, port: number, meta: object}}
    */
-  async getService (serviceName) {
-    // TODO
-  }
-
-  /**
-   * 执行周期请求计划
-   */
-  async _ttl (serviceName) {
-    // TODO
+  async getServiceData (serviceName) {
+    const results = await this._get(`/v1/health/service/${serviceName}?passing=true`)
+    if (!results || results.length === 0) {
+      throw new NBError(50001, `failed to find service(${serviceName})`)
+    }
+    const pickOne = results[0]
+    if (!pickOne || !pickOne.Service || !pickOne.Service.Port) {
+      throw new NBError(50001, `failed to get service data: ${JSON.stringify(pickOne)}`)
+    }
+    return {
+      host: pickOne.Service.Address || '127.0.0.1',
+      port: pickOne.Service.Port,
+      meta: pickOne.Service.Meta || {}
+    }
   }
 
   /**

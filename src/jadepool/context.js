@@ -57,6 +57,11 @@ class JadePoolContext {
   get configSrv () { return this.getService(consts.SERVICE_NAMES.CONFIG) }
 
   /**
+   * 服务发现
+   */
+  get consulSrv () { return this.getService(consts.SERVICE_NAMES.CONSUL) }
+
+  /**
    * @param {string} name
    */
   getModel (name) {
