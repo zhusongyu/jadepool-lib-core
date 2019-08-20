@@ -57,10 +57,11 @@ class Service extends BaseService {
    */
   async registerService (serviceName, port, meta = {}) {
     const serviceId = `${serviceName}-${jadepool.env.processKey}`
+    const selfHost = jadepool.env.host !== '127.0.0.1' ? jadepool.env.host : ''
     const result = await this._put(`/v1/agent/service/register`, {
       Name: serviceName,
       ID: serviceId,
-      Address: jadepool.env.host,
+      Address: selfHost,
       Port: port,
       Meta: meta,
       Check: {
