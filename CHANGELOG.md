@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.14.1
+
+Improvement:
+
+* consul.service在注册服务时，当host非127.0.0.1时才进行设置
+
 ## V0.14.0
 
 Feature:
