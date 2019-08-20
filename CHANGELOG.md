@@ -1,5 +1,17 @@
 # Change Logs
 
+## V0.14.0
+
+Feature:
+
+* 新增ConsulService，支持服务发现（必选，需安装consul）
+* app.service, config.service, internalrpc.service, socketio.service, sioworker.service均使用consul进行服务发现
+
+Fixes:
+
+* 修复asyncPlan的index错误
+* 修复AgendaJobs的index错误
+
 ## V0.13.2
 
 Fixes:
