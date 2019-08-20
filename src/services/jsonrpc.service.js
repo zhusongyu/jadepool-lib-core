@@ -69,7 +69,7 @@ class JSONRPCService extends BaseService {
     let attachPath
     const appServer = jp.getService(consts.SERVICE_NAMES.APP)
     if (appServer && appServer.server) {
-      host = appServer.host
+      host = jp.env.host
       port = appServer.port
       attachPath = '/rpc'
       httpServer = appServer.server

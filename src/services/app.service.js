@@ -22,6 +22,11 @@ class AppService extends BaseService {
   }
 
   /**
+   * 该app service key
+   */
+  get serviceKey () { return `app-${jp.env.server}` }
+
+  /**
    * @param {object} opts
    * @param {boolean} [opts.listenManually=false]
    * @param {object} [opts.server=undefined]
@@ -115,24 +120,15 @@ class AppService extends BaseService {
     // { host: string, http: { port: number, disabled: boolean }, https: { port: number, disabled: boolean, key: string, cert: string, ca: string } }
     let serviceCfg
     if (!opts.server) {
-      const processKey = consts.PROCESS.TYPES.ROUTER + '-' + jp.env.server
       const cfgLoader = require('../utils/config/loader')
-      const serviceDat = await cfgLoader.loadConfig('services', processKey)
+      const serviceDat = await cfgLoader.loadConfig('services', this.serviceKey)
       if (!serviceDat) {
-        throw new NBError(10001, `missing services config: ${processKey}`)
+        throw new NBError(10001, `missing services config: ${this.serviceKey}`)
       }
       serviceCfg = serviceDat.toMerged()
-      if (serviceCfg.host !== jp.env.host) {
-        serviceDat.applyModify({ host: jp.env.host })
-        await serviceDat.save()
-        logger.log(`host.modified=${jp.env.host}`)
-      }
     } else {
       serviceCfg = opts.server
     }
-
-    // set host
-    Object.defineProperty(this, 'host', { value: serviceCfg.host })
 
     if (!serviceCfg.http.disabled) {
       // 设置常量
@@ -164,10 +160,14 @@ class AppService extends BaseService {
   async listen () {
     if (this.server && !this.server.listening) {
       await new Promise(resolve => { this.server.listen(this.port, resolve) })
+      // 注册到consul
+      await jp.consulSrv.registerService(`rest-${jp.env.server}-http`, this.port)
       logger.log(`port=${this.port}`, ['HTTP Listening'])
     }
     if (this.serverSSL && !this.serverSSL.listening) {
       await new Promise(resolve => { this.serverSSL.listen(this.portSSL, resolve) })
+      // 注册到consul
+      await jp.consulSrv.registerService(`rest-${jp.env.server}-https`, this.portSSL)
       logger.log(`port=${this.portSSL}`, ['HTTPS Listening'])
     }
   }

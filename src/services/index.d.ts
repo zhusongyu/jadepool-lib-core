@@ -52,7 +52,6 @@ declare interface AppOptions {
 }
 declare class AppService extends BaseService {
   constructor (services : any);
-  host: string
   port?: number
   server?: http.Server
   portSSL?: number
@@ -348,4 +347,35 @@ declare class ConfigService extends BaseService {
    * @param parent 
    */
   deleteConfig(cfgPath: string, key: string, parent?: string): Promise<boolean>;
+}
+
+declare interface ConsulOptions {
+  url?: string
+}
+declare type KeyValueMeta = { [key: string]: string }
+declare type ServiceData = {
+  host: string
+  port: number
+  meta?: KeyValueMeta
+}
+declare class ConsulService extends BaseService {
+  constructor (services : any);
+  initialize (opts: ConsulOptions): Promise<void>
+  /**
+   * 注册服务到consul
+   * @param serviceName
+   * @param port
+   * @param meta
+   */
+  registerService (serviceName: string, port: number, meta?: KeyValueMeta): Promise<boolean>
+  /**
+   * 移除服务
+   * @param serviceName
+   */
+  deregisterService (serviceName: string): Promise<boolean>
+  /**
+   * 获取服务信息
+   * @param serviceName
+   */
+  getServiceData (serviceName: string): Promise<ServiceData>
 }
