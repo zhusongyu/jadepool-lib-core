@@ -57,6 +57,11 @@ class JadePoolContext {
   get configSrv () { return this.getService(consts.SERVICE_NAMES.CONFIG) }
 
   /**
+   * 服务发现
+   */
+  get consulSrv () { return this.getService(consts.SERVICE_NAMES.CONSUL) }
+
+  /**
    * @param {string} name
    */
   getModel (name) {
@@ -120,7 +125,6 @@ class JadePoolContext {
    * 注册服务
    * @param {typeof BaseService|string} serviceClass
    * @param {Object} opts 传入的初始化参数
-   * @returns {BaseService}
    */
   async registerService (serviceClass, opts) {
     let ClassToRegister
@@ -162,6 +166,9 @@ class JadePoolContext {
         case consts.SERVICE_NAMES.CONFIG:
           ClassToRegister = require('../services/config.service')
           break
+        case consts.SERVICE_NAMES.CONSUL:
+          ClassToRegister = require('../services/consul.service')
+          break
         default:
           logger.warn(`failed to registerService: ${serviceClass}`)
           return
@@ -179,13 +186,23 @@ class JadePoolContext {
   getService (name) {
     return this.services.get(name)
   }
+  /**
+   * 确保Service存在
+   * @param {typeof BaseService|string} serviceClass
+   * @param {Object} opts 传入的初始化参数
+   * @returns {BaseService}
+   */
+  async ensureService (name, opts) {
+    return this.getService(name) || this.registerService(name, opts)
+  }
 
   // Hook方法
   /**
    * Jadepool初始化
    */
   async hookInitialize (jadepool) {
-    // NOTHING
+    // 默认加载consul服务, 使用defaultConsul配置
+    await this.registerService(consts.SERVICE_NAMES.CONSUL)
   }
   hookPluginMounted (jadepool, plugin) {
     if (plugin && plugin.name) {

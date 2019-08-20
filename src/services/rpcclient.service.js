@@ -116,8 +116,7 @@ class Service extends BaseService {
     let headers = {}
     if (!rpcOpts.noAuth) {
       const timestamp = Date.now()
-      const processKey = consts.PROCESS.TYPES.ROUTER + '-' + jp.env.server
-      const key = encodeURI(`${processKey}_${Math.floor(Math.random() * 1e8)}_${timestamp}`)
+      const key = encodeURI(`${consts.SERVICE_NAMES.JSONRPC}_${Math.floor(Math.random() * 1e8)}_${timestamp}`)
       let sig = await this._signObject(key, timestamp, opts.signerId, opts.signer, rpcOpts)
       headers['Authorization'] = [key, sig.timestamp, sig.signature].join(',')
     }

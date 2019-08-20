@@ -36,6 +36,8 @@ declare interface EnvObject {
 	defaultMongo: string;
 	/** 默认Redis */
 	defaultRedis: string;
+	/** 默认Consul地址 */
+	defaultConsul: string;
 	/** 内部签名Secret */
 	secret: string;
 	/** 设置后worker将自动启动, 默认true */
@@ -56,6 +58,10 @@ declare class JadepoolSingleton {
    * 配置服务
    */
 	public configSrv: services.ConfigService
+	/**
+	 * 服务发现
+	 */
+	public consulSrv: services.ConsulService
   
 	/**
 	 * 注册服务
@@ -74,6 +80,26 @@ declare class JadepoolSingleton {
 	registerService(name: 'child.process', opts: any): Promise<services.ProcessService>;
 	registerService(name: 'async.plan', opts: services.AsyncPlanOptions): Promise<services.AsyncPlanService>;
 	registerService(name: 'config', opts: services.ConfigOptions): Promise<services.ConfigService>;
+	registerService(name: 'consul', opts: services.ConsulOptions): Promise<services.ConsulService>;
+
+	/**
+	 * 确保服务已注册
+	 * @param serviceClass 
+	 * @param opts 
+	 */
+	ensureService(name: 'agenda', opts: services.AgendaOptions): Promise<services.AgendaService>;
+	ensureService(name: 'express', opts: services.AppOptions): Promise<services.AppService>;
+	ensureService(name: 'error.code', opts: services.ErrorCodeOptions): Promise<services.ErrorCodeService>;
+	ensureService(name: 'script', opts: services.ScriptOptions): Promise<services.ScriptService>;
+	ensureService(name: 'jsonrpc.server', opts: services.JSONRPCServerOptions): Promise<services.JSONRpcService>;
+	ensureService(name: 'jsonrpc.client', opts: services.JSONRPCOptions): Promise<services.JSONRpcClientService>;
+	ensureService(name: 'jsonrpc.internal', opts: services.InternalRPCOptions): Promise<services.InternalRpcService>;
+	ensureService(name: 'socket.io', opts: services.SocketIOOptions): Promise<services.SocketIOService>;
+	ensureService(name: 'socket.io.worker', opts: services.SocketIOWorkerOptions): Promise<services.SocketIOWorkerService>;
+	ensureService(name: 'child.process', opts: any): Promise<services.ProcessService>;
+	ensureService(name: 'async.plan', opts: services.AsyncPlanOptions): Promise<services.AsyncPlanService>;
+	ensureService(name: 'config', opts: services.ConfigOptions): Promise<services.ConfigService>;
+	ensureService(name: 'consul', opts: services.ConsulOptions): Promise<services.ConsulService>;
 
 	/**
 	 * 获取服务
@@ -91,6 +117,7 @@ declare class JadepoolSingleton {
 	getService(name: 'child.process'): services.ProcessService;
 	getService(name: 'async.plan'): services.AsyncPlanService;
 	getService(name: 'config'): services.ConfigService;
+	getService(name: 'consul'): services.ConsulService;
 
 	/**
 	 * 获取模型

@@ -20,7 +20,7 @@ class SocketService extends BaseService {
    * 该SocketIO将重用app.service的导出的server
    * @param {Object} opts
    * @param {Number} [opts.timeout=120] 120秒请求过期
-   * @param {Boolean} [opts.adapter=undefined] 启用adapter的配置
+   * @param {Numbr} [opts.port=undefined] 若无app.service则监听
    * @param {Boolean} [opts.disableInternal=false] 是否禁用internal名字空间
    */
   async initialize (opts) {
@@ -37,11 +37,13 @@ class SocketService extends BaseService {
     // 检查app.service是否存在
     const appService = jp.getService(consts.SERVICE_NAMES.APP)
     let listenPort
+    let ssl = false
     if (appService) {
       let server
       if (appService.serverSSL) {
         listenPort = appService.portSSL
         server = appService.serverSSL
+        ssl = true
       } else if (appService.server) {
         listenPort = appService.port
         server = appService.server
@@ -49,44 +51,19 @@ class SocketService extends BaseService {
         throw new NBError(10001, `missing tcp server`)
       }
       this.io = socketio(server, ioOpts)
-    } else {
-      const cfgLoader = require('../utils/configLoader')
-      const processKey = consts.PROCESS.TYPES.ROUTER + '-' + jp.env.server
-      const serviceDat = await cfgLoader.loadConfig('services', processKey)
-      if (!serviceDat) {
-        throw new NBError(10001, `missing services config: ${processKey}`)
-      }
-      const serviceCfg = serviceDat.toMerged()
-      listenPort = serviceCfg.http.port
+    } else if (typeof opts.port === 'number') {
+      listenPort = opts.port
       this.io = socketio(listenPort, ioOpts)
+    } else {
+      throw new NBError(10002, `missing socket.io parameters`)
     }
+    // 注册到consul
+    await jp.consulSrv.registerService(consts.SERVICE_NAMES.SOCKET_IO, listenPort, {
+      protocol: ssl ? 'https' : 'http',
+      service: 'socketio.service',
+      processKey: jp.env.processKey
+    })
     logger.tag('AttachTo').log(`port=${listenPort}`)
-
-    // Step 2. 设置Adapter
-    if (opts.adapter) {
-      const adapterOpts = opts.adapter
-      if (adapterOpts.type === 'mongo') {
-        let dbUrl
-        if (typeof adapterOpts.url === 'string') {
-          dbUrl = adapterOpts.url
-        } else {
-          const db = require('../utils/db')
-          dbUrl = db.getUri('mubsub')
-        }
-        const mongoAdapter = require('socket.io-adapter-mongo')
-        this.io.adapter(mongoAdapter(dbUrl))
-        logger.tag('Adapter').log('use mongo.')
-      } else if (adapterOpts.type === 'redis') {
-        let redisOpts = { host: jp.env.host, port: 6379 }
-        if (typeof adapterOpts.host === 'string') {
-          redisOpts.host = adapterOpts.host
-          redisOpts.port = typeof adapterOpts.port === 'number' ? adapterOpts.port : redisOpts.port
-        }
-        const redisAdapter = require('socket.io-redis')
-        this.io.adapter(redisAdapter(redisOpts))
-        logger.tag('Adapter').log('use redis.')
-      }
-    }
 
     // Step 3. 设置通用中间件
     this.io.use(async (socket, next) => {

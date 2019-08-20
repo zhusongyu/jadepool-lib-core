@@ -4,7 +4,6 @@ const jp = require('../jadepool')
 const consts = require('../consts')
 const NBError = require('../NBError')
 const cryptoUtils = require('../utils/crypto')
-const cfgLoader = require('../utils/config/loader')
 
 const logger = require('@jadepool/logger').of('Service', 'Worker(SocketIO)')
 
@@ -35,24 +34,14 @@ class SioWorkerService extends BaseService {
    */
   async initialize (opts = {}) {
     // Step 0. 加载服务器配置信息
-    const processKey = consts.PROCESS.TYPES.ROUTER + '-' + jp.env.server
-    const serviceDat = await cfgLoader.loadConfig('services', processKey)
-    if (!serviceDat) {
-      throw new NBError(10001, `missing services config: ${processKey}`)
-    }
-    const serviceCfg = serviceDat.toMerged()
-    let serverUri
-    if (!serviceCfg.https.disabled) {
-      serverUri = `https://${serviceCfg.host}:${serviceCfg.https.port}`
-    } else if (!serviceCfg.http.disabled) {
-      serverUri = `http://${serviceCfg.host}:${serviceCfg.http.port}`
-    } else {
-      throw new NBError(10001, `app.service not started`)
-    }
+    const serviceData = await jp.consulSrv.getServiceData(consts.SERVICE_NAMES.SOCKET_IO)
+    const protocol = (serviceData.meta && serviceData.meta.protocol) ? `${serviceData.meta.protocol}://` : 'http://'
+    const serverUri = protocol + serviceData.host + ':' + serviceData.port
+    logger.tag('TryConnect').log(`host=${serviceData.host},port=${serviceData.port},meta=${JSON.stringify(serviceData.meta)}`)
 
     // Step 1. 构建认证query的签名
     const timestamp = Date.now()
-    const key = encodeURI(`${processKey}_${Math.floor(Math.random() * 1e8)}_${timestamp}`)
+    const key = encodeURI(`${consts.SERVICE_NAMES.SIO_WORKER}_${Math.floor(Math.random() * 1e8)}_${timestamp}`)
     let sig
     try {
       sig = await cryptoUtils.signInternal(key, timestamp)
