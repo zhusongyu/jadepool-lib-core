@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.14.4
+
+Fixes:
+
+* fix rpcclient verifyInternal bug
+
 ## V0.14.3
 
 Fixes:
