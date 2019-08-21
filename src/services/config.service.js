@@ -399,11 +399,19 @@ class ClientConfigService extends RedisConfigService {
       await rpcHelper.joinRPCServer(this._currentHost)
     }
   }
-  async _request (method, params) {
+  async _request (method, params, throwWithoutConnection = false) {
     if (!this._currentHost || !(await rpcHelper.isRPCConnected(this._currentHost))) {
       await this._tryConnectHost()
     }
-    return rpcHelper.requestRPC(this._currentHost, method, params)
+    // 再次检查是否连接
+    const isConnected = await rpcHelper.isRPCConnected(this._currentHost)
+    if (!isConnected) {
+      if (throwWithoutConnection) {
+        throw new NBError(21004, `service: config`)
+      }
+      return null
+    }
+    return rpcHelper.requestRPC(this._currentHost, method, params, { ignoreConnection: true })
   }
   // 便捷查询方法
   async loadChainCfg (chainKey) {
@@ -438,16 +446,16 @@ class ClientConfigService extends RedisConfigService {
   }
   // 写入型方法无默认实现
   async setAutoSaveWhenLoad (flag) {
-    return this._request('setAutoSaveWhenLoad', arguments)
+    return this._request('setAutoSaveWhenLoad', arguments, true)
   }
   async setAliasConfigPath (cfgPath, key, aliasPath) {
-    return this._request('setAliasConfigPath', arguments)
+    return this._request('setAliasConfigPath', arguments, true)
   }
   async saveConfig (path, key, modJson, disabled = false, parent = undefined) {
-    return this._request('saveConfig', arguments)
+    return this._request('saveConfig', arguments, true)
   }
   async deleteConfig (path, key, parent = undefined) {
-    return this._request('deleteConfig', arguments)
+    return this._request('deleteConfig', arguments, true)
   }
 }
 

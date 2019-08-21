@@ -1,5 +1,15 @@
 # Change Logs
 
+## V0.14.2
+
+Improvement:
+
+* upgrade logger to 2.0.0
+
+Fixes:
+
+* fix config.service connect failed will break process
+
 ## V0.14.1
 
 Improvement:
