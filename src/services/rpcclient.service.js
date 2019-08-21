@@ -385,7 +385,7 @@ class Service extends BaseService {
           const verifyOpts = _.pick(sigData, ['sort', 'hash', 'encode'])
           if (typeof sigData.internal === 'string' || sigData.authWithTimestamp !== undefined) {
             verifyOpts.authWithTimestamp = sigData.authWithTimestamp || sigData.internal === 'timestamp'
-            isValid = cryptoUtils.verifyInternal(jsonData, sigData.timestamp, sigData.signature, verifyOpts)
+            isValid = await cryptoUtils.verifyInternal(jsonData, sigData.timestamp, sigData.signature, verifyOpts)
           } else if (opts.verifier !== undefined) {
             const pubKey = typeof opts.verifier === 'string' ? Buffer.from(opts.verifier, consts.DEFAULT_ENCODE) : opts.verifier
             try {
