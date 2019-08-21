@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.14.3
+
+Fixes:
+
+* fix rpcHelper.requestRPC opts undefined
+
 ## V0.14.2
 
 Improvement:
