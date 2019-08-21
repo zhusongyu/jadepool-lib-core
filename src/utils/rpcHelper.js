@@ -79,7 +79,7 @@ async function joinRPCServer (rpcUrl, opts) {
  * @param {boolean} [opts.ignoreConnection=false]
  * @param {string} opts.signerId
  */
-async function requestRPC (rpcUrl, method, params, opts) {
+async function requestRPC (rpcUrl, method, params, opts = {}) {
   const isWs = rpcUrl.startsWith('ws')
   if (isWs && !opts.ignoreConnection) {
     const isConnected = await isRPCConnected(rpcUrl)
