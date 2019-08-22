@@ -3,49 +3,51 @@ import services from '../services'
 import models from '../models'
 import BaseService = require('../services/core')
 
-declare interface EnvObject {
+declare type EnvObject = {
 	/** 环境名称 */
-	name: string,
+	name: string
 	/** Pm2启动时cluster模式下的instanceNum */
-	instanceId: number,
+	instanceId: number
 	/** 是否为生产环境 */
-	isProd: boolean;
+	isProd: boolean
 	/** 是否启用ECC验证 */
-	eccEnabled: boolean;
+	eccEnabled: boolean
 	/** 服务类型 */
-	server: string;
+	server: string
 	/** 服务版本号 */
-	version: string;
+	version: string
 	/** 启动模式 */
-	launchMode: string;
-	/** 进程Key */
-	processKey: string;
+	launchMode: string
+	/** 在InternalRPC中自动注册的namespace */
+	rpcNamespace: string
 	/** 进程类型 */
-	processType: string;
+	processType: string
+	/** 进程Key */
+	processKey: string
 	/** 进程前缀 */
-	processPrefix: string;
+	processPrefix: string
 	/** 进程启动模式 */
-	mode: string;
+	mode: 'app' | 'task'
 	/** 进程启动参数 */
-	param: string;
+	param?: string
+	/** 进程启动时指定的任务名 */
+	task?: string
 	/** 进程脚本文件名，用于启动新进程 */
-	script: string;
+	script: string
 	/** 主机HOST */
-	host: string;
+	host: string
 	/** 默认Mongo */
-	defaultMongo: string;
+	defaultMongo: string
 	/** 默认Redis */
-	defaultRedis: string;
+	defaultRedis: string
 	/** 默认Consul地址 */
-	defaultConsul: string;
+	defaultConsul: string
 	/** 内部签名Secret */
-	secret: string;
+	secret: string
 	/** 设置后worker将自动启动, 默认true */
-	autoStart: boolean;
+	autoStart: boolean
 	/** 设置是否支持多同链多Worker模式, 默认false */
-	multiWorkers: boolean;
-	/** (过期)auto, pm2模式 */
-	clusterMode: string;
+	multiWorkers: boolean
 }
 
 declare class JadepoolSingleton {

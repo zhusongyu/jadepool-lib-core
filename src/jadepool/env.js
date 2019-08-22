@@ -42,6 +42,7 @@ module.exports = function buildEnvObject (serverType, version) {
     secret: 'JadePoolSeCreT', // 可通过环境变量 JP_SECRET 覆盖，用于内部私钥
     mode: undefined, // 可通过环境变量 JP_MODE 覆盖
     param: undefined, // 可通过环境变量 JP_PARAM 覆盖
+    task: undefined, // 可通过环境变量 JP_TASK 覆盖
     autoStart: true, // 可通过环境变量 JP_AUTO_START 覆盖, 设置后worker将自动启动
     multiWorkers: false // 可通过环境变量 JP_MULTI_WORKERS 覆盖，设置是否支持多同链多Worker模式
   })
@@ -69,6 +70,15 @@ module.exports = function buildEnvObject (serverType, version) {
   const processKey = `${processType}-${serverType}-${processPrefix}${process.pid}`
   const instanceId = process.env.NODE_APP_INSTANCE || process.env.NODE_INSTANCE_ID || '0'
 
+  // 设置rpcInternal的namespace
+  let rpcNamespace = processType
+  if (envOpts.param) {
+    rpcNamespace += `-${envOpts.param}`
+  }
+  if (envOpts.task) {
+    rpcNamespace += `-${envOpts.task}`
+  }
+
   return _.assign({
     name: process.env.NODE_ENV,
     instanceId: parseInt(instanceId),
@@ -77,6 +87,7 @@ module.exports = function buildEnvObject (serverType, version) {
     server: serverType,
     version: version,
     launchMode,
+    rpcNamespace,
     processKey,
     processType,
     processPrefix

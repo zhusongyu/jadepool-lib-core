@@ -1,5 +1,12 @@
 # Change Logs
 
+## V0.14.5
+
+Improvement:
+
+* 优化env参数
+* consul服务添加waitForService方法，等待到发现任意服务
+
 ## V0.14.4
 
 Fixes:

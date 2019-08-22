@@ -374,8 +374,15 @@ declare class ConsulService extends BaseService {
    */
   deregisterService (serviceName: string): Promise<boolean>
   /**
+   * 等待到服务发现未知
+   * @param serviceName 
+   * @param timeout 等待超时时间
+   */
+  waitForService (serviceName: string, timeout?: number): Promise<boolean>
+  /**
    * 获取服务信息
    * @param serviceName
+   * @param waitForService 是否等待
    */
-  getServiceData (serviceName: string): Promise<ServiceData>
+  getServiceData (serviceName: string, waitForService?: boolean): Promise<ServiceData>
 }
