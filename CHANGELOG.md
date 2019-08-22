@@ -2,6 +2,10 @@
 
 ## V0.14.6
 
+Improvement:
+
+* add finalized field to async plan
+
 Fixes:
 
 * fix avoid rpc result is null
