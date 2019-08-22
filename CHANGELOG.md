@@ -1,5 +1,11 @@
 # Change Logs
 
+## V0.14.6
+
+Fixes:
+
+* fix avoid rpc result is null
+
 ## V0.14.5
 
 Improvement:
