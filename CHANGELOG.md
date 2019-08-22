@@ -5,6 +5,7 @@
 Improvement:
 
 * add finalized field to async plan
+* change wallet source data 'cachedAt' from one to many
 
 Fixes:
 
