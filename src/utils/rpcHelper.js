@@ -91,7 +91,7 @@ async function requestRPC (rpcUrl, method, params, opts = {}) {
   const jsonrpcSrv = await fetchRPCClientService()
   // 使用瑶池数据库私钥进行签名
   let result = await jsonrpcSrv.requestJSONRPC(rpcUrl, method, params, opts)
-  if (typeof result === 'object' && typeof result.encrypted === 'string') {
+  if (typeof result === 'object' && result !== null && typeof result.encrypted === 'string') {
     result = await cryptoUtils.decryptData(result)
   }
   return result

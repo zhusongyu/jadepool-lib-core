@@ -252,7 +252,9 @@ Wallet.prototype.setSource = async function (chainKey, target, type) {
 Wallet.prototype.setSourceData = async function (chainKey, coinName, sourceData, isSetCachedAt) {
   sourceData = sourceData || {}
   if (isSetCachedAt) {
-    sourceData.cachedAt = new Date()
+    for (const key in sourceData) {
+      sourceData[`${key}CachedAt`] = (new Date()).toISOString()
+    }
   }
   await _setAnyData(this._id, chainKey, coinName, 'data', sourceData)
   return this
