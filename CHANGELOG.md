@@ -1,5 +1,16 @@
 # Change Logs
 
+## V0.14.6
+
+Improvement:
+
+* add finalized field to async plan
+* change wallet source data 'cachedAt' from one to many
+
+Fixes:
+
+* fix avoid rpc result is null
+
 ## V0.14.5
 
 Improvement:

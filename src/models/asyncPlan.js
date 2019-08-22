@@ -30,6 +30,10 @@ const schema = new Schema({
     type: String,
     enum: _.values(consts.ASYNC_PLAN_STATUS)
   },
+  finalized: {
+    type: Boolean,
+    default: false
+  },
   // 任务进度
   finished_steps: {
     type: Number,
