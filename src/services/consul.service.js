@@ -114,12 +114,31 @@ class Service extends BaseService {
   }
 
   /**
+   * 等待到服务发现未知
+   * @param {string} serviceName
+   * @param {Number} [timeout=undefined] 等待超时时间（s）, 默认10分钟
+   */
+  async waitForService (serviceName, timeout = 600) {
+    const maxAmt = Math.ceil(timeout / 2)
+    for (let i = 0; i < maxAmt; i++) {
+      const results = await this._get(`/v1/health/service/${serviceName}?passing=true`)
+      if (results.length > 0) {
+        return results
+      } else if (i < maxAmt) {
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+    }
+    return false
+  }
+
+  /**
    * 获取一个服务的地址和端口
    * @param {string} serviceName
+   * @param {Boolean} waitForService 等待服务发现
    * @returns {{host: string, port: number, meta: object}}
    */
-  async getServiceData (serviceName) {
-    const results = await this._get(`/v1/health/service/${serviceName}?passing=true`)
+  async getServiceData (serviceName, waitForService = false) {
+    const results = await this.waitForService(serviceName, !waitForService ? 1 : 60)
     if (!results || results.length === 0) {
       throw new NBError(50001, `failed to find service(${serviceName})`)
     }

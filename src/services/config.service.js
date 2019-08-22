@@ -383,8 +383,8 @@ class ClientConfigService extends RedisConfigService {
    */
   async initialize (opts) {
     await super.initialize(opts)
-    // 连接host
-    await this._tryConnectHost()
+    // 确保存在config service
+    await jadepool.consulSrv.waitForService(consts.SERVICE_NAMES.CONFIG)
     logger.tag('Inited').log(`mode=client,host=${this._currentHost}`)
   }
   async _tryConnectHost () {
