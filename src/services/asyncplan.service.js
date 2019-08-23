@@ -159,7 +159,8 @@ class Service extends BaseService {
           referPlan = _.find(refer.plans, one => {
             return one.category === plan.category &&
               one.namespace === plan.namespace &&
-              one.method === plan.method
+              one.method === plan.method &&
+              one.fastRetries > 0
           })
         }
         Object.assign(update, await this._execNewPlan(planData, referPlan))
