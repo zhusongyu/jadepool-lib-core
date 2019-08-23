@@ -33,7 +33,7 @@ export declare const SERVICE_NAMES: {
   /** 默认错误信息 */
   ERROR_CODE: 'error.code',
   /** 后台任务服务 */
-  AGENDA: 'agenda',
+  JOB_QUEUE: 'job.queue',
   /** HTTP/HTTPS服务 */
   APP: 'express',
   /** 根据生命周期运行脚本的服务 */

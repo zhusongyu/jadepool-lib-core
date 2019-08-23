@@ -40,7 +40,6 @@ class Task {
   /**
    * Accessor
    */
-  get agenda () { return jp.getService(consts.SERVICE_NAMES.AGENDA) }
   get isWorking () { return !this[sDestroying] }
   get round () { return this[sRunAmt] }
   get handlingAmt () { return this[sHandlingAmt] }

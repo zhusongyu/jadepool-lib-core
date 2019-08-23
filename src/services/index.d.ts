@@ -1,6 +1,6 @@
-import Agenda from 'agenda'
+import BullQueue from 'bull'
 import BaseService = require('./core')
-import Task = require('./agenda.task')
+import Task = require('./task')
 import { ProcessRunner } from '../utils';
 import {
   ChainConfig,
@@ -11,37 +11,36 @@ import * as https from 'https';
 
 export as namespace services
 
-declare interface AgendaOptions {
-  processEvery: number
-  tasks: {
-    name: string,
-    fileName: string,
-    instance: Task,
-    prefix: string,
-    chainKey: string
-  }[]
+declare interface JobDef {
+  name: string,
+  fileName: string,
+  instance: Task,
+  limiter?: {
+    max: number,      // Max number of jobs processed
+    duration: number, // per duration in milliseconds (for 'max' jobs)
+  },
+  data?: {
+    prefix?: string,
+    chainKey?: string
+  }
 }
-
-declare class AgendaService extends BaseService {
+declare interface JobQueueOptions {
+  tasks?: JobDef[]
+  settings?: {
+    lockDuration: number = 30000; // Key expiration time for job locks.
+    lockRenewTime: number = 15000; // Interval on which to acquire the job lock
+    stalledInterval: number = 30000; // How often check for stalled jobs (use 0 for never checking).
+    maxStalledCount: number = 1; // Max amount of times a stalled job will be re-processed.
+    guardInterval: number = 5000; // Poll interval for delayed jobs and added jobs.
+    retryProcessDelay: number = 5000; // delay before processing next job in case of internal error.
+    backoffStrategies: {}; // A set of custom backoff strategies keyed by name.
+    drainDelay: number = 5; // A timeout for when the queue is in drained state (empty waiting for jobs).
+  }
+}
+declare class JobQueueService extends BaseService {
   constructor (services : any);
   
-  initialize (opts: AgendaOptions): Promise<void>
-  /**
-   * 重载配置
-   */
-  startOrReloadJobs (): Promise<void>  
-  /**
-   * 正在running的jobs
-   * @param taskName 检测的任务名
-   * @param id 可选，同名任务下，检测指定id
-   */
-  runningJobs (taskName: string, id?: string): Promise<Agenda.Job[]>
-
-  jobs (query: object): Promise<Agenda.Job[]>
-  update (query: object, update: object): Promise<any>
-  every (interval: string | number, name: string, data: object, options: object): Promise<Agenda.Job>
-  schedule (when: string, name: string, data: object): Promise<Agenda.Job>
-  now (name: string, data: object): Promise<Agenda.Job>
+  initialize (opts: JobQueueOptions): Promise<void>
 }
 
 declare interface AppOptions {

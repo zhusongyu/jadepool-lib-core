@@ -3,5 +3,5 @@ module.exports = {
   jadepool: require('./jadepool'),
   utils: require('./utils'),
   NBError: require('./NBError'),
-  Task: require('./services/agenda.task')
+  Task: require('./services/task')
 }

@@ -30,7 +30,6 @@ describe('Services: async plan', function () {
       config
     ))
     await utils.db.initialize()
-    await jadepool.registerService(consts.SERVICE_NAMES.AGENDA, { processEvery: 1 })
     await jadepool.registerService(consts.SERVICE_NAMES.ASYNC_PLAN, { processEvery: 1 })
   })
   after(async () => {

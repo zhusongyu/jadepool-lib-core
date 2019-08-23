@@ -154,8 +154,8 @@ class JadePoolContext {
         case consts.SERVICE_NAMES.SOCKET_IO:
           ClassToRegister = require('../services/socketio.service')
           break
-        case consts.SERVICE_NAMES.AGENDA:
-          ClassToRegister = require('../services/agenda.service')
+        case consts.SERVICE_NAMES.JOB_QUEUE:
+          ClassToRegister = require('../services/job.service')
           break
         case consts.SERVICE_NAMES.CHILD_PROCESS:
           ClassToRegister = require('../services/process.service')

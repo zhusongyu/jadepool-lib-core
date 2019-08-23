@@ -70,7 +70,6 @@ declare class JadepoolSingleton {
 	 * @param serviceClass 
 	 * @param opts 
 	 */
-	registerService(name: 'agenda', opts: services.AgendaOptions): Promise<services.AgendaService>;
 	registerService(name: 'express', opts: services.AppOptions): Promise<services.AppService>;
 	registerService(name: 'error.code', opts: services.ErrorCodeOptions): Promise<services.ErrorCodeService>;
 	registerService(name: 'script', opts: services.ScriptOptions): Promise<services.ScriptService>;
@@ -83,13 +82,13 @@ declare class JadepoolSingleton {
 	registerService(name: 'async.plan', opts: services.AsyncPlanOptions): Promise<services.AsyncPlanService>;
 	registerService(name: 'config', opts: services.ConfigOptions): Promise<services.ConfigService>;
 	registerService(name: 'consul', opts: services.ConsulOptions): Promise<services.ConsulService>;
+	registerService(name: 'job.queue', opts: services.JobQueueOptions): Promise<services.JobQueueService>;
 
 	/**
 	 * 确保服务已注册
 	 * @param serviceClass 
 	 * @param opts 
 	 */
-	ensureService(name: 'agenda', opts: services.AgendaOptions): Promise<services.AgendaService>;
 	ensureService(name: 'express', opts: services.AppOptions): Promise<services.AppService>;
 	ensureService(name: 'error.code', opts: services.ErrorCodeOptions): Promise<services.ErrorCodeService>;
 	ensureService(name: 'script', opts: services.ScriptOptions): Promise<services.ScriptService>;
@@ -102,12 +101,12 @@ declare class JadepoolSingleton {
 	ensureService(name: 'async.plan', opts: services.AsyncPlanOptions): Promise<services.AsyncPlanService>;
 	ensureService(name: 'config', opts: services.ConfigOptions): Promise<services.ConfigService>;
 	ensureService(name: 'consul', opts: services.ConsulOptions): Promise<services.ConsulService>;
+	ensureService(name: 'job.queue', opts: services.JobQueueOptions): Promise<services.JobQueueService>;
 
 	/**
 	 * 获取服务
 	 * @param name
 	 */
-	getService(name: 'agenda'): services.AgendaService;
 	getService(name: 'express'): services.AppService;
 	getService(name: 'error.code'): services.ErrorCodeService;
 	getService(name: 'script'): services.ScriptService;
@@ -120,6 +119,7 @@ declare class JadepoolSingleton {
 	getService(name: 'async.plan'): services.AsyncPlanService;
 	getService(name: 'config'): services.ConfigService;
 	getService(name: 'consul'): services.ConsulService;
+	getService(name: 'job.queue'): services.JobQueueService;
 
 	/**
 	 * 获取模型
