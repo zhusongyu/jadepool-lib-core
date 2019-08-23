@@ -153,7 +153,16 @@ class Service extends BaseService {
       if (methodValid) {
         update.started_at = new Date()
         logger.tag('one-exec').log(`plan=${plan._id},index=${idx},data=${JSON.stringify(planData)}`)
-        Object.assign(update, await this._execNewPlan(planData, refer && refer.plans[idx]))
+        // find refer plan
+        let referPlan
+        if (refer) {
+          referPlan = _.find(refer.plans, one => {
+            return one.category === plan.category &&
+              one.namespace === plan.namespace &&
+              one.method === plan.method
+          })
+        }
+        Object.assign(update, await this._execNewPlan(planData, referPlan))
         // 更新本地数据
         Object.assign(planData, update)
       }
