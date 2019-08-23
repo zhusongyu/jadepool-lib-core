@@ -84,6 +84,7 @@ class Service extends BaseService {
       }
       const updateObj = { $set: {} }
       let anyError = false // 是否存在错误
+      let isFinalized = false
       if (plan.mode === consts.ASYNC_PLAN_MODES.PARALLEL) {
         // 并行任务
         const updates = await Promise.all(_.map(plan.plans, this._updatePlanData.bind(this, plan, plan.refer)))
@@ -116,10 +117,23 @@ class Service extends BaseService {
         updateObj.$set.finished_at = new Date()
         const status = anyError ? consts.ASYNC_PLAN_STATUS.FAILED : consts.ASYNC_PLAN_STATUS.COMPLETED
         updateObj.$set.status = status
+        updateObj.$set.finalized = isFinalized = status === consts.ASYNC_PLAN_STATUS.COMPLETED
         logger.tag('Finished').log(`plan=${plan._id},status=${status}`)
       }
       // 保存订单
       await AsyncPlan.updateOne({ _id: plan._id }, updateObj).exec()
+      // 将全部refer设置为finalized
+      if (isFinalized && plan.refer) {
+        plan.depopulate('refer')
+        let referId = plan.refer
+        while (referId) {
+          const doc = await AsyncPlan.findByIdAndUpdate(referId, {
+            $set: { finalized: true }
+          }, { new: true }).exec()
+          if (!doc) break
+          referId = doc.refer
+        }
+      } // end if
     } // end while
   }
 
@@ -145,7 +159,8 @@ class Service extends BaseService {
           referPlan = _.find(refer.plans, one => {
             return one.category === plan.category &&
               one.namespace === plan.namespace &&
-              one.method === plan.method
+              one.method === plan.method &&
+              one.fastRetries > 0
           })
         }
         Object.assign(update, await this._execNewPlan(planData, referPlan))
