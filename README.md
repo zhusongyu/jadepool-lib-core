@@ -33,7 +33,7 @@ const Model = jadepool.getModel('modelName')
 ```js
 const { jadepool } = require('@jadepool/lib-core')
 // 可获取 consts.SERVICE_NAMES 内的全部服务
-const someSrv = jadepool.getService(consts.SERVICE_NAMES.AGENDA)
+const someSrv = jadepool.getService(consts.SERVICE_NAMES.JSONRPC)
 ```
 
 ## 一般性调用
