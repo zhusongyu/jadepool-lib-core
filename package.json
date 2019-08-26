@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@jadepool/crypto": "^0.1.2",
-    "@jadepool/logger": "^2.0.0",
+    "@jadepool/logger": "^2.0.2",
     "@types/mongoose": "^5.3.8",
     "@types/redis": "^2.8.13",
     "axios": "~0.19.0",

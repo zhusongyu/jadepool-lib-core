@@ -162,13 +162,13 @@ class AppService extends BaseService {
       await new Promise(resolve => { this.server.listen(this.port, resolve) })
       // 注册到consul
       await jp.consulSrv.registerService(`rest-${jp.env.server}-http`, this.port)
-      logger.log(`port=${this.port}`, ['HTTP Listening'])
+      logger.tag('HTTP Listening').log(`port=${this.port}`)
     }
     if (this.serverSSL && !this.serverSSL.listening) {
       await new Promise(resolve => { this.serverSSL.listen(this.portSSL, resolve) })
       // 注册到consul
       await jp.consulSrv.registerService(`rest-${jp.env.server}-https`, this.portSSL)
-      logger.log(`port=${this.portSSL}`, ['HTTPS Listening'])
+      logger.tag('HTTPS Listening').log(`port=${this.portSSL}`)
     }
   }
 }
