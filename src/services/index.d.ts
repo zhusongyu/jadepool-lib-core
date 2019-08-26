@@ -1,4 +1,4 @@
-import BullQueue from 'bull'
+import { Queue, Job, QueueOptions, JobOptions, AdvancedSettings } from 'bull'
 import BaseService = require('./core')
 import Task = require('./task')
 import { ProcessRunner } from '../utils';
@@ -13,34 +13,70 @@ export as namespace services
 
 declare interface JobDef {
   name: string,
+  // data数据
   fileName: string,
-  instance: Task,
-  limiter?: {
-    max: number,      // Max number of jobs processed
-    duration: number, // per duration in milliseconds (for 'max' jobs)
-  },
-  data?: {
-    prefix?: string,
-    chainKey?: string
-  }
+  prefix?: string,
+  chainKey?: string
+  // task实例
+  instance: Task
 }
 declare interface JobQueueOptions {
   tasks?: JobDef[]
-  settings?: {
-    lockDuration: number = 30000; // Key expiration time for job locks.
-    lockRenewTime: number = 15000; // Interval on which to acquire the job lock
-    stalledInterval: number = 30000; // How often check for stalled jobs (use 0 for never checking).
-    maxStalledCount: number = 1; // Max amount of times a stalled job will be re-processed.
-    guardInterval: number = 5000; // Poll interval for delayed jobs and added jobs.
-    retryProcessDelay: number = 5000; // delay before processing next job in case of internal error.
-    backoffStrategies: {}; // A set of custom backoff strategies keyed by name.
-    drainDelay: number = 5; // A timeout for when the queue is in drained state (empty waiting for jobs).
-  }
+  settings?:  AdvancedSettings
 }
 declare class JobQueueService extends BaseService {
   constructor (services : any);
   
   initialize (opts: JobQueueOptions): Promise<void>
+  /**
+   * 获取一个队列
+   * @param taskName
+   */
+  fetchQueue (taskName: String, opts?: QueueOptions): Promise<Queue>
+  /**
+   * 注册任务
+   * @param tasks
+   */
+  registerJobQueues (tasks: JobDef[]): Promise<void>
+  /**
+   * 注册任务
+   * @param task
+   */
+  registerJobQueue (task: JobDef): Promise<void>
+  /**
+   * 启动/重启任务
+   */
+  startOrReloadJobs (): Promise<void>
+  /**
+   * 查询正在running的jobs
+   * @param taskName
+   */
+  runningJobs (taskName: string): Promise<number>
+  /**
+   * 创建循环任务
+   * @param interval
+   * @param taskName
+   * @param data
+   * @param options
+   */
+  every (interval: number | string, taskName: string, data?: object, options?: JobOptions): Promise<Job | undefined>
+  /**
+   * 创建计划任务
+   * @param when 
+   * @param taskName 
+   * @param data 
+   * @param options 
+   */
+  schedule (when: number | string | Date, taskName: string, data?: object, options?: JobOptions): Promise<Job>
+  /**
+   * 创建单次任务
+   * @param taskName 名称
+   * @param subName 
+   * @param data 
+   * @param options 
+   */
+  now (taskName: string, subName: string, data?: object, options?: JobOptions): Promise<Job>
+  now (taskName: string, data?: object, options?: JobOptions): Promise<Job>
 }
 
 declare interface AppOptions {

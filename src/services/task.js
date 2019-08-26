@@ -11,6 +11,7 @@ const waitForSeconds = (sec) => {
   })
 }
 
+const sOpts = Symbol('options')
 const sRunAmt = Symbol('runAmount')
 const sHandlingAmt = Symbol('handlingAmount')
 const sDestroying = Symbol('destroying')
@@ -24,9 +25,6 @@ class Task {
     Object.defineProperties(this, {
       'name': { value: taskName }
     })
-    this._i = 0 // 部分task使用
-    // 默认情况任务并发数为1
-    this.opts = { concurrency: 1 }
     // 默认情况不做next重试
     this.nextInterval = null
     // 默认不记录Round
@@ -40,11 +38,27 @@ class Task {
   /**
    * Accessor
    */
+  get opts () { return this[sOpts] || this.setOptions() }
   get isWorking () { return !this[sDestroying] }
   get round () { return this[sRunAmt] }
   get handlingAmt () { return this[sHandlingAmt] }
   get taskQuery () { return { server: jp.env.server, name: this.name } }
   get taskConfig () { return this[sTaskConfig] }
+
+  /**
+   * 设置job相关的options
+   */
+  setOptions (opts = {}) {
+    const optsToSet = this[sOpts] || {}
+    optsToSet.concurrency = opts.concurrency || optsToSet.concurrency || 1
+    optsToSet.limiterMax = opts.limiterMax || optsToSet.limiterMax || 1000
+    optsToSet.limiterDuration = opts.limiterDuration || optsToSet.limiterDuration || 5000
+    optsToSet.lockDuration = opts.lockDuration || optsToSet.lockDuration || 30000
+    optsToSet.stalledInterval = opts.stalledInterval || opts.lockDuration || optsToSet.stalledInterval || 30000
+    optsToSet.maxStalledCount = opts.maxStalledCount || optsToSet.maxStalledCount || 1
+    this[sOpts] = optsToSet
+    return this[sOpts]
+  }
 
   /**
    * 任务初始化
@@ -85,10 +99,9 @@ class Task {
   /**
    * @param {Object} job
    */
-  async onHandle (job, done) {
-    if (this[sDestroying]) {
-      return done()
-    }
+  async onHandle (job) {
+    if (this[sDestroying]) return
+
     const startTs = Date.now()
     if (this.recordRound) {
       logger.diff(this.name).tag('Start').log(`round=${this[sRunAmt]}`)
@@ -159,9 +172,9 @@ class Task {
     this[sHandlingAmt]--
     // 完成当前任务执行
     if (errResult) {
-      done(errResult)
+      return Promise.reject(errResult)
     } else {
-      done()
+      return Promise.resolve()
     }
   }
 
@@ -202,12 +215,13 @@ class Task {
 
   /**
    * 进行下一步Schedule
-   * @param {Object} job
+   * @param {String} name 名称
+   * @param {Number} delay 下一次执行等待
+   * @param {Number} attempts 重试次数上限
    */
-  next (job) {
-    if (!this.nextInterval) return
+  next (name, delay, attempts) {
     if (!this.isWorking) return
-    job.schedule(this.nextInterval)
+    // TODO
   }
 
   /** 重载函数区 */

@@ -1,7 +1,10 @@
 const _ = require('lodash')
+const moment = require('moment')
 const Queue = require('bull')
+const Task = require('./task')
 const BaseService = require('./core')
 const consts = require('../consts')
+const jadepool = require('../jadepool')
 const NBError = require('../NBError')
 const redis = require('../utils/redis')
 
@@ -17,6 +20,8 @@ class Service extends BaseService {
     super(consts.SERVICE_NAMES.JOB_QUEUE, services)
     /** @type {Map<string, Bull.Queue<any>>} */
     this._queues = new Map()
+    /** @type {Map<string, {name: string, instance: Task, job: Queue.Job}>} */
+    this._runnableDefs = new Map()
   }
 
   /**
@@ -24,11 +29,21 @@ class Service extends BaseService {
    * @returns {Promise}
    */
   async onDestroy () {
+    // exists queues
     for (const iter of this._queues) {
       const name = iter[0]
       const queue = iter[1]
       await queue.close()
-      logger.tag('Queue Closed').log(`task=${name}`)
+      logger.tag('Queue Closed').log(`queue=${name}`)
+    }
+    // runnable defs
+    for (const iter of this._runnableDefs) {
+      const name = iter[0]
+      const taskIns = iter[1].instance
+      if (taskIns && typeof taskIns.onDestroy === 'function') {
+        await taskIns.onDestroy()
+      }
+      logger.tag('Task Destroyed').log(`task=${name}`)
     }
   }
 
@@ -40,7 +55,14 @@ class Service extends BaseService {
    * @param {Object} [opts.settings=undefined] job queue默认配置
    */
   async initialize (opts) {
+    // 默认job queue参数
     this._defaultQueueOpts = _.clone(opts.settings || {})
+    // 注册任务
+    if (opts.tasks && opts.tasks.length > 0) {
+      await this.registerJobQueues(opts.tasks)
+    }
+    // 启动需要启动的定时任务
+    await this.startOrReloadJobs()
   }
 
   /**
@@ -53,8 +75,7 @@ class Service extends BaseService {
       const redisOpts = redis.getOpts(REDIS_CATEGORY)
       const params = [ taskName ]
       const queueOpts = Object.assign({
-        prefix: 'JADEPOOL_JOB_QUEUE',
-        settings: _.clone(this._defaultQueueOpts)
+        prefix: 'JADEPOOL_JOB_QUEUE'
       }, opts)
       if (typeof redisOpts.url === 'string') {
         params.push(redisOpts.url)
@@ -73,25 +94,108 @@ class Service extends BaseService {
 
   /**
    * 注册任务
-   * @param {JobDef[]} tasks
+   * @param {{name: string, instance: Task}[]} tasks
    */
-  async registerQueues (tasks = []) {
-    // lockDuration
-    // TODO
+  async registerJobQueues (tasks = []) {
+    logger.tag('Register Jobs').log(`amount=${tasks.length}`)
+
+    // Step 3. 定义新的Tasks
+    for (let i = 0, len = tasks.length; i < len; i++) {
+      const task = tasks[i]
+      if (!task.instance || !(task.instance instanceof Task)) {
+        logger.tag('Job-missing').warn(`name=${task.name}`)
+        continue
+      }
+      // 初始化
+      await task.instance.onInit()
+      const taskOpts = task.instance.opts
+      // 获取JobQueue
+      const queue = await this.fetchQueue(task.name, {
+        limiter: {
+          max: taskOpts.limiterMax,
+          duration: taskOpts.limiterDuration,
+          bounceBack: false
+        },
+        settings: Object.assign(_.clone(this._defaultQueueOpts), {
+          lockDuration: taskOpts.lockDuration,
+          stalledInterval: taskOpts.stalledInterval,
+          maxStalledCount: taskOpts.maxStalledCount
+        })
+      })
+      // 注册到JobQueue
+      queue.process('*', taskOpts.concurrency, task.instance.onHandle.bind(task.instance))
+
+      // add to runnable
+      this._runnableDefs.set(task.name, task)
+      logger.tag('Jobs-defined').log(`name=${task.name}`)
+    }
   }
   /**
    * 注册单个任务
-   * @param {JobDef} task
+   * @param {{name: string, instance: Task}} task
    */
-  async registerQueue (task) {
-    await this.registerQueues([ task ])
+  async registerJobQueue (task) {
+    await this.registerJobQueues([ task ])
   }
 
   /**
-   * 运行任务
+   * 运行或重启循环任务
    */
   async startOrReloadJobs () {
-    // TODO
+    const TaskConfig = jadepool.getModel(consts.MODEL_NAMES.TASK_CONFIG)
+    let running = 0
+    for (const iter of this._runnableDefs) {
+      const taskName = iter[0]
+      const taskObj = iter[1]
+      // remove current job
+      if (taskObj.job) {
+        await taskObj.job.remove()
+      }
+
+      let taskCfg = await TaskConfig.findOne({ server: jadepool.env.server, name: taskName }).exec()
+      if (!taskCfg || taskCfg.paused) continue
+
+      const queue = this.fetchQueue(taskName)
+      const priority = taskObj.instance.opts.priority || 1
+      // 根据TaskConfig进行 job启动
+      const jobData = _.pick(taskObj, ['fileName', 'prefix', 'chainKey'])
+      switch (taskCfg.jobtype) {
+        case consts.JOB_TYPES.EVERY:
+          if (taskCfg.seconds < 0) continue
+          taskObj.job = await queue.add(jobData, {
+            priority,
+            repeat: {
+              every: taskCfg.seconds * 1000 // ms
+            }
+          })
+          logger.tag('Jobs-start', taskName).log(`interval=${taskCfg.seconds}s`)
+          break
+        case consts.JOB_TYPES.SCHEDULE:
+          if (!taskCfg.cron) continue
+          taskObj.job = await queue.add(jobData, {
+            priority,
+            repeat: {
+              cron: taskCfg.cron
+            }
+          })
+          logger.tag('Jobs-start', taskName).log(`cron=${taskCfg.cron}`)
+          break
+        case consts.JOB_TYPES.NORMAL:
+          if (!taskCfg.autoRunAmount) continue
+          const runnings = await this.runningJobs(taskName)
+          const autoRunAmount = Math.max(0, taskCfg.autoRunAmount - runnings.length)
+          if (!autoRunAmount) continue
+          const jobs = []
+          for (let i = 0; i < autoRunAmount; i++) {
+            jobs.push({ data: {}, opts: { priority } })
+          }
+          await queue.addBulk(jobs)
+          logger.tag('Jobs-start', taskName).log(`auto.run.amount=${autoRunAmount}`)
+          break
+      }
+      running++
+    }
+    logger.tag('Jobs', 'Start-or-reload').log(`running=${running}`)
   }
 
   /**
@@ -99,17 +203,41 @@ class Service extends BaseService {
    * @param {string} taskName
    */
   async runningJobs (taskName) {
-    // TODO
+    const queue = await this.fetchQueue(taskName)
+    return queue.getJobCountByTypes('active,waiting,delayed')
   }
 
-  async every (interval, name, data, options) {
-    // TODO
+  async every (interval, taskName, data, options = {}) {
+    const queue = await this.fetchQueue(taskName)
+    const repeat = {}
+    if (typeof interval === 'number') {
+      repeat.every = interval * 1000
+    } else if (typeof interval === 'string') {
+      repeat.cron = interval
+    }
+    return queue.add(data, Object.assign({}, options, { repeat }))
   }
-  async schedule (when, name, data) {
-    // TODO
+  async schedule (when, taskName, data, options = {}) {
+    const queue = await this.fetchQueue(taskName)
+    const diff = moment(when).diff(moment())
+    if (diff <= 0) {
+      logger.tag('Cannot-schedule-before-now').warn(`when=${when}`)
+      return
+    }
+    return queue.add(data, Object.assign({}, options, { delay: diff }))
   }
-  async now (name, data) {
-    // TODO
+  async now (taskName, subName, data, options = {}) {
+    const queue = await this.fetchQueue(taskName)
+    if (options === undefined) {
+      options = data
+      data = subName
+      subName = undefined
+    }
+    if (subName !== undefined) {
+      return queue.add(subName, data, options)
+    } else {
+      return queue.add(data, options)
+    }
   }
 }
 
