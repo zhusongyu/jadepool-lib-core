@@ -306,7 +306,7 @@ declare interface ChainConfig {
   /** explorers config */
   explorers: string[] | { type: string, name: string, url: string }[]
   /** 节点配置 */
-  endpoints: string[] | { type: string, name: string, url?: string, [key: string]: string }[]
+  endpoints: string[] | { type: string, name: string, url: string, [key: string]: string }[]
 }
 
 type WalletSourceType = 'seed' | 'hsm_pure' | 'hsm_deep' | 'seed_db'
