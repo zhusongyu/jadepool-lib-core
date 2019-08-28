@@ -102,7 +102,7 @@ class SioWorkerService extends BaseService {
     })
     socket.on('connect_error', err => { logger.tag('Connect').warn(`err=${err.name},message=${err.message}`) })
     socket.on('connect_timeout', (timeout) => { logger.tag('Timeout').warn(`timeout=${timeout}`) })
-    socket.on('error', (err) => { logger.error(null, err) })
+    socket.on('error', (err) => { logger.error(err) })
 
     // Step 3.监听行为事件
     socket.on(consts.SIO_EVENTS.INVOKE_METHOD, _invokeInternalMethod.bind(this, category))

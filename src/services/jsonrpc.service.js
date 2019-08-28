@@ -352,7 +352,7 @@ class JSONRPCService extends BaseService {
         res.id = jsonRequest.id
         ws.send(JSON.stringify(res), err => {
           if (err) {
-            logger.error(null, err)
+            logger.error(err)
           }
         })
       }
