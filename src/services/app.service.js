@@ -97,7 +97,7 @@ class AppService extends BaseService {
           const locale = (reqData.lang || reqData.locale) || consts.SUPPORT_LOCALES.ZH_CN
           promise = errSrv.getErrorInfo(errCode, locale).then(errResult => {
             const category = errResult.category ? [ errResult.category ] : []
-            logger.error(errResult.message, err, category)
+            logger.tag(...category).error(errResult.message, err)
             if (err.message) {
               errResult.result = { info: err.message }
             }

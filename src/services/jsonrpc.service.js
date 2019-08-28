@@ -237,7 +237,7 @@ class JSONRPCService extends BaseService {
     logger.tag(`Request:${methodName}`).debug(`id=${reqData.id}`)
     const emitter = new EventEmitter()
     this.requests.set(reqData.id, emitter)
-    let objToSend = reqData
+    const objToSend = _.clone(reqData)
     const opts = _.clone(this.opts)
     // 判断是否进行信息签名
     if (!opts.noAuth) {
@@ -260,6 +260,7 @@ class JSONRPCService extends BaseService {
       objToSend.sig = Object.assign({
         appid,
         signature: sigData.signature,
+        timestamp: sigData.timestamp,
         internal: opts.signerId ? undefined : (opts.authWithTimestamp ? 'timestamp' : 'version')
       }, _.pick(opts, ['hash', 'sort', 'encode', 'accept', 'withoutTimestamp']))
     }
@@ -352,7 +353,7 @@ class JSONRPCService extends BaseService {
         res.id = jsonRequest.id
         ws.send(JSON.stringify(res), err => {
           if (err) {
-            logger.error(null, err)
+            logger.error(err)
           }
         })
       }
