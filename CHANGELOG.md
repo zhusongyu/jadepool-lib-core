@@ -1,5 +1,15 @@
 # Change Logs
 
+## v0.14.9
+
+Improvement:
+
+* using logger 2.0
+
+Fixes:
+
+* fix jsonrpc.services signature validate
+
 ## v0.14.8
 
 Fixes:
