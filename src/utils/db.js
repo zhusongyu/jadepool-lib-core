@@ -54,7 +54,7 @@ const initialize = async () => {
     const urlObj = new url.URL(mongoUrl)
     logger.tag('Connected').log(`url.host=${urlObj.host},url.path=${urlObj.pathname}`)
   } catch (err) {
-    logger.error(null, err, ['Initialization-failed'])
+    logger.tag('Initialization-failed').error(err)
   }
 }
 

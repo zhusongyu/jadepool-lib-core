@@ -115,7 +115,7 @@ class Task {
         })
       }
     } catch (err) {
-      logger.tag(this.name, 'fetchTaskConfig').error(null, err)
+      logger.tag(this.name, 'fetchTaskConfig').error(err)
     }
     // 处理并运行job
     let errResult
@@ -151,7 +151,7 @@ class Task {
         }
         await TaskConfig.updateOne(taskquery, { $set: updateObj }).exec()
       } catch (err) {
-        logger.tag(this.name, 'saveTaskConfig').error(null, err)
+        logger.tag(this.name, 'saveTaskConfig').error(err)
       }
       this[sTaskConfig] = null // 移除配置
     }

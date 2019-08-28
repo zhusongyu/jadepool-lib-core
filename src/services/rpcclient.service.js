@@ -422,7 +422,7 @@ class Service extends BaseService {
       if (jsonData.id) {
         result.id = jsonData.id
         ws.send(JSON.stringify(result), err => {
-          if (err) logger.error(null, err)
+          if (err) logger.error(err)
         })
       }
     } else if (jsonData.id !== undefined && (jsonData.result !== undefined || jsonData.error !== undefined)) {
