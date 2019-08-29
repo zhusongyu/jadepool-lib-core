@@ -12,10 +12,10 @@ import * as https from 'https';
 export as namespace services
 
 declare interface JobDef {
-  name: string,
+  name: string
   // data数据
-  fileName: string,
-  prefix?: string,
+  fileName: string
+  prefix?: string
   chainKey?: string
   // task实例
   instance: Task
@@ -23,6 +23,16 @@ declare interface JobDef {
 declare interface JobQueueOptions {
   tasks?: JobDef[]
   settings?:  AdvancedSettings
+}
+declare interface JobToRun {
+  /** 任务队列名称 */
+  name: string
+  /** 任务子名称名称 */
+  subName?: string
+  /** 任务数据 */
+  data?: object
+  /** 任务参数 */
+  options?: JobOptions
 }
 declare class JobQueueService extends BaseService {
   constructor (services : any);
@@ -70,13 +80,9 @@ declare class JobQueueService extends BaseService {
   schedule (when: number | string | Date, taskName: string, data?: object, options?: JobOptions): Promise<Job>
   /**
    * 创建单次任务
-   * @param taskName 名称
-   * @param subName 
-   * @param data 
-   * @param options 
+   * @param job 任务说明
    */
-  add (taskName: string, subName: string, data?: object, options?: JobOptions): Promise<Job>
-  add (taskName: string, data?: object, options?: JobOptions): Promise<Job>
+  add (job: JobToRun): Promise<Job>
 }
 
 declare interface AppOptions {
@@ -235,7 +241,7 @@ declare interface AsyncPlanOptions {
   processEvery: number;
 }
 /**
- * 该services依赖agendaService
+ * 该services依赖JobQueueService
  */
 declare class AsyncPlanService extends BaseService {
   constructor (services : any);

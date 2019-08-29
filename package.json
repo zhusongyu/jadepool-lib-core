@@ -17,6 +17,7 @@
   "author": "tech@btang.cn",
   "license": "MIT",
   "devDependencies": {
+    "@types/bull": "^3.10.2",
     "chai": "^4.2.0",
     "dtsmake": "0.0.10",
     "eslint": "^5.10.0",

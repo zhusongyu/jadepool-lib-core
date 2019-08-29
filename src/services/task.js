@@ -221,7 +221,12 @@ class Task {
   async next (delay = 0, attempts = 3, id = undefined, data = {}) {
     if (!this.isWorking) return
     const jobSrv = jp.getService(consts.SERVICE_NAMES.JOB_QUEUE)
-    return jobSrv.add(this.name, id, data, { delay, attempts })
+    return jobSrv.add({
+      name: this.name,
+      subName: id,
+      data,
+      options: { delay, attempts }
+    })
   }
 
   /** 重载函数区 */

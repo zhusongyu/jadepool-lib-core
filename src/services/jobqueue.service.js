@@ -185,11 +185,9 @@ class Service extends BaseService {
           const runnings = await this.runningJobs(taskName)
           const autoRunAmount = Math.max(0, taskCfg.autoRunAmount - runnings.length)
           if (!autoRunAmount) continue
-          const jobs = []
           for (let i = 0; i < autoRunAmount; i++) {
-            jobs.push({ data: {}, opts: { priority } })
+            await queue.add({}, { priority })
           }
-          await queue.addBulk(jobs)
           logger.tag('Jobs-start', taskName).log(`auto.run.amount=${autoRunAmount}`)
           break
       }
@@ -226,13 +224,10 @@ class Service extends BaseService {
     }
     return queue.add(data, Object.assign({}, options, { delay: diff }))
   }
-  async add (taskName, subName, data, options) {
-    const queue = await this.fetchQueue(taskName)
-    if (options === undefined) {
-      options = data || {}
-      data = subName || {}
-      subName = undefined
-    }
+  async add ({ name, subName, data, options }) {
+    options = options || {}
+    data = data || {}
+    const queue = await this.fetchQueue(name)
     if (subName !== undefined) {
       return queue.add(subName, data, options)
     } else {
