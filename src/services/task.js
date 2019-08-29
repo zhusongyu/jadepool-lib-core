@@ -102,7 +102,7 @@ class Task {
     if (this[sDestroying]) return
 
     const startTs = Date.now()
-    if (this.recordRound) {
+    if (this.recordRound && this.opts.concurrency === 1) {
       logger.diff(this.name).tag('Start').log(`round=${this[sRunAmt]}`)
     }
     const TaskConfig = jp.getModel(consts.MODEL_NAMES.TASK_CONFIG)
@@ -138,7 +138,7 @@ class Task {
       // log日志
       logger.tag(this.name).error(`failed job is [${this.name}]`, err)
     }
-    if (this.recordRound) {
+    if (this.recordRound && this.opts.concurrency === 1) {
       logger.diff(this.name).tag('End').log(`round=${this[sRunAmt]}`)
     }
     // 设置taskConfig数据
@@ -209,18 +209,21 @@ class Task {
   }
 
   /**
-   * 进行下一步Schedule
+   * 重复本次任务
+   * @param {Job} current
    * @param {Number} delay 下一次执行等待
    * @param {Number} attempts 重试次数上限
-   * @param {String} id 特定名称
    */
-  async next (delay = 0, attempts = 3, id = undefined, data = {}) {
+  async repeat (current, delay = 0, attempts = 3) {
     if (!this.isWorking) return
+    if (this.recordRound && this.opts.concurrency > 1) {
+      logger.tag(this.name, 'Repeat').debug(`delay=${delay / 1000}s,name=${current.name},id=${current.id}`)
+    }
     const jobSrv = jp.getService(consts.SERVICE_NAMES.JOB_QUEUE)
     return jobSrv.add({
       name: this.name,
-      subName: id,
-      data,
+      subName: current.name,
+      data: _.clone(current.data || {}),
       options: { delay, attempts }
     })
   }

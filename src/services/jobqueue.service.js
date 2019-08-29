@@ -126,7 +126,7 @@ class Service extends BaseService {
           stalledInterval: taskOpts.stalledInterval,
           maxStalledCount: taskOpts.maxStalledCount,
           backoffStrategies: {
-            retry: taskOpts.retryStrategy || function () { return -1 }
+            retry: taskOpts.retryStrategy || function () { return Math.random() * 1000 }
           }
         })
       })
@@ -163,7 +163,7 @@ class Service extends BaseService {
       let taskCfg = await TaskConfig.findOne({ server: jadepool.env.server, name: taskName }).exec()
       if (!taskCfg || taskCfg.paused) continue
 
-      const queue = this.fetchQueue(taskName)
+      const queue = await this.fetchQueue(taskName)
       const priority = taskObj.instance.opts.priority || 1
       // 根据TaskConfig进行 job启动
       const jobData = _.pick(taskObj, ['fileName', 'prefix', 'chainKey'])

@@ -60,9 +60,12 @@ declare class Task {
 	 */
 	protected handleError(err: Error, level: 'CRITICAL'|'MAJOR'|'MINOR'|'WARNING'): Promise<void>;
 	/**
-	 * 进行下一步任务
+	 * 重复本任务
+	 * @param current 当前job信息
+	 * @param delay 延迟时间(ms)
+	 * @param attempts 失败重试次数
 	 */
-	protected next(delay: number, attempts?: number = 1, subName?: string, data?: object): Promise<void>;
+	protected repeat(current: Job, delay?: number = 0, attempts?: number = 3): Promise<Job | undefined>
 	/**
 	 * 待重载函数处理函数
 	 */
