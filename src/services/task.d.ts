@@ -23,54 +23,48 @@ declare class Task {
 	/**
 	 * Accessor getters
 	 */
-	isWorking: boolean;
-	round: number;
-	handlingAmt: number;
-	taskQuery: object;
-	opts: TaskOptions;
+	protected isWorking: boolean;
+	protected round: number;
+	protected handlingAmt: number;
+	protected taskQuery: object;
+	protected opts: TaskOptions;
 
+	/**
+	 * 任务初始化
+	 */
+	onInit(): Promise<void>;
+	/**
+	 * 任务销毁方法
+	 */
+	onDestroy(): Promise<void>;
+	/**
+	 * @param job 
+	 * @param done 
+	 */
+	onHandle(job: Job): Promise<void>;		
+	/**
+	 * 待重载初始化函数
+	 */
+	protected initialize(): Promise<void>;
   /**
    * 设置job相关的options
    * @param opts Job参数
    */
 	protected setOptions (opts: TaskOptions): TaskOptions;
-
-	/**
-	 * 任务初始化
-	 */
-	private onInit(): Promise<void>;
-	/**
-	 * 任务销毁方法
-	 */
-	private onDestroy(): Promise<void>;
-	/**
-	 * @param job 
-	 * @param done 
-	 */
-	private onHandle(job: Job): Promise<void>;
-		
 	/**
 	 * 处理定制错误 NBError
-	 * @param job 
 	 * @param err 
 	 * @param level 
 	 */
-	private handleError(job: Job, err: Error, level: 'CRITICAL'|'MAJOR'|'MINOR'|'WARNING'): Promise<void>;
-		
+	protected handleError(err: Error, level: 'CRITICAL'|'MAJOR'|'MINOR'|'WARNING'): Promise<void>;
 	/**
 	 * 进行下一步任务
 	 */
-	next(name: String, delay: number, attempts?: number = 1): void;
-		
-	/**
-	 * 待重载初始化函数
-	 */
-	initialize(): Promise<void>;
-		
+	protected next(delay: number, attempts?: number = 1, subName?: string, data?: object): Promise<void>;
 	/**
 	 * 待重载函数处理函数
 	 */
-	handler(job: Job): Promise<void>;
+	protected handler(job: Job): Promise<void>;
 }
 
 export = Task;

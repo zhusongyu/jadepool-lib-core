@@ -53,8 +53,8 @@ class Task {
     optsToSet.concurrency = opts.concurrency || optsToSet.concurrency || 1
     optsToSet.limiterMax = opts.limiterMax || optsToSet.limiterMax || 1000
     optsToSet.limiterDuration = opts.limiterDuration || optsToSet.limiterDuration || 5000
-    optsToSet.lockDuration = opts.lockDuration || optsToSet.lockDuration || 30000
-    optsToSet.stalledInterval = opts.stalledInterval || opts.lockDuration || optsToSet.stalledInterval || 30000
+    optsToSet.lockDuration = opts.lockDuration || optsToSet.lockDuration || 360000
+    optsToSet.stalledInterval = opts.stalledInterval || opts.lockDuration || optsToSet.stalledInterval || 360000
     optsToSet.maxStalledCount = opts.maxStalledCount || optsToSet.maxStalledCount || 1
     this[sOpts] = optsToSet
     return this[sOpts]
@@ -135,7 +135,7 @@ class Task {
       await this.handler(job)
     } catch (err) {
       errResult = err
-      await this.handleError(job, err)
+      await this.handleError(err)
       // log日志
       logger.tag(this.name).error(`failed job is [${this.name}]`, err)
       // 尝试next
@@ -180,11 +180,10 @@ class Task {
 
   /**
    * 处理定制错误 NBError
-   * @param {Job} job
    * @param {Error} err
    * @param {String} level ['CRITICAL', 'MAJOR', 'MINOR', 'WARNING']
    */
-  async handleError (job, err, level = 'WARNING') {
+  async handleError (err, level = 'WARNING') {
     const errCodeSrv = jp.getService(consts.SERVICE_NAMES.ERROR_CODE)
     // 处理定制错误 NBError
     if (errCodeSrv && err && typeof err.code === 'number') {
@@ -207,7 +206,7 @@ class Task {
           }
           errMsg = `(${errMsg})`
         }
-        warn.message = `[${job.attrs.name}]` + (errDesc.category ? `[${errDesc.category}]` : '') + errDesc.message + errMsg
+        warn.message = `[${this.name}]` + (errDesc.category ? `[${errDesc.category}]` : '') + errDesc.message + errMsg
         await warn.save()
       }
     }
@@ -215,13 +214,14 @@ class Task {
 
   /**
    * 进行下一步Schedule
-   * @param {String} name 名称
    * @param {Number} delay 下一次执行等待
    * @param {Number} attempts 重试次数上限
+   * @param {String} id 特定名称
    */
-  next (name, delay, attempts) {
+  async next (delay = 0, attempts = 3, id = undefined, data = {}) {
     if (!this.isWorking) return
-    // TODO
+    const jobSrv = jp.getService(consts.SERVICE_NAMES.JOB_QUEUE)
+    return jobSrv.add(this.name, id, data, { delay, attempts })
   }
 
   /** 重载函数区 */
@@ -235,7 +235,7 @@ class Task {
    * Task 处理函数
    */
   async handler (job) {
-    throw new Error(`[${job.attrs.name}] handler need to be implemented!`)
+    throw new Error(`[${this.name}] handler need to be implemented!`)
   }
 }
 

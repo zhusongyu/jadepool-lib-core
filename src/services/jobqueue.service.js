@@ -226,11 +226,11 @@ class Service extends BaseService {
     }
     return queue.add(data, Object.assign({}, options, { delay: diff }))
   }
-  async now (taskName, subName, data, options = {}) {
+  async add (taskName, subName, data, options) {
     const queue = await this.fetchQueue(taskName)
     if (options === undefined) {
-      options = data
-      data = subName
+      options = data || {}
+      data = subName || {}
       subName = undefined
     }
     if (subName !== undefined) {

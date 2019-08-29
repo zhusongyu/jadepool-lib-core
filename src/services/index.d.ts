@@ -75,8 +75,8 @@ declare class JobQueueService extends BaseService {
    * @param data 
    * @param options 
    */
-  now (taskName: string, subName: string, data?: object, options?: JobOptions): Promise<Job>
-  now (taskName: string, data?: object, options?: JobOptions): Promise<Job>
+  add (taskName: string, subName: string, data?: object, options?: JobOptions): Promise<Job>
+  add (taskName: string, data?: object, options?: JobOptions): Promise<Job>
 }
 
 declare interface AppOptions {
