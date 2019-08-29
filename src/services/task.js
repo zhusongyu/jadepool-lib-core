@@ -25,8 +25,6 @@ class Task {
     Object.defineProperties(this, {
       'name': { value: taskName }
     })
-    // 默认情况不做next重试
-    this.nextInterval = null
     // 默认不记录Round
     this.recordRound = false
     // 辅助参数
