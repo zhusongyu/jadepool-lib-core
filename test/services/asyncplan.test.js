@@ -13,11 +13,7 @@ const invokeMethod = async function (method, namespace, params) {
   }
   return method
 }
-const waitSeconds = async function (sec) {
-  return new Promise((resolve, reject) => {
-    setTimeout(resolve, sec * 1000)
-  })
-}
+
 describe('Services: async plan', function () {
   this.timeout(30000)
   let createPlans = []
@@ -51,7 +47,7 @@ describe('Services: async plan', function () {
     const AsyncPlan = jadepool.getModel(consts.MODEL_NAMES.ASYNC_PLAN)
     let retries = 20
     while (retries-- > 0 && !plan.status) {
-      await waitSeconds(1)
+      await utils.waitForSeconds(1)
       plan = await AsyncPlan.findById(plan._id)
     }
     assert.equal(plan.status, consts.ASYNC_PLAN_STATUS.COMPLETED)
@@ -77,7 +73,7 @@ describe('Services: async plan', function () {
     const AsyncPlan = jadepool.getModel(consts.MODEL_NAMES.ASYNC_PLAN)
     let retries = 20
     while (retries-- > 0 && !plan.status) {
-      await waitSeconds(1)
+      await utils.waitForSeconds(1)
       plan = await AsyncPlan.findById(plan._id)
     }
     assert.equal(plan.status, consts.ASYNC_PLAN_STATUS.FAILED)
@@ -104,7 +100,7 @@ describe('Services: async plan', function () {
     const AsyncPlan = jadepool.getModel(consts.MODEL_NAMES.ASYNC_PLAN)
     let retries = 20
     while (retries-- > 0 && !plan.status) {
-      await waitSeconds(1)
+      await utils.waitForSeconds(1)
       plan = await AsyncPlan.findById(plan._id)
     }
     assert.equal(plan.status, consts.ASYNC_PLAN_STATUS.FAILED)

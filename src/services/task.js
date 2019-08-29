@@ -1,15 +1,10 @@
 const _ = require('lodash')
 const jp = require('../jadepool')
 const consts = require('../consts')
+const { waitForSeconds } = require('../utils')
 
 // 常量设置
 const logger = require('@jadepool/logger').of('Task')
-
-const waitForSeconds = (sec) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(resolve, sec * 1000)
-  })
-}
 
 const sOpts = Symbol('options')
 const sRunAmt = Symbol('runAmount')
