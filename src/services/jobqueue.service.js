@@ -29,21 +29,26 @@ class Service extends BaseService {
    * @returns {Promise}
    */
   async onDestroy () {
+    // runnable defs
+    for (const iter of this._runnableDefs) {
+      const name = iter[0]
+      const taskObj = iter[1]
+      const taskIns = taskObj.instance
+      if (taskIns && typeof taskIns.onDestroy === 'function') {
+        await taskIns.onDestroy()
+      }
+      // remove current job
+      if (taskObj.job) {
+        await taskObj.job.remove()
+      }
+      logger.tag('Task Destroyed').log(`task=${name}`)
+    }
     // exists queues
     for (const iter of this._queues) {
       const name = iter[0]
       const queue = iter[1]
       await queue.close()
       logger.tag('Queue Closed').log(`queue=${name}`)
-    }
-    // runnable defs
-    for (const iter of this._runnableDefs) {
-      const name = iter[0]
-      const taskIns = iter[1].instance
-      if (taskIns && typeof taskIns.onDestroy === 'function') {
-        await taskIns.onDestroy()
-      }
-      logger.tag('Task Destroyed').log(`task=${name}`)
     }
   }
 
