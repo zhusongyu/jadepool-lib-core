@@ -124,7 +124,10 @@ class Service extends BaseService {
         settings: Object.assign(_.clone(this._defaultQueueOpts), {
           lockDuration: taskOpts.lockDuration,
           stalledInterval: taskOpts.stalledInterval,
-          maxStalledCount: taskOpts.maxStalledCount
+          maxStalledCount: taskOpts.maxStalledCount,
+          backoffStrategies: {
+            retry: taskOpts.retryStrategy || function () { return -1 }
+          }
         })
       })
       // 注册到JobQueue
@@ -230,7 +233,10 @@ class Service extends BaseService {
     return queue.add(data, Object.assign({}, options, { delay: diff }))
   }
   async add ({ name, subName, data, options }) {
-    options = options || {}
+    options = Object.assign({
+      attempts: 3,
+      backoff: { type: 'retry' }
+    }, options || {})
     data = data || {}
     const queue = await this.fetchQueue(name)
     if (subName !== undefined) {

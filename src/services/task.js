@@ -48,6 +48,7 @@ class Task {
    */
   setOptions (opts = {}) {
     const optsToSet = this[sOpts] || {}
+    optsToSet.retryStrategy = opts.retryStrategy || optsToSet.retryStrategy
     optsToSet.concurrency = opts.concurrency || optsToSet.concurrency || 1
     optsToSet.limiterMax = opts.limiterMax || optsToSet.limiterMax || 1000
     optsToSet.limiterDuration = opts.limiterDuration || optsToSet.limiterDuration || 5000
@@ -136,8 +137,6 @@ class Task {
       await this.handleError(err)
       // log日志
       logger.tag(this.name).error(`failed job is [${this.name}]`, err)
-      // 尝试next
-      this.next(job)
     }
     if (this.recordRound) {
       logger.diff(this.name).tag('End').log(`round=${this[sRunAmt]}`)
@@ -170,9 +169,8 @@ class Task {
     this[sHandlingAmt]--
     // 完成当前任务执行
     if (errResult) {
-      return Promise.reject(errResult)
-    } else {
-      return Promise.resolve()
+      // throw error将任务失败，会按照opts.retry策略进行重试
+      throw errResult
     }
   }
 

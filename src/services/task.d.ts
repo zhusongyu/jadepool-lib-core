@@ -3,19 +3,21 @@ import { JobQueueService } from './index'
 
 declare interface TaskOptions {
 	/** 优先级，越小越高 */
-	priority: Number = 10
+	priority: number = 10
+	/** 失败重试的策略 */
+	retryStrategy?: (attemptsMade: number, err: Error) => number
 	/** 默认并发数 */
-	concurrency?: Number = 1
+	concurrency?: number = 1
 	/** 可接受总量，超出则进入delay */
-	limiterMax?: Number = 1000
+	limiterMax?: number = 1000
 	/** 可接受总量的时间区间(ms)内 */
-	limiterDuration?: Number = 5000
+	limiterDuration?: number = 5000
 	/** 重试锁定时间（ms），熄火时间默认与它相同 */
-	lockDuration?: Number = 30000
+	lockDuration?: number = 30000
 	/** 熄火检测间隔 */
-	stalledInterval?: Number = 30000
+	stalledInterval?: number = 30000
 	/** 熄火数达到多少后自动重试 */
-	maxStalledCount: Number = 1
+	maxStalledCount: number = 1
 }
 
 declare class Task {
