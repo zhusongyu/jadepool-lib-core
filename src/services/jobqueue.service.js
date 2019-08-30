@@ -169,34 +169,46 @@ class Service extends BaseService {
       const jobData = _.pick(taskObj, ['fileName', 'prefix', 'chainKey'])
       switch (taskCfg.jobtype) {
         case consts.JOB_TYPES.EVERY:
-          if (taskCfg.seconds < 0) continue
+          if (taskCfg.seconds < 0) {
+            logger.tag('Jobs-skiped', taskCfg.jobtype).log(`name=${taskName},sec=${taskCfg.seconds}`)
+            continue
+          }
           taskObj.job = await queue.add(jobData, {
             priority,
             repeat: {
               every: taskCfg.seconds * 1000 // ms
             }
           })
-          logger.tag('Jobs-start', taskName).log(`interval=${taskCfg.seconds}s`)
+          logger.tag('Jobs-start').log(`name=${taskName},interval=${taskCfg.seconds}s`)
           break
         case consts.JOB_TYPES.SCHEDULE:
-          if (!taskCfg.cron) continue
+          if (!taskCfg.cron) {
+            logger.tag('Jobs-skiped', taskCfg.jobtype).log(`name=${taskName},cron=${taskCfg.cron}`)
+            continue
+          }
           taskObj.job = await queue.add(jobData, {
             priority,
             repeat: {
               cron: taskCfg.cron
             }
           })
-          logger.tag('Jobs-start', taskName).log(`cron=${taskCfg.cron}`)
+          logger.tag('Jobs-start').log(`name=${taskName},cron=${taskCfg.cron}`)
           break
         case consts.JOB_TYPES.NORMAL:
-          if (!taskCfg.autoRunAmount) continue
+          if (!taskCfg.autoRunAmount) {
+            logger.tag('Jobs-skiped', taskCfg.jobtype).log(`name=${taskName},auto.run=${taskCfg.autoRunAmount}`)
+            continue
+          }
           const runnings = await this.runningJobs(taskName)
-          const autoRunAmount = Math.max(0, taskCfg.autoRunAmount - runnings.length)
-          if (!autoRunAmount) continue
+          const autoRunAmount = Math.max(0, taskCfg.autoRunAmount - runnings)
+          if (!autoRunAmount) {
+            logger.tag('Jobs-skiped', taskCfg.jobtype).log(`name=${taskName},running=${runnings}`)
+            continue
+          }
           for (let i = 0; i < autoRunAmount; i++) {
             await queue.add({}, { priority })
           }
-          logger.tag('Jobs-start', taskName).log(`auto.run.amount=${autoRunAmount}`)
+          logger.tag('Jobs-start').log(`name=${taskName},auto.run.amount=${autoRunAmount}`)
           break
       }
       running++
