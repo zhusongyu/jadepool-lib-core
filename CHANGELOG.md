@@ -1,5 +1,20 @@
 # Change Logs
 
+## v0.15.0
+
+Breaking Changes:
+
+* !!REMOVE agenda.service is removed now.
+* !!REMOVE consts.SERVICE_NAMES.AGENDA is removed now.
+* Task implement should using new Job Task (based on jobqueue.service)
+
+Features:
+
+* add consts.SERVICE_NAMES.JOB_QUEUE
+* add jobqueue.service with Bull job queue
+* using redis based Bull job queue for Task instead of Agenda
+  * async.plan now depend on jobqueue.service
+
 ## v0.14.9
 
 Improvement:
