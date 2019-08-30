@@ -40,8 +40,8 @@ class Service extends BaseService {
       // remove current job
       if (taskObj.job) {
         await taskObj.job.remove()
+        logger.tag('Task Job Removed').log(`task=${name}`)
       }
-      logger.tag('Task Destroyed').log(`task=${name}`)
     }
     // exists queues
     for (const iter of this._queues) {
