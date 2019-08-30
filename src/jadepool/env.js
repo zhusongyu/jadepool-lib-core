@@ -43,14 +43,15 @@ module.exports = function buildEnvObject (serverType, version) {
     mode: undefined, // 可通过环境变量 JP_MODE 覆盖
     param: undefined, // 可通过环境变量 JP_PARAM 覆盖
     task: undefined, // 可通过环境变量 JP_TASK 覆盖
+    jobs: undefined, // 可通过环境变量 JP_JOBS 覆盖
     autoStart: true, // 可通过环境变量 JP_AUTO_START 覆盖, 设置后worker将自动启动
     multiWorkers: false // 可通过环境变量 JP_MULTI_WORKERS 覆盖，设置是否支持多同链多Worker模式
   })
 
   // 设置process相关变量
   let launchMode, processType
-  if (cluster.isMaster && (!envOpts.mode || envOpts.mode === 'app')) {
-    if (!envOpts.param || envOpts.param === 'master') {
+  if (cluster.isMaster && envOpts.mode !== 'task') {
+    if (envOpts.mode === 'app' && (!envOpts.param || envOpts.param === 'master')) {
       launchMode = consts.PROCESS.LAUNCH_MODES.MASTER
       processType = consts.PROCESS.TYPES.ROUTER
     } else {

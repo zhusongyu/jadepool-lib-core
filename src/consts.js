@@ -25,6 +25,8 @@ const SERVICE_NAMES = {
   APP: 'express',
   /** 根据生命周期运行脚本的服务 */
   SCRIPT: 'script',
+  /** 进程服务 */
+  PM2_PROCESS: 'pm2.process',
   /** 子进程管理服务 */
   CHILD_PROCESS: 'child.process',
   /** 异步计划任务服务 */

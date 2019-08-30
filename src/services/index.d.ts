@@ -248,6 +248,14 @@ declare class AsyncPlanService extends BaseService {
   initialize (opts: AsyncPlanOptions): Promise<void>;
 }
 
+/**
+ * 该服务将使用pm2进行进程管理
+ */
+declare class Pm2Service extends BaseService {
+  constructor (services : any);
+  initialize (opts: any): Promise<void>;
+}
+
 declare class ProcessService extends BaseService {
   constructor (services : any);
   initialize (opts: undefined): Promise<void>;
