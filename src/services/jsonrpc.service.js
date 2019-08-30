@@ -137,7 +137,7 @@ class JSONRPCService extends BaseService {
         try {
           result = await verifyClient(request)
         } catch (err) {
-          logger.tag('failed-to-verify-client').error(null, err)
+          logger.tag('failed-to-verify-client').error(err)
         }
         if (!result) {
           socket.destroy()

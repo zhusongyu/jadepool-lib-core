@@ -1,7 +1,6 @@
 const _ = require('lodash')
 const BaseService = require('./core')
 const consts = require('../consts')
-const NBError = require('../NBError')
 const jadepool = require('../jadepool')
 
 const logger = require('@jadepool/logger').of('Service', 'Async Plan')
@@ -12,11 +11,6 @@ class Service extends BaseService {
    */
   constructor (services) {
     super(consts.SERVICE_NAMES.ASYNC_PLAN, services)
-    // check required
-    const agendaSrv = jadepool.getService(consts.SERVICE_NAMES.AGENDA)
-    if (!agendaSrv) {
-      throw new NBError(10001, `missing agenda service`)
-    }
   }
 
   /**
@@ -25,21 +19,27 @@ class Service extends BaseService {
    * @param {number} [opts.processEvery=30] 检测间隔
    */
   async initialize (opts) {
-    const agendaSrv = jadepool.getService(consts.SERVICE_NAMES.AGENDA)
-    const agendaNative = agendaSrv._agenda
-    // 运行循环任务
-    const taskName = 'async-plan-service-tick'
-    agendaNative.define(taskName, { priority: 'high', concurrency: 1 }, async (job, done) => {
+    const jobSrv = await jadepool.ensureService(consts.SERVICE_NAMES.JOB_QUEUE)
+    const queueName = 'async-plan-service-tick'
+    const queue = await jobSrv.fetchQueue(queueName) // 默认队列
+    queue.process('every', async (job) => {
       try {
         await this._everyHandler()
       } catch (err) {
         logger.error(`unexpected`, err)
       }
-      // 完成任务
-      done()
     })
-    const sec = opts.processEvery || 30
-    await agendaNative.every(`${sec} seconds`, taskName)
+    logger.tag('JobQueue Registered').log(`name=${queueName}`)
+
+    const tickDelta = opts.processEvery || 30
+    // 运行循环任务
+    const job = await queue.add('every', {}, {
+      priority: 1,
+      repeat: {
+        every: tickDelta * 1000
+      }
+    })
+    logger.tag('Initialized').log(`interval=${tickDelta},jobId=${job.id}`)
   }
 
   /**

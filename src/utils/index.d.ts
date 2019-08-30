@@ -18,6 +18,12 @@ import { RequestOptions } from '../services';
 export function assert<T>(value: T, message?: string): T;
 
 /**
+ * 等待数秒
+ * @param sec
+ */
+export function waitForSeconds(sec?: number = 1): Promise<void>
+
+/**
  * string工具库
  */
 export declare namespace string {

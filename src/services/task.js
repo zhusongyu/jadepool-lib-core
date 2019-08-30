@@ -1,16 +1,12 @@
 const _ = require('lodash')
 const jp = require('../jadepool')
 const consts = require('../consts')
+const { waitForSeconds } = require('../utils')
 
 // 常量设置
 const logger = require('@jadepool/logger').of('Task')
 
-const waitForSeconds = (sec) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(resolve, sec * 1000)
-  })
-}
-
+const sOpts = Symbol('options')
 const sRunAmt = Symbol('runAmount')
 const sHandlingAmt = Symbol('handlingAmount')
 const sDestroying = Symbol('destroying')
@@ -24,11 +20,6 @@ class Task {
     Object.defineProperties(this, {
       'name': { value: taskName }
     })
-    this._i = 0 // 部分task使用
-    // 默认情况任务并发数为1
-    this.opts = { concurrency: 1 }
-    // 默认情况不做next重试
-    this.nextInterval = null
     // 默认不记录Round
     this.recordRound = false
     // 辅助参数
@@ -40,12 +31,28 @@ class Task {
   /**
    * Accessor
    */
-  get agenda () { return jp.getService(consts.SERVICE_NAMES.AGENDA) }
+  get opts () { return this[sOpts] || this.setOptions() }
   get isWorking () { return !this[sDestroying] }
   get round () { return this[sRunAmt] }
   get handlingAmt () { return this[sHandlingAmt] }
   get taskQuery () { return { server: jp.env.server, name: this.name } }
   get taskConfig () { return this[sTaskConfig] }
+
+  /**
+   * 设置job相关的options
+   */
+  setOptions (opts = {}) {
+    const optsToSet = this[sOpts] || {}
+    optsToSet.retryStrategy = opts.retryStrategy || optsToSet.retryStrategy
+    optsToSet.concurrency = opts.concurrency || optsToSet.concurrency || 1
+    optsToSet.limiterMax = opts.limiterMax || optsToSet.limiterMax || 1000
+    optsToSet.limiterDuration = opts.limiterDuration || optsToSet.limiterDuration || 5000
+    optsToSet.lockDuration = opts.lockDuration || optsToSet.lockDuration || 360000
+    optsToSet.stalledInterval = opts.stalledInterval || opts.lockDuration || optsToSet.stalledInterval || 360000
+    optsToSet.maxStalledCount = opts.maxStalledCount || optsToSet.maxStalledCount || 1
+    this[sOpts] = optsToSet
+    return this[sOpts]
+  }
 
   /**
    * 任务初始化
@@ -86,12 +93,11 @@ class Task {
   /**
    * @param {Object} job
    */
-  async onHandle (job, done) {
-    if (this[sDestroying]) {
-      return done()
-    }
+  async onHandle (job) {
+    if (this[sDestroying]) return
+
     const startTs = Date.now()
-    if (this.recordRound) {
+    if (this.recordRound && this.opts.concurrency === 1) {
       logger.diff(this.name).tag('Start').log(`round=${this[sRunAmt]}`)
     }
     const TaskConfig = jp.getModel(consts.MODEL_NAMES.TASK_CONFIG)
@@ -123,13 +129,11 @@ class Task {
       await this.handler(job)
     } catch (err) {
       errResult = err
-      await this.handleError(job, err)
+      await this.handleError(err)
       // log日志
       logger.tag(this.name).error(`failed job is [${this.name}]`, err)
-      // 尝试next
-      this.next(job)
     }
-    if (this.recordRound) {
+    if (this.recordRound && this.opts.concurrency === 1) {
       logger.diff(this.name).tag('End').log(`round=${this[sRunAmt]}`)
     }
     // 设置taskConfig数据
@@ -160,19 +164,17 @@ class Task {
     this[sHandlingAmt]--
     // 完成当前任务执行
     if (errResult) {
-      done(errResult)
-    } else {
-      done()
+      // throw error将任务失败，会按照opts.retry策略进行重试
+      throw errResult
     }
   }
 
   /**
    * 处理定制错误 NBError
-   * @param {Job} job
    * @param {Error} err
    * @param {String} level ['CRITICAL', 'MAJOR', 'MINOR', 'WARNING']
    */
-  async handleError (job, err, level = 'WARNING') {
+  async handleError (err, level = 'WARNING') {
     const errCodeSrv = jp.getService(consts.SERVICE_NAMES.ERROR_CODE)
     // 处理定制错误 NBError
     if (errCodeSrv && err && typeof err.code === 'number') {
@@ -195,20 +197,30 @@ class Task {
           }
           errMsg = `(${errMsg})`
         }
-        warn.message = `[${job.attrs.name}]` + (errDesc.category ? `[${errDesc.category}]` : '') + errDesc.message + errMsg
+        warn.message = `[${this.name}]` + (errDesc.category ? `[${errDesc.category}]` : '') + errDesc.message + errMsg
         await warn.save()
       }
     }
   }
 
   /**
-   * 进行下一步Schedule
-   * @param {Object} job
+   * 重复本次任务
+   * @param {Job} current
+   * @param {Number} delay 下一次执行等待
+   * @param {Number} attempts 重试次数上限
    */
-  next (job) {
-    if (!this.nextInterval) return
+  async repeat (current, delay = 0, attempts = 3) {
     if (!this.isWorking) return
-    job.schedule(this.nextInterval)
+    if (this.recordRound && this.opts.concurrency > 1) {
+      logger.tag(this.name, 'Repeat').debug(`delay=${delay / 1000}s,name=${current.name},id=${current.id}`)
+    }
+    const jobSrv = jp.getService(consts.SERVICE_NAMES.JOB_QUEUE)
+    return jobSrv.add({
+      name: this.name,
+      subName: current.name,
+      data: _.clone(current.data || {}),
+      options: { delay, attempts }
+    })
   }
 
   /** 重载函数区 */
@@ -222,7 +234,7 @@ class Task {
    * Task 处理函数
    */
   async handler (job) {
-    throw new Error(`[${job.attrs.name}] handler need to be implemented!`)
+    throw new Error(`[${this.name}] handler need to be implemented!`)
   }
 }
 
