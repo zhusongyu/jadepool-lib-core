@@ -126,6 +126,7 @@ class Service extends BaseService {
         return results
       } else if (i < maxAmt) {
         await new Promise(resolve => setTimeout(resolve, 1000))
+        logger.tag('Searching').log(`retries=${i}`)
       }
     }
     return false
