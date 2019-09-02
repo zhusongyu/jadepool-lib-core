@@ -248,12 +248,62 @@ declare class AsyncPlanService extends BaseService {
   initialize (opts: AsyncPlanOptions): Promise<void>;
 }
 
+declare interface StartOptions {
+  /** 进程模式 */
+  mode?: 'app' | 'task' | 'agent'
+  /** 进程参数 */
+  param: string
+  /** 进程任务名称 */
+  task?: string
+  /** 进程负责的多个任务名称 */
+  jobs?: string | string[]
+  /** 退出进程的超时 */
+  timeout?: number
+  /** 启动运行路径 */
+  cwd?: string
+  /** 启动脚本 */
+  script?: string
+  /** 是否启动cluster模式 */
+  cluster?: boolean = false
+  /** cluster模式下启动的进程数 */
+  instances?: number = 1
+}
+declare interface PM2Desc {
+  name: string,
+  worker_id: number,
+  pid?: number,
+  status: string,
+  restarts: number,
+  unstable_restarts: number
+}
+declare interface ProcessDesc extends PM2Desc {
+  uuid: string,
+  monit: any,
+  uptime: number,
+  env: {
+    JP_MODE?: string,
+    JP_PARAM?: string,
+    JP_TASK?: string,
+    JP_JOBS?: string,
+    NODE_ENV?: string
+  }
+}
 /**
  * 该服务将使用pm2进行进程管理
  */
 declare class Pm2Service extends BaseService {
   constructor (services : any);
   initialize (opts: any): Promise<void>;
+  /** 启动进程 */
+  start (opts: StartOptions): Promise<PM2Desc>;
+  /** 重启进程 */
+  restart (nameOrId: string): Promise<PM2Desc>;
+  /** 关闭进程 */
+  stop (nameOrId: string): Promise<PM2Desc>;
+  /** 列出指定信息 */
+  info (nameOrId: string): Promise<ProcessDesc>;
+  /** 列出信息 */
+  list (): Promise<ProcessDesc>;
 }
 
 declare class ProcessService extends BaseService {
