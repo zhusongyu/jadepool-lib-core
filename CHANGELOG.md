@@ -10,10 +10,13 @@ Breaking Changes:
 
 Features:
 
-* add consts.SERVICE_NAMES.JOB_QUEUE
+* add new service constants
+  * consts.SERVICE_NAMES.JOB_QUEUE for job queue service
+  * consts.SERVICE_NAMES.PM2_PROCESS for pm2 service
 * add jobqueue.service with Bull job queue
 * using redis based Bull job queue for Task instead of Agenda
   * async.plan now depend on jobqueue.service
+* add pm2.service for easy to use pm2 features
 
 ## v0.14.9
 

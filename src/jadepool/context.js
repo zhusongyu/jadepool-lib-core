@@ -30,6 +30,17 @@ class JadePoolContext {
   }
 
   /**
+   * 自动注册的服务，可重载
+   * @returns {string[]}
+   */
+  get autoRegisterServices () {
+    return [
+      // 默认加载consul服务, 使用defaultConsul配置
+      consts.SERVICE_NAMES.CONSUL
+    ]
+  }
+
+  /**
    * @type {Map<string, JadepoolPlugin>}
    */
   get plugins () {
@@ -160,6 +171,9 @@ class JadePoolContext {
         case consts.SERVICE_NAMES.CHILD_PROCESS:
           ClassToRegister = require('../services/process.service')
           break
+        case consts.SERVICE_NAMES.PM2_PROCESS:
+          ClassToRegister = require('../services/pm2.service')
+          break
         case consts.SERVICE_NAMES.ASYNC_PLAN:
           ClassToRegister = require('../services/asyncplan.service')
           break
@@ -201,8 +215,10 @@ class JadePoolContext {
    * Jadepool初始化
    */
   async hookInitialize (jadepool) {
-    // 默认加载consul服务, 使用defaultConsul配置
-    await this.registerService(consts.SERVICE_NAMES.CONSUL)
+    const serviceNames = this.autoRegisterServices || []
+    for (const servName of serviceNames) {
+      await this.registerService(servName)
+    }
   }
   hookPluginMounted (jadepool, plugin) {
     if (plugin && plugin.name) {
