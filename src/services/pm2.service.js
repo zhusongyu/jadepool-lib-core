@@ -188,7 +188,7 @@ class Service extends BaseService {
   async list () {
     // 由PM2管理进程
     const list = await pm2List()
-    return list.filter(o => o.name.startsWith(this.processPrefix)).map(t => this._parseProcessStatus)
+    return list.filter(o => o.name.startsWith(this.processPrefix)).map(t => this._parseProcessStatus(t))
   }
 
   /**
