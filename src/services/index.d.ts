@@ -293,17 +293,19 @@ declare interface ProcessDesc extends PM2Desc {
  */
 declare class Pm2Service extends BaseService {
   constructor (services : any);
+  public processPrefix: string;
+
   initialize (opts: any): Promise<void>;
   /** 启动进程 */
   start (opts: StartOptions): Promise<PM2Desc>;
   /** 重启进程 */
   restart (nameOrId: string): Promise<PM2Desc>;
   /** 关闭进程 */
-  stop (nameOrId: string): Promise<PM2Desc>;
+  stop (nameOrId: string, isDelete: boolean): Promise<PM2Desc>;
   /** 列出指定信息 */
   info (nameOrId: string): Promise<ProcessDesc>;
   /** 列出信息 */
-  list (): Promise<ProcessDesc>;
+  list (): Promise<ProcessDesc[]>;
 }
 
 declare class ProcessService extends BaseService {
