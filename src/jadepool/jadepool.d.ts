@@ -48,8 +48,6 @@ declare type EnvObject = {
 	secret: string
 	/** 设置后worker将自动启动, 默认true */
 	autoStart: boolean
-	/** 设置是否支持多同链多Worker模式, 默认false */
-	multiWorkers: boolean
 }
 
 declare class JadepoolSingleton {

@@ -44,8 +44,7 @@ module.exports = function buildEnvObject (serverType, version) {
     param: undefined, // 可通过环境变量 JP_PARAM 覆盖
     task: undefined, // 可通过环境变量 JP_TASK 覆盖
     jobs: undefined, // 可通过环境变量 JP_JOBS 覆盖
-    autoStart: false, // 可通过环境变量 JP_AUTO_START 覆盖, 设置后worker将自动启动
-    multiWorkers: false // 可通过环境变量 JP_MULTI_WORKERS 覆盖，设置是否支持多同链多Worker模式
+    autoStart: false // 可通过环境变量 JP_AUTO_START 覆盖, 设置后worker将自动启动
   })
 
   // 设置process相关变量
