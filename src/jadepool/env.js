@@ -1,5 +1,4 @@
 const _ = require('lodash')
-const cluster = require('cluster')
 const consts = require('../consts')
 
 // 强行设置可调用不安全的HTTPS
@@ -49,7 +48,7 @@ module.exports = function buildEnvObject (serverType, version) {
 
   // 设置process相关变量
   let launchMode, processType
-  if (cluster.isMaster && envOpts.mode !== 'task') {
+  if (envOpts.mode !== 'task') {
     if (envOpts.mode === 'app' && (!envOpts.param || envOpts.param === 'master')) {
       launchMode = consts.PROCESS.LAUNCH_MODES.MASTER
       processType = consts.PROCESS.TYPES.ROUTER
