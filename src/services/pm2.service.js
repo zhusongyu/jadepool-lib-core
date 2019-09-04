@@ -59,12 +59,18 @@ class Service extends BaseService {
       return
     }
     if (!processResults || processResults.length === 0) return
+    const processNames = _.reduce(processResults, (all, curr) => {
+      if (all.indexOf(curr.name) === -1) {
+        all.push(curr.name)
+      }
+      return all
+    }, [])
     // 退出全部相关进程
-    await Promise.all(processResults.map(async processOpts => {
+    await Promise.all(processNames.map(async processName => {
       try {
-        await this.stop(processOpts.name, true)
+        await this.stop(processName, true)
       } catch (err) {
-        logger.tag(`failed-to-stop`, processOpts.name).error(err)
+        logger.tag(`failed-to-stop`, processName).error(err)
       }
     }))
   }
@@ -129,14 +135,13 @@ class Service extends BaseService {
     }
     // 启动进程
     const re = await pm2Start(startOpts)
-    let result
-    if (re && re[0]) {
-      result = Object.assign(this._parsePM2Result(re[0]), { env: workerEnv })
-    }
-    if (!result) {
+    let results
+    if (re && re.length > 0) {
+      results = re.map(t => Object.assign(this._parsePM2Result(t), { env: workerEnv }))
+    } else {
       throw new NBError(21003, `worker.name=${workerProcessName}`)
     }
-    return result
+    return results
   }
 
   /**
@@ -147,8 +152,8 @@ class Service extends BaseService {
     let result
     // 由PM2管理进程
     let re = await pm2Restart(nameOrId)
-    if (re && re[0]) {
-      result = this._parsePM2Result(re[0])
+    if (re && re.length > 0) {
+      result = re.map(t => this._parsePM2Result(t))
     } else {
       throw new NBError(21003, `nameOrId=${nameOrId}`)
     }
@@ -163,8 +168,8 @@ class Service extends BaseService {
     // 对已有进程的启动，无需关注其他信息
     let result
     let re = isDelete ? (await pm2Delete(nameOrId)) : (await pm2Stop(nameOrId))
-    if (re && re[0]) {
-      result = this._parsePM2Result(re[0])
+    if (re && re.length > 0) {
+      result = re.map(t => this._parsePM2Result(t))
     } else {
       throw new NBError(21003, `nameOrId=${nameOrId}`)
     }
@@ -177,7 +182,7 @@ class Service extends BaseService {
    */
   async info (nameOrId) {
     let list = await this.list()
-    return list.find(t => {
+    return list.filter(t => {
       return t.name === nameOrId || `${t.worker_id}` === `${nameOrId}`
     })
   }
