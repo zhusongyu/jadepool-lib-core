@@ -132,7 +132,14 @@ class Service extends BaseService {
       })
       // 注册到JobQueue
       queue.process('*', taskOpts.concurrency, task.instance.onHandle.bind(task.instance))
-
+      // 监听completed和failed
+      queue.on('completed', function (job, result) {
+        // cleans all jobs that completed over 60 seconds ago.
+        queue.clean(60 * 1000)
+      }).on('failed', function (job, err) {
+        // cleans all jobs that failed over 8 hours ago.
+        queue.clean(8 * 60 * 60 * 1000, 'failed')
+      })
       // add to runnable
       this._runnableDefs.set(task.name, task)
       logger.tag('Jobs-defined').log(`name=${task.name}`)
