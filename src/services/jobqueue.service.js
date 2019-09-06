@@ -139,6 +139,10 @@ class Service extends BaseService {
       }).on('failed', function (job, err) {
         // cleans all jobs that failed over 8 hours ago.
         queue.clean(8 * 60 * 60 * 1000, 'failed', 1000)
+      }).on('cleaned', function (jobs, type) {
+        if (jobs.length > 0) {
+          logger.tag(task.name, 'Cleaned').debug(`type=${type},jobs=${jobs.length}`)
+        }
       })
       // add to runnable
       this._runnableDefs.set(task.name, task)
