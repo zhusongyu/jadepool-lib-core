@@ -67,7 +67,7 @@ module.exports = function buildEnvObject (serverType, version) {
   // 进程参数
   const processPrefix = envOpts.param ? envOpts.param.toLowerCase() + '.' : ''
   const processKey = `${processType}-${serverType}-${processPrefix}${process.pid}`
-  const instanceId = process.env.NODE_APP_INSTANCE || process.env.NODE_INSTANCE_ID || '0'
+  const instanceId = process.env.NODE_INSTANCE_ID || process.env.NODE_APP_INSTANCE || '0'
 
   // 设置rpcInternal的namespace
   let rpcNamespace = processType
