@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.15.2
+
+Fixes:
+
+* fix pm2.service start instance cannot increase instanceId
+
 ## v0.15.1
 
 Fixes:

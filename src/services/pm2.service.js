@@ -125,7 +125,8 @@ class Service extends BaseService {
       script: opts.script || jadepool.env.script,
       cwd: opts.cwd || process.cwd(),
       kill_timeout: opts.timeout || 1000 * 60 * 3, // timeout为3分钟
-      force: true, // 强制启动新进程
+      force: !opts.script, // 强制启动新进程
+      instance_var: 'NODE_INSTANCE_ID',
       watch: false,
       env: workerEnv
     }
