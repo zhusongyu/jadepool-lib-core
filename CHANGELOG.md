@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.15.1
+
+Fixes:
+
+* fix jobqueue.service `clean` too frequently
+
 ## v0.15.0
 
 Breaking Changes:
