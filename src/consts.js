@@ -20,11 +20,13 @@ const SERVICE_NAMES = {
   /** 默认错误信息 */
   ERROR_CODE: 'error.code',
   /** 后台任务服务 */
-  AGENDA: 'agenda',
+  JOB_QUEUE: 'job.queue',
   /** HTTP/HTTPS服务 */
   APP: 'express',
   /** 根据生命周期运行脚本的服务 */
   SCRIPT: 'script',
+  /** 进程服务 */
+  PM2_PROCESS: 'pm2.process',
   /** 子进程管理服务 */
   CHILD_PROCESS: 'child.process',
   /** 异步计划任务服务 */

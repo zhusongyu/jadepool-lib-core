@@ -1,6 +1,6 @@
 {
   "name": "@jadepool/lib-core",
-  "version": "0.14.9",
+  "version": "0.15.0",
   "description": "Jadepool core library",
   "main": "index.js",
   "files": [
@@ -17,6 +17,7 @@
   "author": "tech@btang.cn",
   "license": "MIT",
   "devDependencies": {
+    "@types/bull": "^3.10.2",
     "chai": "^4.2.0",
     "dtsmake": "0.0.10",
     "eslint": "^5.10.0",
@@ -29,12 +30,12 @@
   },
   "dependencies": {
     "@jadepool/crypto": "^0.1.2",
-    "@jadepool/logger": "^2.0.0",
+    "@jadepool/logger": "^2.0.2",
     "@types/mongoose": "^5.3.8",
     "@types/redis": "^2.8.13",
-    "agenda": "^2.0.2",
     "axios": "~0.19.0",
     "body-parser": "^1.19.0",
+    "bull": "^3.10.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "hdkey": "^1.1.0",
@@ -43,6 +44,7 @@
     "mongoose": "^5.6.8",
     "mongoose-sequence": "^5.1.0",
     "morgan": "^1.9.1",
+    "pm2": "^3.5.1",
     "redis": "^2.8.0",
     "require-fool-webpack": "^2.0.0",
     "semver": "^6.3.0",

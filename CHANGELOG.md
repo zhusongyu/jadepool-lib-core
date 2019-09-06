@@ -1,5 +1,26 @@
 # Change Logs
 
+## v0.15.0
+
+Breaking Changes:
+
+* !!REMOVE agenda.service is removed now.
+* !!REMOVE consts.SERVICE_NAMES.AGENDA is removed now.
+* Task implement should using new Job Task (based on jobqueue.service)
+* semver version check now only major and minor
+* JP_AUTO_START now default as false
+* !!REMOVE JP_MULTI_WORKERS limit
+
+Features:
+
+* add new service constants
+  * consts.SERVICE_NAMES.JOB_QUEUE for job queue service
+  * consts.SERVICE_NAMES.PM2_PROCESS for pm2 service
+* add jobqueue.service with Bull job queue
+* using redis based Bull job queue for Task instead of Agenda
+  * async.plan now depend on jobqueue.service
+* add pm2.service for easy to use pm2 features
+
 ## v0.14.9
 
 Improvement:

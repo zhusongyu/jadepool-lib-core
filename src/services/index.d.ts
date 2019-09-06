@@ -1,6 +1,6 @@
-import Agenda from 'agenda'
+import { Queue, Job, QueueOptions, JobOptions, AdvancedSettings } from 'bull'
 import BaseService = require('./core')
-import Task = require('./agenda.task')
+import Task = require('./task')
 import { ProcessRunner } from '../utils';
 import {
   ChainConfig,
@@ -11,37 +11,78 @@ import * as https from 'https';
 
 export as namespace services
 
-declare interface AgendaOptions {
-  processEvery: number
-  tasks: {
-    name: string,
-    fileName: string,
-    instance: Task,
-    prefix: string,
-    chainKey: string
-  }[]
+declare interface JobDef {
+  name: string
+  // data数据
+  fileName: string
+  prefix?: string
+  chainKey?: string
+  // task实例
+  instance: Task
 }
-
-declare class AgendaService extends BaseService {
+declare interface JobQueueOptions {
+  tasks?: JobDef[]
+  settings?:  AdvancedSettings
+}
+declare interface JobToRun {
+  /** 任务队列名称 */
+  name: string
+  /** 任务子名称名称 */
+  subName?: string
+  /** 任务数据 */
+  data?: object
+  /** 任务参数 */
+  options?: JobOptions
+}
+declare class JobQueueService extends BaseService {
   constructor (services : any);
   
-  initialize (opts: AgendaOptions): Promise<void>
+  initialize (opts: JobQueueOptions): Promise<void>
   /**
-   * 重载配置
+   * 获取一个队列
+   * @param taskName
    */
-  startOrReloadJobs (): Promise<void>  
+  fetchQueue (taskName: String, opts?: QueueOptions): Promise<Queue>
   /**
-   * 正在running的jobs
-   * @param taskName 检测的任务名
-   * @param id 可选，同名任务下，检测指定id
+   * 注册任务
+   * @param tasks
    */
-  runningJobs (taskName: string, id?: string): Promise<Agenda.Job[]>
-
-  jobs (query: object): Promise<Agenda.Job[]>
-  update (query: object, update: object): Promise<any>
-  every (interval: string | number, name: string, data: object, options: object): Promise<Agenda.Job>
-  schedule (when: string, name: string, data: object): Promise<Agenda.Job>
-  now (name: string, data: object): Promise<Agenda.Job>
+  registerJobQueues (tasks: JobDef[]): Promise<void>
+  /**
+   * 注册任务
+   * @param task
+   */
+  registerJobQueue (task: JobDef): Promise<void>
+  /**
+   * 启动/重启任务
+   */
+  startOrReloadJobs (): Promise<void>
+  /**
+   * 查询正在running的jobs
+   * @param taskName
+   */
+  runningJobs (taskName: string): Promise<number>
+  /**
+   * 创建循环任务
+   * @param interval
+   * @param taskName
+   * @param data
+   * @param options
+   */
+  every (interval: number | string, taskName: string, data?: object, options?: JobOptions): Promise<Job | undefined>
+  /**
+   * 创建计划任务
+   * @param when 
+   * @param taskName 
+   * @param data 
+   * @param options 
+   */
+  schedule (when: number | string | Date, taskName: string, data?: object, options?: JobOptions): Promise<Job>
+  /**
+   * 创建单次任务
+   * @param job 任务说明
+   */
+  add (job: JobToRun): Promise<Job>
 }
 
 declare interface AppOptions {
@@ -200,11 +241,71 @@ declare interface AsyncPlanOptions {
   processEvery: number;
 }
 /**
- * 该services依赖agendaService
+ * 该services依赖JobQueueService
  */
 declare class AsyncPlanService extends BaseService {
   constructor (services : any);
   initialize (opts: AsyncPlanOptions): Promise<void>;
+}
+
+declare interface StartOptions {
+  /** 进程模式 */
+  mode?: 'app' | 'task' | 'agent'
+  /** 进程参数 */
+  param: string
+  /** 进程任务名称 */
+  task?: string
+  /** 进程负责的多个任务名称 */
+  jobs?: string | string[]
+  /** 退出进程的超时 */
+  timeout?: number
+  /** 启动运行路径 */
+  cwd?: string
+  /** 启动脚本 */
+  script?: string
+  /** 是否启动cluster模式 */
+  cluster?: boolean = false
+  /** cluster模式下启动的进程数 */
+  instances?: number = 1
+}
+declare interface PM2Desc {
+  name: string,
+  worker_id: number,
+  pid?: number,
+  status: string,
+  restarts: number,
+  unstable_restarts: number
+}
+declare interface ProcessDesc extends PM2Desc {
+  uuid: string,
+  monit: any,
+  uptime: number,
+  env: {
+    JP_MODE?: string,
+    JP_PARAM?: string,
+    JP_TASK?: string,
+    JP_JOBS?: string,
+    NODE_ENV?: string
+  }
+}
+/**
+ * 该服务将使用pm2进行进程管理
+ */
+declare class Pm2Service extends BaseService {
+  constructor (services : any);
+  public processPrefix: string;
+
+  initialize (opts: any): Promise<void>;
+  /** 启动进程 */
+  start (opts: StartOptions): Promise<PM2Desc[]>;
+  /** 重启进程 */
+  restart (nameOrId: string): Promise<PM2Desc[]>;
+  /** 关闭进程 */
+  stop (nameOrId: string, isDelete: boolean): Promise<PM2Desc[]>;
+  /** 列出指定信息 */
+  info (nameOrId: string): Promise<ProcessDesc[]>;
+  /** 列出信息 */
+  list (): Promise<ProcessDesc[]>;
 }
 
 declare class ProcessService extends BaseService {

@@ -135,7 +135,7 @@ const cryptoUtils = {
       if (timestamp === undefined) {
         const ver = semver.parse(jp.env.version)
         // 以major和minor组成版本号一致的系统
-        const hdnode = root.derive(`m/666'/0'/0'/${ver.major}/${ver.minor}/${ver.patch}`)
+        const hdnode = root.derive(`m/666'/0'/0'/${ver.major}/${ver.minor}`)
         internalPriKey = hdnode.privateKey.toString('hex')
       } else {
         const date = new Date(timestamp)

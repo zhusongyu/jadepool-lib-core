@@ -90,7 +90,7 @@ class SocketService extends BaseService {
         return next()
       }
       const err = new NBError(401, `query=${JSON.stringify(query)}`)
-      logger.tag('Authentication').error(null, err)
+      logger.tag('Authentication').error(err)
       return next(err)
     })
     // Step 2. 连接设置
@@ -120,7 +120,7 @@ class SocketService extends BaseService {
         logger.tag('Client Disconnected').log(`socketId=${socket.id},category=${internalKey},namespace=${socketNsp.name}`)
       })
       socket.on('error', (err) => {
-        logger.tag('Client OnError').error(null, err)
+        logger.tag('Client OnError').error(err)
       })
     })
   }
