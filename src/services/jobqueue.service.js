@@ -135,10 +135,10 @@ class Service extends BaseService {
       // 监听completed和failed
       queue.on('completed', function (job, result) {
         // cleans all jobs that completed over 60 seconds ago.
-        queue.clean(60 * 1000)
+        queue.clean(60 * 1000, 'completed', 1000)
       }).on('failed', function (job, err) {
         // cleans all jobs that failed over 8 hours ago.
-        queue.clean(8 * 60 * 60 * 1000, 'failed')
+        queue.clean(8 * 60 * 60 * 1000, 'failed', 1000)
       })
       // add to runnable
       this._runnableDefs.set(task.name, task)
