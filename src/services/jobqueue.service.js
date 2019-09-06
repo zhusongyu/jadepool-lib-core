@@ -42,6 +42,10 @@ class Service extends BaseService {
         await taskObj.job.remove()
         logger.tag('Task Job Removed').log(`task=${name}`)
       }
+      // remove interval
+      if (taskObj.cleaner) {
+        clearInterval(taskObj.cleaner)
+      }
     }
     // exists queues
     for (const iter of this._queues) {
@@ -133,17 +137,15 @@ class Service extends BaseService {
       // 注册到JobQueue
       queue.process('*', taskOpts.concurrency, task.instance.onHandle.bind(task.instance))
       // 监听completed和failed
-      queue.on('completed', function (job, result) {
-        // cleans all jobs that completed over 60 seconds ago.
-        queue.clean(60 * 1000, 'completed', 1000)
-      }).on('failed', function (job, err) {
-        // cleans all jobs that failed over 8 hours ago.
-        queue.clean(8 * 60 * 60 * 1000, 'failed', 1000)
-      }).on('cleaned', function (jobs, type) {
+      queue.on('cleaned', function (jobs, type) {
         if (jobs.length > 0) {
           logger.tag(task.name, 'Cleaned').debug(`type=${type},jobs=${jobs.length}`)
         }
       })
+      task.cleaner = setInterval(function () {
+        queue.clean(60 * 1000, 'completed', 5000)
+        queue.clean(8 * 60 * 60 * 1000, 'failed', 5000)
+      }, 60 * 1000)
       // add to runnable
       this._runnableDefs.set(task.name, task)
       logger.tag('Jobs-defined').log(`name=${task.name}`)
