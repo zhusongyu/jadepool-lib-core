@@ -7,6 +7,9 @@ Breaking Changes:
 * !!REMOVE agenda.service is removed now.
 * !!REMOVE consts.SERVICE_NAMES.AGENDA is removed now.
 * Task implement should using new Job Task (based on jobqueue.service)
+* semver version check now only major and minor
+* JP_AUTO_START now default as false
+* !!REMOVE JP_MULTI_WORKERS limit
 
 Features:
 
