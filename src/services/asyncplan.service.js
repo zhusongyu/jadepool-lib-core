@@ -5,6 +5,8 @@ const jadepool = require('../jadepool')
 
 const logger = require('@jadepool/logger').of('Service', 'Async Plan')
 
+const JOB_NAME = 'async-plan-service-tick'
+
 class Service extends BaseService {
   /**
    * @param {Object} services 服务列表
@@ -20,8 +22,7 @@ class Service extends BaseService {
    */
   async initialize (opts) {
     const jobSrv = await jadepool.ensureService(consts.SERVICE_NAMES.JOB_QUEUE)
-    const queueName = 'async-plan-service-tick'
-    const queue = await jobSrv.fetchQueue(queueName) // 默认队列
+    const queue = await jobSrv.fetchQueue(JOB_NAME) // 默认队列
     queue.process('every', async (job) => {
       try {
         await this._everyHandler()
@@ -29,17 +30,17 @@ class Service extends BaseService {
         logger.error(`unexpected`, err)
       }
     })
-    logger.tag('JobQueue Registered').log(`name=${queueName}`)
+    logger.tag('JobQueue Registered').log(`name=${JOB_NAME}`)
 
     const tickDelta = opts.processEvery || 30
     // 运行循环任务
-    const job = await queue.add('every', {}, {
+    this._job = await queue.add('every', {}, {
       priority: 1,
       repeat: {
         every: tickDelta * 1000
       }
     })
-    logger.tag('Initialized').log(`interval=${tickDelta},jobId=${job.id}`)
+    logger.tag('Initialized').log(`interval=${tickDelta},jobId=${this._job.id}`)
   }
 
   /**
@@ -47,7 +48,12 @@ class Service extends BaseService {
    * @param signal 退出信号
    */
   async onDestroy (signal) {
-    // NOTHING
+    if (this._job) {
+      this._job.remove()
+    }
+    const jobSrv = jadepool.getService(consts.SERVICE_NAMES.JOB_QUEUE)
+    const queue = await jobSrv.fetchQueue(JOB_NAME) // 默认队列
+    await queue.clean(0)
   }
 
   /**
