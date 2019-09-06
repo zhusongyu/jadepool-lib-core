@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.15.3
+
+Fixes:
+
+* fix pm2.service opts.force cannot be set
+
 ## v0.15.2
 
 Fixes:
