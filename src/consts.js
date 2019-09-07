@@ -5,15 +5,21 @@ const DEFAULT_ENCODE = 'base64'
 const PROCESS = {
   NAME_PREFIX: 'Jadepool',
   LAUNCH_MODES: {
-    MASTER: 'master', // 中心管理者，同一项目不同机器同一时间仅存在一个进程
-    AGENT: 'agent', // 附属管理者，同一项目在每台机器上仅存在一个进程
-    WORKER: 'worker' // 具体事务执行者，同一项目存在多个进程
+    /** 中心管理者 */
+    MASTER: 'master',
+    /** 附属管理者 */
+    AGENT: 'agent',
+    /** 具体事务执行者 */
+    WORKER: 'worker',
+    /** 服务提供者 */
+    PROVIDER: 'provider'
   },
   TYPES: {
-    ROUTER: 'app', // 具有转发路由的主进程。所属启动模式：ALL_IN_ONE, MASTER
-    ROUTER_SUB: 'sub', // 受APP控制的服务进程，主要用于进程管理。所属启动模式： AGENT
-    GENERAL: 'general', // 事务进程，通常性事务。所属启动模式：WORKER
-    BLOCKCHAIN: 'chain' // 事务进程，特定链事务。所属启动模式：WORKER
+    ROUTER: 'app',
+    ROUTER_SUB: 'sub',
+    GENERAL: 'general',
+    BLOCKCHAIN: 'chain',
+    UNKNOWN: 'unknown'
   }
 }
 const SERVICE_NAMES = {

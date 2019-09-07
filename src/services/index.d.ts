@@ -250,7 +250,7 @@ declare class AsyncPlanService extends BaseService {
 
 declare interface StartOptions {
   /** 进程模式 */
-  mode?: 'app' | 'task' | 'agent'
+  mode?: 'app' | 'task'
   /** 进程参数 */
   param: string
   /** 进程任务名称 */
@@ -266,14 +266,14 @@ declare interface StartOptions {
   /** 是否启动cluster模式 */
   cluster?: boolean = false
   /** cluster模式下启动的进程数 */
-  instances?: number = 1
+  instances?: number
 }
 declare interface PM2Desc {
-  name: string,
-  worker_id: number,
-  pid?: number,
-  status: string,
-  restarts: number,
+  name: string
+  worker_id: number
+  pid?: number
+  status: string
+  restarts: number
   unstable_restarts: number
 }
 declare interface ProcessDesc extends PM2Desc {
@@ -289,13 +289,19 @@ declare interface ProcessDesc extends PM2Desc {
   }
 }
 /**
+ * pm2服务的参数
+ */
+declare interface Pm2Options {
+  masterKey?: string
+}
+/**
  * 该服务将使用pm2进行进程管理
  */
 declare class Pm2Service extends BaseService {
   constructor (services : any);
   public processPrefix: string;
 
-  initialize (opts: any): Promise<void>;
+  initialize (opts: Pm2Options): Promise<void>;
   /** 启动进程 */
   start (opts: StartOptions): Promise<PM2Desc[]>;
   /** 重启进程 */

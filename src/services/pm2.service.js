@@ -28,14 +28,19 @@ class Service extends BaseService {
    * 当前名称
    */
   get processPrefix () {
-    return `${consts.PROCESS.NAME_PREFIX}-${jadepool.env.processType}`
+    let base = `${consts.PROCESS.NAME_PREFIX}-${jadepool.env.processType}`
+    if (this._masterKey) base += `-${this._masterKey}`
+    return base
   }
 
   /**
    * 初始化
    * @param {Object} opts
+   * @param {String} [opts.masterKey=undefined]
    */
   async initialize (opts) {
+    // 设置服务前缀
+    this._masterKey = opts.masterKey
     // 尝试连接PM2服务
     try {
       await pm2Init()
@@ -78,7 +83,7 @@ class Service extends BaseService {
   /**
    * 以特定模式启动当前程序
    * @param {Object} opts
-   * @param {'app'|'task'|'agent'} [opts.mode='task'] 进程模式
+   * @param {'app'|'task'} [opts.mode='task'] 进程模式
    * @param {String} opts.param 进程参数
    * @param {String} [opts.task=undefined] 进程任务名称
    * @param {String|String[]} [opts.jobs=undefined] 进程负责的多个任务名称
@@ -90,7 +95,7 @@ class Service extends BaseService {
    */
   async start (opts) {
     const mode = opts.mode || 'task'
-    const supportedModes = ['app', 'task', 'agent']
+    const supportedModes = ['app', 'task']
     if (supportedModes.indexOf(mode) === -1) {
       throw new NBError(10002, `unsupported mode`)
     }

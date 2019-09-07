@@ -19,9 +19,9 @@ export function assert<T>(value: T, message?: string): T;
 
 /**
  * 等待数秒
- * @param sec
+ * @param [sec=1]
  */
-export function waitForSeconds(sec?: number = 1): Promise<void>
+export function waitForSeconds(sec?: number1): Promise<void>
 
 /**
  * string工具库
