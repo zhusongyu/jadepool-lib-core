@@ -1,5 +1,12 @@
 # Change Logs
 
+## v0.15.4
+
+Improvement:
+
+* add masterKey to pm2.service that will add to processPrefix
+* add more env processTypes
+
 ## v0.15.3
 
 Fixes:

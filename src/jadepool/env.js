@@ -48,21 +48,32 @@ module.exports = function buildEnvObject (serverType, version) {
 
   // 设置process相关变量
   let launchMode, processType
-  if (envOpts.mode !== 'task') {
-    if (envOpts.mode === 'app' && (!envOpts.param || envOpts.param === 'master')) {
-      launchMode = consts.PROCESS.LAUNCH_MODES.MASTER
-      processType = consts.PROCESS.TYPES.ROUTER
-    } else {
-      launchMode = consts.PROCESS.LAUNCH_MODES.AGENT
-      processType = consts.PROCESS.TYPES.ROUTER_SUB
-    }
-  } else {
-    launchMode = consts.PROCESS.LAUNCH_MODES.WORKER
-    if (envOpts.param === 'general') {
-      processType = consts.PROCESS.TYPES.GENERAL
-    } else {
-      processType = consts.PROCESS.TYPES.BLOCKCHAIN
-    }
+  const mode = envOpts.mode || 'app'
+  switch (mode) {
+    case 'app':
+      if (!envOpts.param || envOpts.param === 'master') {
+        launchMode = consts.PROCESS.LAUNCH_MODES.MASTER
+        processType = consts.PROCESS.TYPES.ROUTER
+      } else if (envOpts.param === 'agent') {
+        launchMode = consts.PROCESS.LAUNCH_MODES.AGENT
+        processType = consts.PROCESS.TYPES.ROUTER_SUB
+      } else {
+        launchMode = consts.PROCESS.LAUNCH_MODES.PROVIDER
+        processType = envOpts.param || consts.PROCESS.TYPES.UNKNOWN
+      }
+      break
+    case 'task':
+      launchMode = consts.PROCESS.LAUNCH_MODES.WORKER
+      if (envOpts.param === 'general') {
+        processType = consts.PROCESS.TYPES.GENERAL
+      } else {
+        processType = consts.PROCESS.TYPES.BLOCKCHAIN
+      }
+      break
+    default:
+      launchMode = mode
+      processType = envOpts.param || consts.PROCESS.TYPES.UNKNOWN
+      break
   }
   // 进程参数
   const processPrefix = envOpts.param ? envOpts.param.toLowerCase() + '.' : ''

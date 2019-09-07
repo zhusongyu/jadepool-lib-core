@@ -250,7 +250,7 @@ declare class AsyncPlanService extends BaseService {
 
 declare interface StartOptions {
   /** 进程模式 */
-  mode?: 'app' | 'task' | 'agent'
+  mode?: 'app' | 'task'
   /** 进程参数 */
   param: string
   /** 进程任务名称 */

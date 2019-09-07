@@ -10,22 +10,26 @@ export declare const DEFAULT_ENCODE: 'base64';
 export declare namespace PROCESS {
   const NAME_PREFIX: 'Jadepool';
   const LAUNCH_MODES: {
-    /** 中心管理者，同一项目不同机器同一时间仅存在一个进程 */
+    /** 中心管理者 */
     MASTER: 'master',
-    /** 附属管理者，同一项目在每台机器上仅存在一个进程 */
+    /** 附属管理者 */
     AGENT: 'agent',
-    /** 具体事务执行者，同一项目存在多个进程 */
-    WORKER: 'worker'
+    /** 具体事务执行者 */
+    WORKER: 'worker',
+    /** 服务提供者 */
+    PROVIDER: 'provider'
   }
   const TYPES: {
-    /** 具有转发路由的主进程。所属启动模式：ALL_IN_ONE, MASTER */
+    /** 具有转发路由的主进程。 */
     ROUTER: 'app',
-    /** 受APP控制的服务进程，主要用于进程管理。所属启动模式： AGENT */
+    /** 协助主进程控制的服务进程。 */
     ROUTER_SUB: 'sub',
     /** 事务进程，通常性事务。所属启动模式：WORKER */
     GENERAL: 'general',
     /** 事务进程，特定链事务。所属启动模式：WORKER */
-    BLOCKCHAIN: 'chain'
+    BLOCKCHAIN: 'chain',
+    /** 未知进程 */
+    UNKNOWN: 'unknown'
   }
 }
 
