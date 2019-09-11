@@ -88,7 +88,8 @@ class Service extends BaseService {
       }, opts)
       if (typeof redisOpts.url === 'string') {
         params.push(redisOpts.url)
-      } else if (typeof redisOpts.port === 'number' && typeof redisOpts.host === 'string') {
+      } else if (typeof redisOpts.host === 'string' &&
+        (typeof redisOpts.port === 'number' || typeof redisOpts.port === 'string')) {
         queueOpts.redis = _.pick(redisOpts, ['port', 'host', 'db', 'password'])
       } else {
         throw new NBError(`missing redis url.`)

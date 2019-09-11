@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.15.5
+
+Fixes:
+
+* fix jobqueue.service.fetchQueue, type of redisOpts.port maybe 'number' or 'string'
+
 ## v0.15.4
 
 Improvement:
