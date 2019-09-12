@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.15.6
+
+Fixes:
+
+* pm2.start will pass env from parent to the started process
+
 ## v0.15.5
 
 Fixes:
