@@ -108,23 +108,17 @@ class Service extends BaseService {
     if (opts.task) {
       workerProcessName += `-${opts.task}`
     }
+    // 筛选父进程的相关变量
+    const relatedEnvKeys = Object.keys(process.env).filter(key => /^jp_/i.test(key))
+    const relatedEnv = _.pick(process.env, relatedEnvKeys)
     // 操作进程启动
-    const workerEnv = {
+    const workerEnv = Object.assign({}, relatedEnv, {
       JP_MODE: mode,
       JP_PARAM: opts.param || '',
       JP_TASK: opts.task || '',
+      JP_JOBS: opts.jobs ? (_.isArray(opts.jobs) ? opts.jobs.join(',') : opts.jobs) : '',
       NODE_ENV: jadepool.env.name
-    }
-    if (opts.jobs) {
-      workerEnv.JP_JOBS = _.isArray(opts.jobs) ? opts.jobs.join(',') : opts.jobs
-    }
-    // 添加外部workerEnv
-    for (const key in jadepool.env) {
-      const workerEnvPrefix = 'workerEnv'
-      if (!key.startsWith(workerEnvPrefix)) continue
-      const newKey = _.snakeCase('jp' + key.substr(workerEnvPrefix.length)).toUpperCase()
-      workerEnv[newKey] = jadepool.env[key]
-    }
+    })
     const startOpts = {
       name: workerProcessName,
       script: opts.script || jadepool.env.script,
