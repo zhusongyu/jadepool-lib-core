@@ -92,6 +92,7 @@ class Service extends BaseService {
    * @param {String} [opts.script=undefined] 启动脚本
    * @param {Boolean} [opts.cluster=false] 是否启动cluster模式
    * @param {Number} [opts.instances=1] cluster模式下启动的进程数
+   * @param {Boolean} [opts.mergeLogs=false] 默认不合并logs
    */
   async start (opts) {
     const mode = opts.mode || 'task'
@@ -125,6 +126,7 @@ class Service extends BaseService {
       cwd: opts.cwd || process.cwd(),
       kill_timeout: opts.timeout || 1000 * 60 * 3, // timeout为3分钟
       force: typeof opts.force === 'boolean' ? opts.force : true, // 强制启动新进程
+      merge_logs: !!opts.mergeLogs,
       instance_var: 'NODE_INSTANCE_ID',
       watch: false,
       env: workerEnv

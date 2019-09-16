@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.15.7
+
+Improvement:
+
+* pm2.service.start add mergeLogs parameter
+
 ## v0.15.6
 
 Fixes:
