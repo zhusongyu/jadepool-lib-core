@@ -264,9 +264,11 @@ declare interface StartOptions {
   /** 启动脚本 */
   script?: string
   /** 是否启动cluster模式 */
-  cluster?: boolean = false
+  cluster?: boolean
   /** cluster模式下启动的进程数 */
   instances?: number
+  /** 合并日志 */
+  mergeLogs?: boolean
 }
 declare interface PM2Desc {
   name: string
