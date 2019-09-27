@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.15.8
+
+Fixes:
+
+* avoid pm2.start/stop/restart null reference
+
 ## v0.15.7
 
 Improvement:
