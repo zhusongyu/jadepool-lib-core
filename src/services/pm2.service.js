@@ -139,7 +139,7 @@ class Service extends BaseService {
     const re = await pm2Start(startOpts)
     let results
     if (re && re.length > 0) {
-      results = re.map(t => Object.assign(this._parsePM2Result(t), { env: workerEnv }))
+      results = re.filter(t => !!t).map(t => Object.assign(this._parsePM2Result(t), { env: workerEnv }))
     } else {
       throw new NBError(21003, `worker.name=${workerProcessName}`)
     }
@@ -155,7 +155,7 @@ class Service extends BaseService {
     // 由PM2管理进程
     let re = await pm2Restart(nameOrId)
     if (re && re.length > 0) {
-      result = re.map(t => this._parsePM2Result(t))
+      result = re.filter(t => !!t).map(t => this._parsePM2Result(t))
     } else {
       throw new NBError(21003, `nameOrId=${nameOrId}`)
     }
@@ -171,7 +171,7 @@ class Service extends BaseService {
     let result
     let re = isDelete ? (await pm2Delete(nameOrId)) : (await pm2Stop(nameOrId))
     if (re && re.length > 0) {
-      result = re.map(t => this._parsePM2Result(t))
+      result = re.filter(t => !!t).map(t => this._parsePM2Result(t))
     } else {
       throw new NBError(21003, `nameOrId=${nameOrId}`)
     }
@@ -195,7 +195,7 @@ class Service extends BaseService {
   async list () {
     // 由PM2管理进程
     const list = await pm2List()
-    return list.filter(o => o.name.startsWith(this.processPrefix)).map(t => this._parseProcessStatus(t))
+    return list.filter(o => o && o.name.startsWith(this.processPrefix)).map(t => this._parseProcessStatus(t))
   }
 
   /**
