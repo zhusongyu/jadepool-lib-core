@@ -4,23 +4,18 @@
 declare class JadepoolModule {
   /**
    * @param name module name
-   * @param parentPath module folder
    * @param parentScope module scope
    * @param impl module implment
    */
-  constructor (name: string, parentPath: string, parentScope: string, impl: object);
+  constructor (name: string, parentScope: string, impl: object, cfg?: object);
   /**
    * module name
    */
   public name: string;
   /**
-   * parent folder path
+   * module scope
    */
-  public parentPath: string;
-  /**
-   * config folder path
-   */
-  public configPath: string;
+  public scope: string;
   /**
    * raw config from folder
    */

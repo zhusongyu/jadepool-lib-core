@@ -14,7 +14,7 @@ class JadePool {
    * @param {Context} ctx
    */
   async initialize (ctx) {
-    /** @type {Map<string, Module>} */
+    /** @type {Map<string, {path: string, scope: string, impl: Module, withConfig: boolean}>} */
     this.modules = new Map()
     this.ctx = ctx
     await this.ctx.hookInitialize(this)
@@ -104,32 +104,44 @@ class JadePool {
    * 加载目录下的全部模块
    * @param {String} moduleFolder
    */
-  loadModules (moduleFolder, moduleScope = 'default') {
+  initModules (moduleFolder, moduleScope = 'default') {
     if (!fs.existsSync(moduleFolder)) return
     const nameInFolders = fs.readdirSync(moduleFolder).filter(fileName => fileName.indexOf('.') === -1)
     if (nameInFolders.length === 0) return
     // 设置配置的全局别名
-    _.forEach(nameInFolders, key => {
-      this.loadModule(key, moduleFolder, moduleScope)
+    _.forEach(nameInFolders, name => {
+      const modulePath = path.resolve(moduleFolder, name)
+      // setup config part
+      const configLoader = require('../utils/config/loader')
+      const cfgPath = path.resolve(modulePath, 'config')
+      let withConfig = fs.existsSync(cfgPath)
+      if (withConfig) {
+        configLoader.setAliasConfigPath(moduleScope, name, cfgPath)
+      }
+      // add to modules
+      this.modules.set(name, {
+        path: modulePath,
+        scope: moduleScope,
+        withConfig: withConfig,
+        impl: undefined
+      })
     })
   }
 
   /**
    * 加载指定模块
    */
-  loadModule (name, parentPath, parentScope = 'default') {
-    if (this.modules.has(name)) return this.modules.get(name)
-    // setup config part
-    const configLoader = require('../utils/config/loader')
-    const cfgPath = path.resolve(parentPath, name, 'config')
-    if (fs.existsSync(cfgPath)) {
-      configLoader.setAliasConfigPath(parentScope, name, cfgPath)
+  getModule (name) {
+    if (!this.modules.has(name)) {
+      throw new Error(`no this module: ${name}`)
     }
+    const mod = this.modules.get(name)
+    if (mod.impl) return mod.impl
+
     // setup impl part
     const requireFoolWebpack = require('require-fool-webpack')
-    const implPath = path.resolve(parentPath, name)
-    const filePathDist = path.join(implPath, 'dist/index.bundle.js')
-    const filePathSrc = path.join(implPath, 'src/index.js')
+    const filePathDist = path.join(mod.path, 'dist/index.bundle.js')
+    const filePathSrc = path.join(mod.path, 'src/index.js')
 
     let impl
     if (this.env.isProd) {
@@ -145,17 +157,12 @@ class JadePool {
       }
     }
     if (!impl) impl = {}
-    const jpMod = new Module(name, parentPath, parentScope, impl)
-    this.modules.set(name, jpMod)
-    return jpMod
-  }
-
-  /**
-   * 使用某个模块
-   * @param {String} moduleName
-   */
-  getModule (moduleName) {
-    return this.modules.get(moduleName)
+    let cfg = {}
+    if (mod.withConfig) {
+      cfg = this.config.util.loadFileConfigs(path.resolve(mod.path, 'config'))
+    }
+    mod.impl = new Module(name, mod.scope, impl, cfg)
+    return mod.impl
   }
 
   /**

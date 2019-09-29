@@ -25,14 +25,7 @@ declare class JadePool extends JadepoolSingleton {
 	 * @param modulesFolder 目录
 	 * @param moduleScope 模块全局名称
 	 */
-	loadModules(modulesFolder: string, moduleScope?: string): void;
-	/**
-	 * 加载模块
-	 * @param moduleName 模块名 
-	 * @param modulesFolder 目录
-	 * @param moduleScope 模块全局名称
-	 */
-	loadModule(moduleName: string, parentFolder: string, moduleScope?: string): JadePoolModule;
+	initModules(modulesFolder: string, moduleScope?: string): void;
 	/**
 	 * 获取模块
 	 * @param moduleName 模块名
