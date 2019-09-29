@@ -161,8 +161,6 @@ const MODEL_LIST_ADMIN = [
 const PRIVKEY_SOURCES = {
   /** 来源seed软件 */
   SEED: 'seed',
-  /** 来源Seed+数据库 */
-  SEED_DB: 'seed_db',
   /** 纯签名密码机 */
   HSM_PURE: 'hsm_pure',
   /** 深度安全密码机 */

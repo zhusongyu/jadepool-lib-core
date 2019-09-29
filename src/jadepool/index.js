@@ -5,6 +5,7 @@ const Logger = require('@jadepool/logger')
 const ServiceLib = require('./serviceLib')
 const Context = require('./context')
 const Module = require('./module')
+const NBError = require('../NBError')
 
 const logger = Logger.of('JadePool')
 
@@ -133,7 +134,7 @@ class JadePool {
    */
   getModule (name) {
     if (!this.modules.has(name)) {
-      throw new Error(`no this module: ${name}`)
+      throw new NBError(10010, `no module: ${name}`)
     }
     const mod = this.modules.get(name)
     if (mod.impl) return mod.impl

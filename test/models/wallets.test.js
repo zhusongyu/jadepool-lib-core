@@ -139,7 +139,6 @@ describe('Models: wallets', function () {
     const Wallet = jadepool.getModel(consts.MODEL_NAMES.WALLET)
     const wallet = await Wallet.findOne({ name: walletName }).exec()
     const testCases = [
-      { chainKey: 'VeChain', source: 'hot', type: consts.PRIVKEY_SOURCES.SEED_DB },
       { chainKey: 'VeChain', source: 'cold', type: consts.PRIVKEY_SOURCES.SEED },
       { chainKey: 'Cybex', source: 'hot', type: consts.PRIVKEY_SOURCES.HSM_PURE },
       { chainKey: 'BTC', source: 'cold', type: consts.PRIVKEY_SOURCES.HSM_DEEP },
