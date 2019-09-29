@@ -4,6 +4,7 @@ const path = require('path')
 const Logger = require('@jadepool/logger')
 const ServiceLib = require('./serviceLib')
 const Context = require('./context')
+const Module = require('./module')
 
 const logger = Logger.of('JadePool')
 
@@ -13,6 +14,8 @@ class JadePool {
    * @param {Context} ctx
    */
   async initialize (ctx) {
+    /** @type {Map<string, Module>} */
+    this.modules = new Map()
     this.ctx = ctx
     await this.ctx.hookInitialize(this)
     logger.log(`Context initialized`)
@@ -95,6 +98,64 @@ class JadePool {
    */
   async invokeMethodValid () {
     return this.ctx.invokeMethodValid.apply(this.ctx, arguments)
+  }
+
+  /**
+   * 加载目录下的全部模块
+   * @param {String} moduleFolder
+   */
+  loadModules (moduleFolder, moduleScope = 'default') {
+    if (!fs.existsSync(moduleFolder)) return
+    const nameInFolders = fs.readdirSync(moduleFolder).filter(fileName => fileName.indexOf('.') === -1)
+    if (nameInFolders.length === 0) return
+    // 设置配置的全局别名
+    _.forEach(nameInFolders, key => {
+      this.loadModule(key, moduleFolder, moduleScope)
+    })
+  }
+
+  /**
+   * 加载指定模块
+   */
+  loadModule (name, parentPath, parentScope = 'default') {
+    if (this.modules.has(name)) return this.modules.get(name)
+    // setup config part
+    const configLoader = require('../utils/config/loader')
+    const cfgPath = path.resolve(parentPath, name, 'config')
+    if (fs.existsSync(cfgPath)) {
+      configLoader.setAliasConfigPath(parentScope, name, cfgPath)
+    }
+    // setup impl part
+    const requireFoolWebpack = require('require-fool-webpack')
+    const implPath = path.resolve(parentPath, name)
+    const filePathDist = path.join(implPath, 'dist/index.bundle.js')
+    const filePathSrc = path.join(implPath, 'src/index.js')
+
+    let impl
+    if (this.env.isProd) {
+      // 生产环境仅读取dist
+      impl = requireFoolWebpack(filePathDist)
+    } else {
+      // 非生产优先src/index.js
+      try {
+        impl = requireFoolWebpack(filePathSrc)
+      } catch (err) {
+        logger.tag('Error').error(err)
+        impl = requireFoolWebpack(filePathDist)
+      }
+    }
+    if (!impl) impl = {}
+    const jpMod = new Module(name, parentPath, parentScope, impl)
+    this.modules.set(name, jpMod)
+    return jpMod
+  }
+
+  /**
+   * 使用某个模块
+   * @param {String} moduleName
+   */
+  getModule (moduleName) {
+    return this.modules.get(moduleName)
   }
 
   /**

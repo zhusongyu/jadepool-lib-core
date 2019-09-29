@@ -157,11 +157,8 @@ declare class JadepoolSingleton {
 	
 	/**
 	 * 进行Methods调用
-	 * @param methodName 
-	 * @param namespace 
-	 * @param args
 	 */
-	invokeMethod(methodName: string, namespace: string | null, ...args: any): Promise<void>;
+	invokeMethod(methodName: string, namespace: string | null, args: object, ...others: any): Promise<any>;
 
 	/**
 	 * 该方法是否可调用
