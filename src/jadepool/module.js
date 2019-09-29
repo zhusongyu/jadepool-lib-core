@@ -13,7 +13,8 @@ class JadepoolModule {
     Object.defineProperties(this, {
       name: { value: name, writable: false, enumerable: true },
       scope: { value: parentScope, writable: false, enumerable: true },
-      configRaw: { value: _.clone(cfg), writable: false }
+      impl: { value: impl || {}, writable: false, enumerable: false },
+      configRaw: { value: _.clone(cfg), writable: false, enumerable: false }
     })
     if (typeof impl === 'object') {
       Object.defineProperty(this, '_invokeMethod', {

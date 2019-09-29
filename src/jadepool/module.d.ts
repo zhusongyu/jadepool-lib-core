@@ -13,6 +13,10 @@ declare class JadepoolModule {
    */
   public name: string;
   /**
+   * module implemation
+   */
+  public impl: object;
+  /**
    * module scope
    */
   public scope: string;
