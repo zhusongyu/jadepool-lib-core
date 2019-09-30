@@ -1,5 +1,12 @@
 # Change Logs
 
+## v0.16.0
+
+Features:
+
+* add module feature
+* now modules in seperated folders can be loaded in runtime
+
 ## v0.15.8
 
 Fixes:
