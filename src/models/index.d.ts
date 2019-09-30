@@ -309,7 +309,7 @@ declare interface ChainConfig {
   endpoints: string[] | { type: string, name: string, url: string, [key: string]: string }[]
 }
 
-type WalletSourceType = 'seed' | 'hsm_pure' | 'hsm_deep' | 'seed_db'
+type WalletSourceType = 'seed' | 'hsm_pure' | 'hsm_deep'
 
 declare interface WalletChainStatus {
   /** 在该钱包内是否被禁用 */
