@@ -8,7 +8,7 @@ class JadepoolModule {
    * @param {string} name
    */
   constructor (name, parentScope, impl, cfg = {}) {
-    if (typeof name !== 'string' || typeof parentPath !== 'string') throw new Error('missiing parameter')
+    if (typeof name !== 'string' || typeof parentScope !== 'string') throw new Error('missing parameter')
 
     Object.defineProperties(this, {
       name: { value: name, writable: false, enumerable: true },

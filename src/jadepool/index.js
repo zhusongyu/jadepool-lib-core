@@ -127,6 +127,7 @@ class JadePool {
         impl: undefined
       })
     })
+    logger.tag('Module Init', moduleScope).log(`modules=${nameInFolders}`)
   }
 
   /**
@@ -163,6 +164,7 @@ class JadePool {
       cfg = this.config.util.loadFileConfigs(path.resolve(mod.path, 'config'))
     }
     mod.impl = new Module(name, mod.scope, impl, cfg)
+    logger.tag('Module Loaded', mod.scope).log(`module=${name}`)
     return mod.impl
   }
 
