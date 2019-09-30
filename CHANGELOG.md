@@ -1,5 +1,12 @@
 # Change Logs
 
+## v0.16.1
+
+Fixes:
+
+* fix mongoose warning message
+* fix module feature for non-executable module
+
 ## v0.16.0
 
 Features:

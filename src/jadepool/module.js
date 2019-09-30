@@ -14,15 +14,13 @@ class JadepoolModule {
       name: { value: name, writable: false, enumerable: true },
       scope: { value: parentScope, writable: false, enumerable: true },
       impl: { value: impl || {}, writable: false, enumerable: false },
-      configRaw: { value: _.clone(cfg), writable: false, enumerable: false }
-    })
-    if (typeof impl === 'object') {
-      Object.defineProperty(this, '_invokeMethod', {
-        value: typeof impl.methods === 'function' ? impl.methods : function () {},
+      configRaw: { value: _.clone(cfg), writable: false, enumerable: false },
+      _invokeMethod: {
+        value: typeof impl === 'object' && impl !== null && typeof impl.methods === 'function' ? impl.methods : function () {},
         writable: false,
         enumerable: false
-      })
-    }
+      }
+    })
   }
 
   /**

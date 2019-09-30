@@ -144,21 +144,23 @@ class JadePool {
     const requireFoolWebpack = require('require-fool-webpack')
     const filePathDist = path.join(mod.path, 'dist/index.bundle.js')
     const filePathSrc = path.join(mod.path, 'src/index.js')
+    const distExists = fs.existsSync(filePathDist)
+    const srcExists = fs.existsSync(filePathSrc)
 
     let impl
     if (this.env.isProd) {
       // 生产环境仅读取dist
-      impl = requireFoolWebpack(filePathDist)
+      impl = distExists && requireFoolWebpack(filePathDist)
     } else {
       // 非生产优先src/index.js
       try {
-        impl = requireFoolWebpack(filePathSrc)
+        impl = srcExists && requireFoolWebpack(filePathSrc)
       } catch (err) {
         logger.tag('Error').error(err)
-        impl = requireFoolWebpack(filePathDist)
+        impl = distExists && requireFoolWebpack(filePathDist)
       }
     }
-    if (!impl) impl = {}
+
     let cfg = {}
     if (mod.withConfig) {
       cfg = this.config.util.loadFileConfigs(path.resolve(mod.path, 'config'))
