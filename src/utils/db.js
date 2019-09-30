@@ -15,7 +15,8 @@ const mongoOptions = {
   reconnectTries: Number.MAX_VALUE,
   reconnectInterval: 10 * 1000,
   autoReconnect: true,
-  useNewUrlParser: true
+  useNewUrlParser: true,
+  useUnifiedTopology: true
 }
 const connMap = new Map()
 
