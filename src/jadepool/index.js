@@ -156,7 +156,7 @@ class JadePool {
       try {
         impl = srcExists && requireFoolWebpack(filePathSrc)
       } catch (err) {
-        logger.tag('Error').error(err)
+        logger.tag('Failed to load src/index.js').debug(err && err.message)
         impl = distExists && requireFoolWebpack(filePathDist)
       }
     }

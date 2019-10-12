@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.16.2
+
+Improvement:
+
+* avoid too many error log when running at dist folder with NODE_ENV=dev
+
 ## v0.16.1
 
 Fixes:
