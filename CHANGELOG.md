@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.16.3
+
+Fixes:
+
+* service graceful exiting using first-in-last-out ordering
+
 ## v0.16.2
 
 Improvement:

@@ -1,13 +1,19 @@
 const logger = require('@jadepool/logger').of('Service')
 
 const serivcesKey = Symbol('servicesKey')
+const registeringOrderKey = Symbol('registeringOrderKey')
 /**
  * 服务库实例
  */
 class ServiceLib {
   constructor () {
     this[serivcesKey] = new Map()
+    this[registeringOrderKey] = []
   }
+  /**
+   * service names with order
+   */
+  get serviceNames () { return this[registeringOrderKey].slice() }
   /**
    * @param {typeof BaseService} ServiceClass
    * @param {Object} opts 传入的初始化参数
@@ -25,9 +31,10 @@ class ServiceLib {
     })
     // 执行初始化
     await serv.initialize(opts || {})
-    logger.tag('Attached').log(`name=${serv.name}`)
+    this[registeringOrderKey].push(serv.name)
     // 设置registerTime
     ServiceLib.lastRegisterTime = Date.now()
+    logger.tag('Attached').log(`name=${serv.name},i=${this[registeringOrderKey].length - 1}`)
     return serv
   }
 

@@ -264,17 +264,21 @@ const graceful = async (signal) => {
   if (Date.now() - ServiceLib.lastRegisterTime < ts) {
     await new Promise(resolve => setTimeout(resolve, ts))
   }
-  try {
+  const serviceNames = jadepool.ctx.services.serviceNames
+  if (serviceNames.length !== 0) {
     logger.diff('Services Exit').tag(`Begin`).log(`signal=${signal}`)
-    await Promise.all(_.map(jadepool.ctx.services, async ins => {
-      if (typeof ins.onDestroy === 'function') {
-        await ins.onDestroy(signal)
+    try {
+      for (let i = serviceNames.length - 1; i >= 0; i--) {
+        const ins = jadepool.getService(serviceNames[i])
+        if (typeof ins.onDestroy === 'function') {
+          await ins.onDestroy(signal)
+        }
+        logger.tag('Detached').log(`name=${ins.name},i=${i}`)
       }
-      logger.tag('Detached').log(`name=${ins.name}`)
-    }))
-    logger.diff('Services Exit').tag('End').log(`signal=${signal}`)
-  } catch (err) {
-    logger.tag('Services Exit').error('failed to graceful exit', err)
+      logger.diff('Services Exit').tag('End').log(`signal=${signal}`)
+    } catch (err) {
+      logger.tag('Services Exit').error('failed to graceful exit', err)
+    }
   }
   await Logger.exit()
   process.exit(0)

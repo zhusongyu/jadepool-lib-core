@@ -1,4 +1,5 @@
-import { JadepoolSingleton } from './jadepool'
+import { JadepoolSingleton } from './jadepool';
+import ServiceLib from './serviceLib';
 
 /**
  * Jadepool上下文
@@ -12,6 +13,8 @@ declare class JadePoolContext extends JadepoolSingleton {
 	 * @param configObj 配置文件对象
 	 */
 	constructor (serverType: string, version: string, invokeMethodFunc: Function, configObj : object);
+
+	public services: ServiceLib;
 
 	/**
 	 * Jadepool初始化
