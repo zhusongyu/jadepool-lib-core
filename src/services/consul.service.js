@@ -56,7 +56,7 @@ class Service extends BaseService {
    * @param {Number} port
    */
   async registerService (serviceName, port, meta = {}) {
-    const serviceId = `${serviceName}-${jadepool.env.processKey}`
+    const serviceId = `${serviceName}@${jadepool.env.rpcNamespace}.${process.pid}`
     const selfHost = jadepool.env.host !== '127.0.0.1' ? jadepool.env.host : ''
     const result = await this._put(`/v1/agent/service/register`, {
       Name: serviceName,
@@ -126,7 +126,7 @@ class Service extends BaseService {
         return results
       } else if (i < maxAmt) {
         await new Promise(resolve => setTimeout(resolve, 1000))
-        logger.tag('Searching').log(`retries=${i}`)
+        logger.tag('Searching').log(`srv=${serviceName},retries=${i}`)
       }
     }
     return false

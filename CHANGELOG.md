@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.16.4
+
+Improvement:
+
+* improve consul log
+
 ## v0.16.3
 
 Fixes:
