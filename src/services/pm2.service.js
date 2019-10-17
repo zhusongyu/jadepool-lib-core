@@ -78,7 +78,6 @@ class Service extends BaseService {
         logger.tag(`failed-to-stop`, processName).error(err)
       }
     }))
-    logger.tag(`czc`).log(`pm2 stop success--------`)
   }
 
   /**

@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.16.6
+
+Improvement:
+
+* remove useless log
+
 ## v0.16.5
 
 Improvement:
