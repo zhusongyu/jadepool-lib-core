@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.16.5
+
+Improvement:
+
+* fix pm2.service onDestroy error
+
 ## v0.16.4
 
 Improvement:
