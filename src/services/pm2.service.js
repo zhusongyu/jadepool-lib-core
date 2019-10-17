@@ -73,11 +73,12 @@ class Service extends BaseService {
     // 退出全部相关进程
     await Promise.all(processNames.map(async processName => {
       try {
-        await this.stop(processName, true)
+        this.stop(processName, true)
       } catch (err) {
         logger.tag(`failed-to-stop`, processName).error(err)
       }
     }))
+    logger.tag(`czc`).log(`pm2 stop success--------`)
   }
 
   /**
