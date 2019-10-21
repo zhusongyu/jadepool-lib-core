@@ -19,6 +19,7 @@ const PROCESS = {
     ROUTER_SUB: 'sub',
     GENERAL: 'general',
     BLOCKCHAIN: 'chain',
+    SERVICE: 'serv',
     UNKNOWN: 'unknown'
   }
 }

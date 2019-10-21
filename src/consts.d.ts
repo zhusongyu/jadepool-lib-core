@@ -28,8 +28,8 @@ export declare namespace PROCESS {
     GENERAL: 'general',
     /** 事务进程，特定链事务。所属启动模式：WORKER */
     BLOCKCHAIN: 'chain',
-    /** 未知进程 */
-    UNKNOWN: 'unknown'
+    /** 微服务进程 */
+    SERVICE: 'serv'
   }
 }
 

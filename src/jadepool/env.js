@@ -59,7 +59,7 @@ module.exports = function buildEnvObject (serverType, version) {
         processType = consts.PROCESS.TYPES.ROUTER_SUB
       } else {
         launchMode = consts.PROCESS.LAUNCH_MODES.PROVIDER
-        processType = envOpts.param || consts.PROCESS.TYPES.UNKNOWN
+        processType = consts.PROCESS.TYPES.SERVICE
       }
       break
     case 'task':
@@ -72,7 +72,7 @@ module.exports = function buildEnvObject (serverType, version) {
       break
     default:
       launchMode = mode
-      processType = envOpts.param || consts.PROCESS.TYPES.UNKNOWN
+      processType = consts.PROCESS.TYPES.SERVICE
       break
   }
   // 进程参数
