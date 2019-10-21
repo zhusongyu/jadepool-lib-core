@@ -93,6 +93,7 @@ class Service extends BaseService {
    * @param {Boolean} [opts.cluster=false] 是否启动cluster模式
    * @param {Number} [opts.instances=1] cluster模式下启动的进程数
    * @param {Boolean} [opts.mergeLogs=false] 默认不合并logs
+   * @param {String} [opts.maxMemoryRestart='800M'] 默认重启内存量
    */
   async start (opts) {
     const mode = opts.mode || 'task'
@@ -127,6 +128,7 @@ class Service extends BaseService {
       kill_timeout: opts.timeout || 1000 * 60 * 3, // timeout为3分钟
       force: typeof opts.force === 'boolean' ? opts.force : true, // 强制启动新进程
       merge_logs: !!opts.mergeLogs,
+      max_memory_restart: opts.maxMemoryRestart || '800M',
       instance_var: 'NODE_INSTANCE_ID',
       watch: false,
       env: workerEnv
