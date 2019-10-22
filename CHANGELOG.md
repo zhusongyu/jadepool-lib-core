@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.16.7
+
+Improvement:
+
+* add pm2 start options maxMemoryRestart, default value is 800M
+
 ## v0.16.6
 
 Improvement:
