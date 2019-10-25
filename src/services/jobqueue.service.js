@@ -144,9 +144,9 @@ class Service extends BaseService {
         }
       })
       task.cleaner = setInterval(function () {
-        queue.clean(60 * 1000, 'completed', 5000)
-        queue.clean(8 * 60 * 60 * 1000, 'failed', 5000)
-      }, 60 * 1000)
+        queue.clean(60 * 1000, 'completed', 10000)
+        queue.clean(8 * 60 * 60 * 1000, 'failed', 10000)
+      }, 30 * 1000)
       // add to runnable
       this._runnableDefs.set(task.name, task)
       logger.tag('Jobs-defined').log(`name=${task.name}`)
