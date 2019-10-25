@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.16.8
+
+Improvement:
+
+* adjust job.queue cleaner interval
+
 ## v0.16.7
 
 Improvement:
