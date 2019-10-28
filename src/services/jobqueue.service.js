@@ -87,10 +87,24 @@ class Service extends BaseService {
         prefix: 'JADEPOOL_JOB_QUEUE'
       }, opts)
       if (typeof redisOpts.url === 'string') {
-        params.push(redisOpts.url)
+        const redisUrl = new URL(redisOpts.url)
+        const cfg = {
+          host: redisUrl.host,
+          port: redisUrl.port || 6379,
+          password: redisUrl.password || undefined
+        }
+        if (redisUrl.pathname) {
+          try {
+            cfg.db = parseInt(redisUrl.pathname)
+          } catch (err) {}
+          cfg.db = cfg.db || 2
+        }
+        queueOpts.redis = cfg
       } else if (typeof redisOpts.host === 'string' &&
         (typeof redisOpts.port === 'number' || typeof redisOpts.port === 'string')) {
-        queueOpts.redis = _.pick(redisOpts, ['port', 'host', 'db', 'password'])
+        const cfg = _.pick(redisOpts, ['port', 'host', 'db', 'password'])
+        cfg.db = cfg.db || 2
+        queueOpts.redis = cfg
       } else {
         throw new NBError(`missing redis url.`)
       }

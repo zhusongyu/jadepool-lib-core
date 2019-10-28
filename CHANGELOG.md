@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.16.9
+
+Improvement:
+
+* upgrade bull to v3.11.0
+
 ## v0.16.8
 
 Improvement:
