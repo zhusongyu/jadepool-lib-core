@@ -1,5 +1,6 @@
 const _ = require('lodash')
 const moment = require('moment')
+const { URL } = require('url')
 const Queue = require('bull')
 const Task = require('./task')
 const BaseService = require('./core')

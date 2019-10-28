@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.16.10
+
+Fixes:
+
+* fix node 8 (missing URL object)
+
 ## v0.16.9
 
 Improvement:
