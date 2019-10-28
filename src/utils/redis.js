@@ -70,8 +70,8 @@ const redisLib = {
     if (!client) {
       const redisOpts = _.assign({}, redisLib.getOpts(name), defaultOpts)
       client = redis.createClient(redisOpts)
-      const redisHost = redisOpts.host || new url.URL(redisOpts.url).host
-      const logStr = `name=${name},url.host=${redisHost}`
+      const redisUrlData = redisOpts.url ? new url.URL(redisOpts.url) : redisOpts
+      const logStr = `name=${name},host=${redisUrlData.host},db=${redisUrlData.db || redisUrlData.pathname || 0}`
       client.on('error', function (err) {
         if (err.code === 'CONNECTION_BROKEN') {
           // 无法重连时

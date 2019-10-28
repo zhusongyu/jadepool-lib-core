@@ -89,7 +89,7 @@ class Service extends BaseService {
       if (typeof redisOpts.url === 'string') {
         const redisUrl = new URL(redisOpts.url)
         const cfg = {
-          host: redisUrl.host,
+          host: redisUrl.hostname,
           port: redisUrl.port || 6379,
           password: redisUrl.password || undefined
         }
@@ -97,8 +97,8 @@ class Service extends BaseService {
           try {
             cfg.db = parseInt(redisUrl.pathname)
           } catch (err) {}
-          cfg.db = cfg.db || 2
         }
+        cfg.db = cfg.db || 2
         queueOpts.redis = cfg
       } else if (typeof redisOpts.host === 'string' &&
         (typeof redisOpts.port === 'number' || typeof redisOpts.port === 'string')) {
@@ -108,6 +108,7 @@ class Service extends BaseService {
       } else {
         throw new NBError(`missing redis url.`)
       }
+      logger.tag('RedisConn').log(`name=${taskName},host=${queueOpts.redis.host},db=${queueOpts.redis.db}`)
       params.push(queueOpts)
       // create queue
       queue = new Queue(...params)
