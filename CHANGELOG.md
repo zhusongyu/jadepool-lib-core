@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.16.11
+
+Improvement:
+
+* reduce Jadepool process prefix
+
 ## v0.16.10
 
 Fixes:

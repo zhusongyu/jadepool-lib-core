@@ -8,7 +8,7 @@ export declare const DEFAULT_ENCODE: 'base64';
  * --------- MAP ---------
  */
 export declare namespace PROCESS {
-  const NAME_PREFIX: 'Jadepool';
+  const NAME_PREFIX: 'JP';
   const LAUNCH_MODES: {
     /** 中心管理者 */
     MASTER: 'master',

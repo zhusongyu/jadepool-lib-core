@@ -3,7 +3,7 @@ const DEFAULT_KEY = 'default'
 const DEFAULT_ENCODE = 'base64'
 // --------- MAP ---------
 const PROCESS = {
-  NAME_PREFIX: 'Jadepool',
+  NAME_PREFIX: 'JP',
   LAUNCH_MODES: {
     /** 中心管理者 */
     MASTER: 'master',
