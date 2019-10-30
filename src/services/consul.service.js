@@ -55,7 +55,7 @@ class Service extends BaseService {
    * @param {String} serviceName
    * @param {Number} port
    */
-  async registerService (serviceName, port, meta = {}) {
+  async registerService (serviceName, port, meta = {}, ttlCheckMethod) {
     const serviceId = `${serviceName}@${jadepool.env.rpcNamespace}.${process.pid}`
     const selfHost = jadepool.env.host !== '127.0.0.1' ? jadepool.env.host : ''
     const result = await this._put(`/v1/agent/service/register`, {
@@ -75,7 +75,39 @@ class Service extends BaseService {
     // 设置 ttl 为 2s 一次
     const interval = setInterval(async () => {
       const checkId = `service:${serviceId}`
-      const result = await this._put(`/v1/agent/check/pass/${checkId}`)
+      // set start time
+      let startAt = Date.now()
+      // try ttl test
+      let ttlResult = false
+      let note
+      switch (typeof ttlCheckMethod) {
+        case 'string':
+          try {
+            ttlResult = !!(await jadepool.invokeMethod(ttlCheckMethod))
+            note = typeof ttlResult === 'boolean' ? 'OK' : JSON.stringify(ttlResult)
+          } catch (err) {
+            ttlResult = false
+            note = err && err.message
+          }
+          break
+        case 'function':
+          try {
+            ttlResult = !!(await ttlCheckMethod())
+            note = typeof ttlResult === 'boolean' ? 'OK' : JSON.stringify(ttlResult)
+          } catch (err) {
+            ttlResult = false
+            note = err && err.message
+          }
+          break
+        default:
+          ttlResult = true
+          note = 'OK'
+          break
+      }
+      const isTooLongTime = (Date.now() - startAt) > 60000 // 1min is warning
+      let checkResult = !ttlResult ? 'fail' : (isTooLongTime ? 'warn' : 'pass')
+      // send ttl result
+      const result = await this._put(`/v1/agent/check/${checkResult}/${checkId}`, { note })
       if (!result) {
         logger.tag('TTL').warn(`failed-to-ttl-${serviceName}`)
       }

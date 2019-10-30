@@ -467,6 +467,7 @@ declare type ServiceData = {
   port: number
   meta?: KeyValueMeta
 }
+type TTLMethodType = string | (() => boolean) | Promise<(() => boolean)>
 declare class ConsulService extends BaseService {
   constructor (services : any);
   initialize (opts: ConsulOptions): Promise<void>
@@ -476,7 +477,7 @@ declare class ConsulService extends BaseService {
    * @param port
    * @param meta
    */
-  registerService (serviceName: string, port: number, meta?: KeyValueMeta): Promise<boolean>
+  registerService (serviceName: string, port: number, meta?: KeyValueMeta, ttlCheckMethod?: TTLMethodType): Promise<boolean>
   /**
    * 移除服务
    * @param serviceName
