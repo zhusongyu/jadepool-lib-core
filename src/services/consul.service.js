@@ -116,9 +116,12 @@ class Service extends BaseService {
           break
       }
       const isTooLongTime = (Date.now() - startAt) > 60000 // 1min is warning
-      let checkResult = !ttlResult ? 'fail' : (isTooLongTime ? 'warn' : 'pass')
+      let checkResult = !ttlResult ? 'critical' : (isTooLongTime ? 'warning' : 'passing')
       // send ttl result
-      const result = await this._put(`/v1/agent/check/${checkResult}/${checkId}`, { note })
+      const result = await this._put(`/v1/agent/check/update/${checkId}`, {
+        Status: checkResult,
+        Output: note
+      })
       if (!result) {
         logger.tag('TTL').warn(`failed-to-ttl-${serviceName}`)
       }
@@ -156,6 +159,29 @@ class Service extends BaseService {
     return true
   }
 
+  _parseServiceData (info) {
+    const checkInfo = (info.Checks || []).find(check => check.Name.startsWith('service:'))
+    return {
+      host: info.Service.Address || info.Node.Address || '127.0.0.1',
+      port: info.Service.Port,
+      meta: info.Service.Meta || {},
+      status: checkInfo ? checkInfo.Status : 'passing'
+    }
+  }
+
+  async _listServices (serviceName) {
+    return this._get(`/v1/health/service/${serviceName}?passing=true`)
+  }
+
+  /**
+   * 获取服务信息
+   * @param {string} serviceName
+   */
+  async listServices (serviceName) {
+    const list = (await this._listServices(serviceName)) || []
+    return list.map(info => this._parseServiceData(info))
+  }
+
   /**
    * 等待到服务发现未知
    * @param {string} serviceName
@@ -164,7 +190,7 @@ class Service extends BaseService {
   async waitForService (serviceName, timeout = 600) {
     const maxAmt = Math.ceil(timeout / 2)
     for (let i = 0; i < maxAmt; i++) {
-      const results = await this._get(`/v1/health/service/${serviceName}?passing=true`)
+      const results = await this._listServices(serviceName)
       if (results.length > 0) {
         return results
       } else if (i < maxAmt) {
@@ -190,11 +216,7 @@ class Service extends BaseService {
     if (!pickOne || !pickOne.Service || !pickOne.Service.Port) {
       throw new NBError(50001, `failed to get service data: ${JSON.stringify(pickOne)}`)
     }
-    return {
-      host: pickOne.Service.Address || pickOne.Node.Address || '127.0.0.1',
-      port: pickOne.Service.Port,
-      meta: pickOne.Service.Meta || {}
-    }
+    return this._parseServiceData(pickOne)
   }
 
   /**

@@ -479,6 +479,7 @@ declare type ServiceData = {
   host: string
   port: number
   meta?: KeyValueMeta
+  status: 'passing' | 'warning' | 'critical'
 }
 type TTLMethodType = string | (() => boolean) | Promise<(() => boolean)>
 declare class ConsulService extends BaseService {
@@ -496,6 +497,11 @@ declare class ConsulService extends BaseService {
    * @param serviceName
    */
   deregisterService (serviceName: string): Promise<boolean>
+  /**
+   * 直接返回consul的services数据
+   * @param serviceName
+   */
+  listServices (serviceName: string): Promise<ServiceData[]>
   /**
    * 等待到服务发现未知
    * @param serviceName 
