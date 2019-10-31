@@ -1,5 +1,14 @@
 # Change Logs
 
+## v0.16.12
+
+Improvement:
+
+* add ttlCheckMethod parameter to consul.registerService method
+  * pass for ttlCheckMethod return `true` in 60 seconds
+  * warn for ttlCheckMethod return `true` more than 60 seconds
+  * fail for ttlCheckMethod return false or throw error
+
 ## v0.16.11
 
 Improvement:
