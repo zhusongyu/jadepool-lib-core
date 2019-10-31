@@ -84,8 +84,7 @@ class Service extends BaseService {
       switch (typeof ttlCheckMethod) {
         case 'string':
           try {
-            ttlResult = !!(await jadepool.invokeMethod(ttlCheckMethod))
-            note = typeof ttlResult === 'boolean' ? 'OK' : JSON.stringify(ttlResult)
+            ttlResult = await jadepool.invokeMethod(ttlCheckMethod)
           } catch (err) {
             ttlResult = false
             note = err && err.message
@@ -93,8 +92,7 @@ class Service extends BaseService {
           break
         case 'function':
           try {
-            ttlResult = !!(await ttlCheckMethod())
-            note = typeof ttlResult === 'boolean' ? 'OK' : JSON.stringify(ttlResult)
+            ttlResult = await ttlCheckMethod()
           } catch (err) {
             ttlResult = false
             note = err && err.message
@@ -102,7 +100,17 @@ class Service extends BaseService {
           break
         default:
           ttlResult = true
-          note = 'OK'
+          break
+      }
+      switch (typeof ttlResult) {
+        case 'undefined':
+          ttlResult = true
+        case 'boolean':
+          note = note || 'OK'
+          break
+        default:
+          note = note || JSON.stringify(ttlResult)
+          ttlResult = true
           break
       }
       const isTooLongTime = (Date.now() - startAt) > 60000 // 1min is warning
