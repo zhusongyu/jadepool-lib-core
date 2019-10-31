@@ -34,7 +34,7 @@ class SioWorkerService extends BaseService {
    */
   async initialize (opts = {}) {
     // Step 0. 加载服务器配置信息
-    const serviceData = await jp.consulSrv.getServiceData(consts.SERVICE_NAMES.SOCKET_IO)
+    const serviceData = await jp.consulSrv.getServiceData(consts.SERVICE_NAMES.SOCKET_IO, true)
     const protocol = (serviceData.meta && serviceData.meta.protocol) ? `${serviceData.meta.protocol}://` : 'http://'
     const serverUri = protocol + serviceData.host + ':' + serviceData.port
     logger.tag('TryConnect').log(`host=${serviceData.host},port=${serviceData.port},meta=${JSON.stringify(serviceData.meta)}`)
