@@ -72,7 +72,8 @@ class Service extends BaseService {
     })
     if (!result) return false
 
-    // 设置 ttl 为 2s 一次
+    // 设置 ttl 为 3s 一次
+    const INTERNAL_MS = 3000
     const interval = setInterval(async () => {
       const checkId = `service:${serviceId}`
       // set start time
@@ -111,7 +112,7 @@ class Service extends BaseService {
       if (!result) {
         logger.tag('TTL').warn(`failed-to-ttl-${serviceName}`)
       }
-    }, 2000)
+    }, INTERNAL_MS)
     // 添加到_registeredServices
     this._registeredServices.set(serviceName, {
       name: serviceName,
