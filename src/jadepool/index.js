@@ -264,7 +264,7 @@ const graceful = async (signal) => {
   if (Date.now() - ServiceLib.lastRegisterTime < ts) {
     await new Promise(resolve => setTimeout(resolve, ts))
   }
-  const serviceNames = jadepool.ctx.services.serviceNames
+  const serviceNames = jadepool.ctx ? jadepool.ctx.services.serviceNames : []
   if (serviceNames.length !== 0) {
     logger.diff('Services Exit').tag(`Begin`).log(`signal=${signal}`)
     try {
