@@ -23,6 +23,8 @@ class Service extends BaseService {
     this._queues = new Map()
     /** @type {Map<string, {name: string, instance: Task, job: Queue.Job}>} */
     this._runnableDefs = new Map()
+    /** @type {Map<string, {name: string, cleaner: number}>} */
+    this._runnableMethods = new Map()
   }
 
   /**
@@ -41,12 +43,21 @@ class Service extends BaseService {
       // remove current job
       if (taskObj.job) {
         await taskObj.job.remove()
-        logger.tag('Task Job Removed').log(`task=${name}`)
       }
       // remove interval
       if (taskObj.cleaner) {
         clearInterval(taskObj.cleaner)
       }
+      logger.tag('Task Removed').log(`name=${name}`)
+    }
+    // runnable methods
+    for (const iter of this._runnableMethods) {
+      const name = iter[0]
+      const info = iter[1]
+      if (info.cleaner) {
+        clearInterval(info.cleaner)
+      }
+      logger.tag('Method Job Removed').log(`name=${name}`)
     }
     // exists queues
     for (const iter of this._queues) {
@@ -119,6 +130,69 @@ class Service extends BaseService {
   }
 
   /**
+   * 实际注册任务
+   * @param {string} name job name
+   * @param {Function} func job function
+   * @param {TaskOptions} taskOpts
+   */
+  async _registerJob (name, func, taskOpts) {
+    // 获取JobQueue
+    const queue = await this.fetchQueue(name, {
+      limiter: {
+        max: taskOpts.limiterMax || 1000,
+        duration: taskOpts.limiterDuration || 5000,
+        bounceBack: false
+      },
+      settings: Object.assign(_.clone(this._defaultQueueOpts), {
+        lockDuration: taskOpts.lockDuration || 360000,
+        stalledInterval: taskOpts.stalledInterval || 360000,
+        maxStalledCount: taskOpts.maxStalledCount || 1,
+        backoffStrategies: {
+          retry: taskOpts.retryStrategy || function () { return Math.random() * 1000 }
+        }
+      })
+    })
+    // 注册到JobQueue
+    queue.process('*', taskOpts.concurrency || 1, func)
+    // 监听completed和failed
+    queue.on('cleaned', function (jobs, type) {
+      if (jobs.length > 0) {
+        logger.tag(name, 'Cleaned').debug(`type=${type},jobs=${jobs.length}`)
+      }
+    })
+    return setInterval(function () {
+      queue.clean(60 * 1000, 'completed', 10000)
+      queue.clean(8 * 60 * 60 * 1000, 'failed', 10000)
+    }, 30 * 1000)
+  }
+
+  /**
+   * 注册任务函数
+   */
+  async registerMethod (name, method, taskOpts) {
+    if (taskOpts === undefined) {
+      taskOpts = method
+      method = name
+    }
+    if (typeof name !== 'string') {
+      throw new NBError(10001, `invalid name`)
+    }
+    if (typeof method !== 'function' && typeof method !== 'string') {
+      throw new NBError(10001, `invalid method`)
+    }
+    const cleaner = await this._registerJob(name, async function (job) {
+      switch (typeof method) {
+        case 'function':
+          return method(job)
+        case 'string':
+          return jadepool.invokeMethod(method, null, { job })
+      }
+      return true
+    }, taskOpts)
+    this._runnableMethods.set(name, { name, cleaner })
+  }
+
+  /**
    * 注册任务
    * @param {{name: string, instance: Task}[]} tasks
    */
@@ -134,35 +208,8 @@ class Service extends BaseService {
       }
       // 初始化
       await task.instance.onInit()
-      const taskOpts = task.instance.opts
-      // 获取JobQueue
-      const queue = await this.fetchQueue(task.name, {
-        limiter: {
-          max: taskOpts.limiterMax,
-          duration: taskOpts.limiterDuration,
-          bounceBack: false
-        },
-        settings: Object.assign(_.clone(this._defaultQueueOpts), {
-          lockDuration: taskOpts.lockDuration,
-          stalledInterval: taskOpts.stalledInterval,
-          maxStalledCount: taskOpts.maxStalledCount,
-          backoffStrategies: {
-            retry: taskOpts.retryStrategy || function () { return Math.random() * 1000 }
-          }
-        })
-      })
-      // 注册到JobQueue
-      queue.process('*', taskOpts.concurrency, task.instance.onHandle.bind(task.instance))
-      // 监听completed和failed
-      queue.on('cleaned', function (jobs, type) {
-        if (jobs.length > 0) {
-          logger.tag(task.name, 'Cleaned').debug(`type=${type},jobs=${jobs.length}`)
-        }
-      })
-      task.cleaner = setInterval(function () {
-        queue.clean(60 * 1000, 'completed', 10000)
-        queue.clean(8 * 60 * 60 * 1000, 'failed', 10000)
-      }, 30 * 1000)
+      // 注册并返回interval id
+      task.cleaner = await this._registerJob(task.name, task.instance.onHandle.bind(task.instance), task.instance.opts)
       // add to runnable
       this._runnableDefs.set(task.name, task)
       logger.tag('Jobs-defined').log(`name=${task.name}`)

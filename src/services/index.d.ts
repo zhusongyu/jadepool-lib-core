@@ -54,6 +54,19 @@ declare class JobQueueService extends BaseService {
    */
   registerJobQueue (task: JobDef): Promise<void>
   /**
+   * 注册方法
+   * @param name
+   * @param method
+   * @param opts
+   */
+  registerMethod (name: string, method: Function, opts?: AdvancedSettings): Promise<void>
+  /**
+   * 注册方法
+   * @param method
+   * @param opts
+   */
+  registerMethod (method: string, opts?: AdvancedSettings): Promise<void>
+  /**
    * 启动/重启任务
    */
   startOrReloadJobs (): Promise<void>

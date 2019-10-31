@@ -1,13 +1,14 @@
 # Change Logs
 
-## v0.16.12
+## v0.17.0
 
-Improvement:
+Feature:
 
 * add ttlCheckMethod parameter to consul.registerService method
   * pass for ttlCheckMethod return `true` in 60 seconds
   * warn for ttlCheckMethod return `true` more than 60 seconds
   * fail for ttlCheckMethod return false or throw error
+* add registerMethod method to jobqueue.service
 
 ## v0.16.11
 

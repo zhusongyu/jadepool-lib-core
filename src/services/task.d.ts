@@ -43,7 +43,7 @@ declare class Task {
 	 * @param job 
 	 * @param done 
 	 */
-	onHandle(job: Job): Promise<void>;		
+	onHandle(job: Job): Promise<void>;
 	/**
 	 * 待重载初始化函数
 	 */
