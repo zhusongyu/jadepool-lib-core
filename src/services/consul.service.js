@@ -105,6 +105,8 @@ class Service extends BaseService {
       switch (typeof ttlResult) {
         case 'undefined':
           ttlResult = true
+          note = note || 'OK'
+          break
         case 'boolean':
           note = note || 'OK'
           break
