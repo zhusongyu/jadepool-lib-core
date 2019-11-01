@@ -10,6 +10,10 @@ Feature:
   * fail for ttlCheckMethod return false or throw error
 * add registerMethod method to jobqueue.service
 
+Fixes:
+
+* turn back await when pm2 stop
+
 ## v0.16.11
 
 Improvement:
