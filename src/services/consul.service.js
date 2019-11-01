@@ -169,8 +169,8 @@ class Service extends BaseService {
     }
   }
 
-  async _listServices (serviceName) {
-    return this._get(`/v1/health/service/${serviceName}?passing=true`)
+  async _listServices (serviceName, passingOnly = false) {
+    return this._get(`/v1/health/service/${serviceName}${passingOnly ? '?passing=true' : ''}`)
   }
 
   /**
@@ -190,7 +190,7 @@ class Service extends BaseService {
   async waitForService (serviceName, timeout = 600) {
     const maxAmt = Math.ceil(timeout / 2)
     for (let i = 0; i < maxAmt; i++) {
-      const results = await this._listServices(serviceName)
+      const results = await this._listServices(serviceName, true)
       if (results.length > 0) {
         return results
       } else if (i < maxAmt) {
