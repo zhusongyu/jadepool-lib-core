@@ -135,7 +135,7 @@ class Service extends BaseService {
    * @param {Function} func job function
    * @param {TaskOptions} taskOpts
    */
-  async _registerJob (name, func, taskOpts) {
+  async _registerJob (name, func, taskOpts = {}) {
     // 获取JobQueue
     const queue = await this.fetchQueue(name, {
       limiter: {
