@@ -110,7 +110,10 @@ class Service extends BaseService {
       // 设置缓存
       this.cachedNspMap.set(namespace, rpcUrl)
     }
-    return rpcHelper.requestRPC(rpcUrl, method, params)
+    return rpcHelper.requestRPC(rpcUrl, method, params, {
+      // 内部签名以timestamp为私钥参数
+      authWithTimestamp: true
+    })
   }
 }
 
