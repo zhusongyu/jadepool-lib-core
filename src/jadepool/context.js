@@ -183,6 +183,9 @@ class JadePoolContext {
         case consts.SERVICE_NAMES.CONSUL:
           ClassToRegister = require('../services/consul.service')
           break
+        case consts.SERVICE_NAMES.MSG_QUEUE:
+          ClassToRegister = require('../services/msgqueue.service')
+          break
         default:
           logger.warn(`failed to registerService: ${serviceClass}`)
           return

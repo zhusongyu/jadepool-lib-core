@@ -38,6 +38,8 @@ export declare const SERVICE_NAMES: {
   ERROR_CODE: 'error.code',
   /** 后台任务服务 */
   JOB_QUEUE: 'job.queue',
+  /** 消息队列 */
+  MSG_QUEUE: 'msg.queue',
   /** HTTP/HTTPS服务 */
   APP: 'express',
   /** 根据生命周期运行脚本的服务 */
