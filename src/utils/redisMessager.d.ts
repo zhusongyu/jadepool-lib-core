@@ -1,11 +1,11 @@
 import redis from 'redis'
 
-interface AddMessageOptions {
+export interface AddMessageOptions {
   /** 默认 10000 */
   maxLen?: number
 }
 
-interface ConsumeMessageOptions {
+export interface ConsumeMessageOptions {
   /** 组名，默认使用初始化时的defaultGroup */
   group?: string
   /** 获取数量, 默认 1 */
@@ -26,16 +26,36 @@ interface Message {
  */
 declare class RedisMessager {
   /**
-   * @param redisClient
    * @param streamKey
    * @param defaultGroup 默认组
+   * @param redisClient 传入 redis instance
    */
-  constructor (redisClient: redis.RedisClient, streamKey: string, defaultGroup?: string);
+  constructor (streamKey: string, defaultGroup?: string, redisClient?: redis.RedisClient);
+  /**
+   * 该 messager 使用的 redisClient
+   */
+  redisClient: redis.RedisClient;
+  /**
+   * 默认组
+   */
+  defaultGroup: string;
   /**
    * 确保Group存在
-   * @param groupName
+   * @param groupName 分组名
    */
   ensureGroup (groupName: string): Promise<void>;
+  /**
+   * 从 Group 中删除消费者，并递交redis
+   * @param consumerName 消费者名称
+   * @param groupName 分组名
+   */
+  removeConsumer (consumerName: string, groupName?: string): Promise<void>;
+  /**
+   * 从 Group 中删除消费者，返回Multi
+   * @param consumerName 消费者名称
+   * @param groupName 分组名
+   */
+  removeConsumerMulti (consumerName: string, groupName?: string, multi?: redis.Multi): redis.Multi;
   /**
    * 处理Message
    * @param consumerName 消费者名称
@@ -68,4 +88,4 @@ declare class RedisMessager {
   ackMessagesMulti  (msgIds: string[], groupName?: string): redis.Multi;
 }
 
-export = RedisMessager
+export default RedisMessager
