@@ -63,6 +63,7 @@ const WalletChain = fetchConnection(consts.DB_KEYS.CONFIG).model(consts.MODEL_NA
 
 const schema = new Schema({
   name: { type: String, required: true, unique: true }, // 钱包的唯一名称
+  alias: String, // 钱包描述，别名
   desc: String, // 钱包描述，辅助信息
   version: String, // default wallet可设置版本，自动更新也将按照版本号来
   // 核心信息

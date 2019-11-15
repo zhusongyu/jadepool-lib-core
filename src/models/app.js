@@ -7,6 +7,7 @@ const Schema = mongoose.Schema
 
 const schema = new Schema({
   id: { type: String, required: true, unique: true },
+  alias: String, // 别名
   desc: String,
   wallet: { // 指向钱包
     type: Schema.Types.ObjectId,
