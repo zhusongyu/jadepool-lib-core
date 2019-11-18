@@ -1,5 +1,12 @@
 # Change Logs
 
+## v0.18.0
+
+Feature:
+
+* add msgqueue.service for adding and consuming message
+  * using RedisMessager as MQ provider
+
 ## v0.17.1
 
 Fixes:
