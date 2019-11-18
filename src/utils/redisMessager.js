@@ -1,31 +1,39 @@
 const { promisify } = require('util')
 const _ = require('lodash')
-const redis = require('redis')
+const redisUtil = require('./redis')
 
 const logger = require('@jadepool/logger').of('RedisMessager')
 
 class RedisMessager {
   /**
-   * @param {redis.RedisClient} redisClient
    * @param {String} streamKey
-   * @param {String} groupName
+   * @param {String} [defaultGroup=undefined]
+   * @param {redis.RedisClient} [redisClient=undefined]
    */
-  constructor (redisClient, streamKey, groupName = undefined) {
-    if (!(redisClient instanceof redis.RedisClient)) {
-      throw new Error('first parameter should be redis.RedisClient')
-    }
+  constructor (streamKey, defaultGroup = undefined, redisClient = undefined) {
     if (typeof streamKey !== 'string') {
       throw new Error('need streamKey and groupName')
     }
-    this._redisClient = redisClient
     this._streamKey = streamKey
-    this._defaultGroup = groupName
+    this._defaultGroup = defaultGroup || 'default'
+    redisClient = redisClient || redisUtil.fetchClient()
+    if (!redisClient || !redisClient.connected) {
+      throw new Error('redis should be connected')
+    }
+    this._redisClient = redisClient
   }
+  get redisClient () { return this._redisClient }
+  get defaultGroup () { return this._defaultGroup }
+  /**
+   * @param {string} v
+   */
+  set defaultGroup (v) { this._defaultGroup = v }
+
   /**
    * 确保Group存在
    * @param {String} groupName
    */
-  async ensureGroup (groupName) {
+  async ensureGroup (groupName = undefined) {
     groupName = groupName || this._defaultGroup
     if (typeof groupName !== 'string') {
       throw new Error('require group Name')
@@ -47,6 +55,32 @@ class RedisMessager {
       }
     }
   }
+
+  /**
+   * 从 group 中移除 consumer
+   * @param {string} consumerName
+   * @param {string} groupName
+   */
+  removeConsumerMulti (consumerName, groupName = undefined, multi = undefined) {
+    groupName = groupName || this._defaultGroup
+    if (typeof groupName !== 'string' || typeof consumerName !== 'string') {
+      throw new Error('require groupName and consumerName')
+    }
+    multi = multi || this._redisClient.multi()
+    try {
+      multi.xgroup('DELCONSUMER', this._streamKey, groupName, consumerName)
+      logger.tag(this._streamKey, 'Delete Consumer').log(`group=${groupName},consumer=${consumerName}`)
+    } catch (err) {
+      logger.tag(this._streamKey).warn(`failed-to-del-consumer. error(${err.message})`)
+    }
+    return multi
+  }
+
+  async removeConsumer (consumerName, groupName = undefined) {
+    const multi = this.removeConsumerMulti(consumerName, groupName)
+    return new Promise((resolve, reject) => { multi.exec(resolve) })
+  }
+
   /**
    * 添加消息
    * @param {Object[]} msgs
@@ -193,4 +227,5 @@ class RedisMessager {
   }
 }
 
+RedisMessager.default = RedisMessager
 module.exports = RedisMessager
