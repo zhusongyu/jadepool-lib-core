@@ -88,6 +88,7 @@ declare class JadepoolSingleton {
 	registerService(name: 'config', opts: services.ConfigOptions): Promise<services.ConfigService>;
 	registerService(name: 'consul', opts: services.ConsulOptions): Promise<services.ConsulService>;
 	registerService(name: 'job.queue', opts: services.JobQueueOptions): Promise<services.JobQueueService>;
+	registerService(name: 'msg.queue', opts: any): Promise<services.MsgQueueService>;
 
 	/**
 	 * 确保服务已注册
@@ -108,6 +109,7 @@ declare class JadepoolSingleton {
 	ensureService(name: 'config', opts: services.ConfigOptions): Promise<services.ConfigService>;
 	ensureService(name: 'consul', opts: services.ConsulOptions): Promise<services.ConsulService>;
 	ensureService(name: 'job.queue', opts: services.JobQueueOptions): Promise<services.JobQueueService>;
+	ensureService(name: 'msg.queue', opts: any): Promise<services.MsgQueueService>;
 
 	/**
 	 * 获取服务
@@ -127,6 +129,7 @@ declare class JadepoolSingleton {
 	getService(name: 'config'): services.ConfigService;
 	getService(name: 'consul'): services.ConsulService;
 	getService(name: 'job.queue'): services.JobQueueService;
+	getService(name: 'msg.queue'): services.MsgQueueService;
 
 	/**
 	 * 获取模型

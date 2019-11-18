@@ -1,6 +1,5 @@
 const { promisify } = require('util')
 const _ = require('lodash')
-const redis = require('redis')
 const redisUtil = require('./redis')
 
 const logger = require('@jadepool/logger').of('RedisMessager')
@@ -28,7 +27,7 @@ class RedisMessager {
   /**
    * @param {string} v
    */
-  set defaultGroup (v) { return this._defaultGroup = v }
+  set defaultGroup (v) { this._defaultGroup = v }
 
   /**
    * 确保Group存在

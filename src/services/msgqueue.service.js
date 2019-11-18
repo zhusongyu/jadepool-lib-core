@@ -45,7 +45,7 @@ class Service extends BaseService {
     })
     if (multi !== undefined) {
       try {
-        new Promise((resolve, reject) => { multi.exec(resolve) })
+        await new Promise((resolve, reject) => multi.exec(resolve))
       } catch (err) {
         logger.warn(err.message)
       }
@@ -154,7 +154,7 @@ class Service extends BaseService {
     assert(typeof msgKey === 'string', `parameter: msgKey`)
     assert(typeof group === 'string', `parameter: group`)
     assert(typeof method === 'string' || typeof method === 'function', `parameter: method`)
-  
+
     // 从redis获取需要执行的消息
     const streamKey = msgKey + '_STREAM'
     const setKey = msgKey + '_UNIQUE_IDS'
@@ -175,9 +175,9 @@ class Service extends BaseService {
     ins.idPool.push(pickId)
     // 检测是否存在 msgs
     if (!msgs || msgs.length === 0) return
-  
+
     const getAsync = promisify(redisMgr.redisClient.GET).bind(redisMgr.redisClient)
-  
+
     // 批量处理msgs
     await Promise.all(msgs.map(async msg => {
       const uid = msg.data && msg.data.uid
