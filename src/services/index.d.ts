@@ -105,7 +105,7 @@ interface AddMsgOptions extends AddMessageOptions {
   /** uid是否要和 group 组合 */
   attachGroup?: boolean
 }
-interface ConsumeMsgOptions extends ConsumeMessageOptions {
+interface ConsumeMsgOptions {
   /** 当 method 为 string 时有用 */
   namespace?: string
   /** uid是否要和 group 组合 */
