@@ -203,7 +203,7 @@ class Service extends BaseService {
       }
       // 设置完成
       if (result) {
-        const multi = redisMgr.ackMessagesMulti([ msg.id ])
+        const multi = redisMgr.ackMessagesMulti([ msg.id ], group)
         if (typeof uid === 'string' && !noNeedRemoveUid) {
           // 若存在uid，则移出unique队列
           multi.srem(setKey, uid)

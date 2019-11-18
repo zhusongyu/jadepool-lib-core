@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.18.1
+
+Fixes:
+
+- fix msgqueue.service ACK without group
+
 ## v0.18.0
 
 Feature:
