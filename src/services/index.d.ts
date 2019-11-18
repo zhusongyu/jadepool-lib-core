@@ -1,7 +1,8 @@
-import { Queue, Job, QueueOptions, JobOptions, AdvancedSettings } from 'bull'
-import BaseService = require('./core')
-import Task = require('./task')
-import { ProcessRunner } from '../utils';
+import { Queue, Job, QueueOptions, JobOptions, AdvancedSettings } from 'bull';
+import BaseService = require('./core');
+import Task = require('./task');
+import ProcessRunner from '../utils/processRunner';
+import RedisMessager, { AddMessageOptions, ConsumeMessageOptions } from '../utils/redisMessager';
 import {
   ChainConfig,
   TokenConfig
@@ -35,7 +36,7 @@ declare interface JobToRun {
   options?: JobOptions
 }
 declare class JobQueueService extends BaseService {
-  constructor (services : any);
+  constructor (services: any)
   
   initialize (opts: JobQueueOptions): Promise<void>
   /**
@@ -98,6 +99,48 @@ declare class JobQueueService extends BaseService {
   add (job: JobToRun): Promise<Job>
 }
 
+interface AddMsgOptions extends AddMessageOptions {
+  /** 预创建的 group  */
+  group?: string
+  /** uid是否要和 group 组合 */
+  attachGroup?: boolean
+}
+interface ConsumeMsgOptions {
+  /** 当 method 为 string 时有用 */
+  namespace?: string
+  /** uid是否要和 group 组合 */
+  attachGroup?: boolean
+  /** 同名 msg 处理的间隔 */
+  sameInterval?: number
+  /** 一批获取多少个 */
+  msgCount?: number
+  /** 每次获取的等待时间 */
+  msgIdleTime?: number
+  /** 成功后执行的代码 */
+  onSucceed?: Function
+  /** 失败后执行的代码 */
+  onFailure?: Function
+}
+declare class MsgQueueService extends BaseService {
+  constructor (services: any)
+  initialize (opts: any): Promise<void>
+  /**
+   * 添加消息
+   * @param msgKey 消息key
+   * @param msgs 消息内容
+   * @param opts 参数
+   */
+  addMessages (msgKey: string, msgs: object[], opts?: AddMsgOptions): Promise<void>
+  /**
+   * 消费消息
+   * @param msgKey 消息key
+   * @param group 消费组
+   * @param method 处理 data 的 method 方法或执行函数
+   * @param opts 参数
+   */
+  consumeMessages (msgKey: string, group: string, method: string|Function, opts?: ConsumeMsgOptions): Promise<void>
+}
+
 declare interface AppOptions {
   listenManually: boolean
   routes: (app: any) => void
@@ -105,7 +148,7 @@ declare interface AppOptions {
   defaultErrorStatus?: number
 }
 declare class AppService extends BaseService {
-  constructor (services : any);
+  constructor (services: any)
   port?: number
   server?: http.Server
   portSSL?: number
@@ -120,7 +163,7 @@ declare interface ErrorCodeOptions {
   localePath?: string
 }
 declare class ErrorCodeService extends BaseService {
-  constructor (services : any);
+  constructor (services: any)
   initialize (opts: ErrorCodeOptions): Promise<void>
   getErrorInfo (code: number, locale: string): Promise<{ code: number, category: string, message: string }>
 }
@@ -150,7 +193,7 @@ declare class JSONRpcService extends BaseService {
   public host: string
   public port: number
 
-  constructor (services : any);
+  constructor (services: any)
   initialize (opts: JSONRPCServerOptions): Promise<void>
   /**
    * 设置可接受rpc方法
@@ -181,7 +224,7 @@ declare interface RequestOptions extends JSONRPCOptions {
   acceptNamespace?: string
 }
 declare class JSONRpcClientService extends BaseService {
-  constructor (services : any);
+  constructor (services: any)
   initialize (opts: JSONRPCOptions): Promise<void>
   /**
    * 设置可接受rpc方法
@@ -215,7 +258,7 @@ declare interface InternalRPCOptions {
   port?: number
 }
 declare class InternalRpcService extends BaseService {
-  constructor (services : any);
+  constructor (services: any)
   initialize(opts: InternalRPCOptions): Promise<void>
   /**
    * 注册本服务的方法
@@ -242,7 +285,7 @@ declare interface ScriptOptions {
   onExit: Function;
 }
 declare class ScriptService extends BaseService {
-  constructor (services : any);
+  constructor (services: any)
   initialize (opts: ScriptOptions): Promise<void>
   /**
    * 运行脚本
@@ -257,7 +300,7 @@ declare interface AsyncPlanOptions {
  * 该services依赖JobQueueService
  */
 declare class AsyncPlanService extends BaseService {
-  constructor (services : any);
+  constructor (services: any)
   initialize (opts: AsyncPlanOptions): Promise<void>;
 }
 
@@ -313,7 +356,7 @@ declare interface Pm2Options {
  * 该服务将使用pm2进行进程管理
  */
 declare class Pm2Service extends BaseService {
-  constructor (services : any);
+  constructor (services: any)
   public processPrefix: string;
 
   initialize (opts: Pm2Options): Promise<void>;
@@ -330,7 +373,7 @@ declare class Pm2Service extends BaseService {
 }
 
 declare class ProcessService extends BaseService {
-  constructor (services : any);
+  constructor (services: any)
   initialize (opts: undefined): Promise<void>;
   /**
    * 创建或获取一个常驻的子进程
@@ -362,7 +405,7 @@ declare interface SocketIOOptions {
   };
 }
 declare class SocketIOService extends BaseService {
-  constructor (services : any);
+  constructor (services: any)
   initialize (opts: SocketIOOptions): Promise<void>
   /**
    * 调用内部跨进程方法
@@ -392,7 +435,7 @@ declare interface SocketIOWorkerOptions {
   namespaces: string[]
 }
 declare class SocketIOWorkerService extends BaseService {
-  constructor (services : any);
+  constructor (services: any)
   initialize (opts: SocketIOWorkerOptions): Promise<void>
 }
 
@@ -401,7 +444,7 @@ declare interface ConfigOptions {
 }
 declare type GeneralConfig = { id: string, [key: string]: any }
 declare class ConfigService extends BaseService {
-  constructor (services : any);
+  constructor (services: any)
   initialize (opts: ConfigOptions): Promise<void>
   // 便捷查询方法
   /**
@@ -483,7 +526,7 @@ declare type ServiceData = {
 }
 type TTLMethodType = string | (() => boolean) | Promise<(() => boolean)>
 declare class ConsulService extends BaseService {
-  constructor (services : any);
+  constructor (services: any);
   initialize (opts: ConsulOptions): Promise<void>
   /**
    * 注册服务到consul
