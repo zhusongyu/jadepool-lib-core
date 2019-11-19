@@ -1,6 +1,6 @@
 # Jadepool NodeJS lib-core
 
-[![License](https://img.shields.io/npm/l/@jadepool/lib-core.svg)](LICENSE.md)
+[![License](https://img.shields.io/npm/l/@jadepool/lib-core.svg)](LICENSE)
 
 瑶池支持库，含基础主要services等
 

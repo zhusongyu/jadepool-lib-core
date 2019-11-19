@@ -8,6 +8,9 @@ const { assert, RedisMessager } = require('../utils')
 
 const logger = require('@jadepool/logger').of('Service', 'Message Queue')
 
+/** ID库 */
+const idPool = _.range(10)
+
 class Service extends BaseService {
   /**
    * @param {Object} services 服务列表
@@ -22,7 +25,7 @@ class Service extends BaseService {
    */
   async initialize (opts) {
     /**
-     * @type {Map<string, {messager: RedisMessager, groups: Set<string>, idPool: number[]}>}
+     * @type {Map<string, {messager: RedisMessager, groups: Set<string>}>}
      */
     this.instances = new Map()
   }
@@ -37,7 +40,7 @@ class Service extends BaseService {
     this.instances.forEach((ins, key) => {
       ins.groups.forEach(groupName => {
         if (!_.isString(groupName)) return
-        ins.idPool.forEach(consumerId => {
+        idPool.forEach(consumerId => {
           const consumerName = consumerId + '@' + jadepool.env.processKey
           multi = ins.messager.removeConsumerMulti(consumerName, groupName, multi)
         })
@@ -62,8 +65,7 @@ class Service extends BaseService {
     if (!ins) {
       ins = {
         messager: new RedisMessager(streamKey, defaultGroup),
-        groups: new Set(),
-        idPool: _.range(10)
+        groups: new Set()
       }
       if (defaultGroup) ins.groups.add(defaultGroup)
       this.instances.set(streamKey, ins)
@@ -107,14 +109,22 @@ class Service extends BaseService {
     const uniqueIds = _.map(msgs, msg => msg.uid).filter(msg => !!msg)
     let pickedMsgs = msgs
     if (uniqueIds.length > 0) {
-      const pick = []
       const isMemberAsync = promisify(redisMgr.redisClient.SISMEMBER).bind(redisMgr.redisClient)
+      const notBeMember = new Set()
       for (let i = 0; i < uniqueIds.length; i++) {
         const id = uniqueIds[i]
         if (await isMemberAsync(setKey, String(id))) continue
-        pick.push(id)
+        notBeMember.add(id)
       }
-      pickedMsgs = _.filter(msgs, msg => _.includes(pick, msg.uid))
+      const picked = new Set()
+      pickedMsgs = _.filter(msgs, msg => {
+        let ok = false
+        if (notBeMember.has(msg.uid) && !picked.has(msg.uid)) {
+          ok = true
+          picked.add(msg.uid)
+        }
+        return ok
+      })
     }
     logger.tag(msgKey).log(`checking.amt=${msgs.length},picked.amt=${pickedMsgs.length}`)
 
@@ -163,7 +173,7 @@ class Service extends BaseService {
     const ins = this.getMQInstance(streamKey, group)
     const redisMgr = ins.messager
     // 提取一个 consumerId
-    const pickId = ins.idPool.length > 0 ? ins.idPool.shift() : ins.idPool.length
+    const pickId = idPool.length > 0 ? idPool.shift() : idPool.length
     const consumerName = pickId + '@' + jadepool.env.processKey
     // 消费 messages
     const msgs = await redisMgr.consumeMessages(consumerName, {
@@ -230,7 +240,7 @@ class Service extends BaseService {
       }))
     } // end if
     // 归还 consumerId
-    ins.idPool.push(pickId)
+    idPool.push(pickId)
   }
 }
 

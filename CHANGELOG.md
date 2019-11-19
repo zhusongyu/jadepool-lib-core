@@ -1,5 +1,15 @@
 # Change Logs
 
+## v0.18.3
+
+Feature:
+
+* add msg queue service test cases
+
+Fixes:
+
+* fix msg consumer id bug
+
 ## v0.18.2
 
 Fixes:
