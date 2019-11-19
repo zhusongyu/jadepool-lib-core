@@ -171,67 +171,66 @@ class Service extends BaseService {
       count: opts.msgCount || 1,
       idleTime: opts.msgIdleTime
     })
-    // 归还 consumerId
-    ins.idPool.push(pickId)
     // 检测是否存在 msgs
-    if (!msgs || msgs.length === 0) return
-
-    const getAsync = promisify(redisMgr.redisClient.GET).bind(redisMgr.redisClient)
-
-    // 批量处理msgs
-    await Promise.all(msgs.map(async msg => {
-      const uid = msg.data && msg.data.uid
-      // sameInterval 存在时，必须上一个循环已过期，方可进行下一轮
-      if (typeof opts.sameInterval === 'number') {
-        const val = await getAsync(cacheKeyPrefix + uid)
-        if (val) return
-      }
-      let result
-      let noNeedRemoveUid = false
-      try {
-        if (opts.attachGroup && typeof uid === 'string' && uid.indexOf(`@${group}`) === -1) {
-          // 仅处理uid中带有相同group的
-          result = true
-          noNeedRemoveUid = true
-        } else if (typeof method === 'function') {
-          result = await method(msg.data)
-        } else if (typeof method === 'string') {
-          result = await jadepool.invokeMethod(method, opts.namespace, msg.data)
+    if (msgs && msgs.length > 0) {
+      // 批量处理msgs
+      await Promise.all(msgs.map(async msg => {
+        const uid = msg.data && msg.data.uid
+        // sameInterval 存在时，必须上一个循环已过期，方可进行下一轮
+        if (typeof opts.sameInterval === 'number') {
+          const getAsync = promisify(redisMgr.redisClient.GET).bind(redisMgr.redisClient)
+          const val = await getAsync(cacheKeyPrefix + uid)
+          if (val) return
         }
-      } catch (err) {
-        result = false
-      }
-      // 设置完成
-      if (result) {
-        const multi = redisMgr.ackMessagesMulti([ msg.id ], group)
-        if (typeof uid === 'string' && !noNeedRemoveUid) {
-          // 若存在uid，则移出unique队列
-          multi.srem(setKey, uid)
-          // 若存在sameInterval，则设置一个sameid标记位
-          if (typeof opts.sameInterval === 'number') {
-            multi.set(cacheKeyPrefix + uid, 'HOLDING', 'EX', opts.sameInterval)
-            logger.tag(uid, 'Next').log(`interval=${opts.sameInterval}s`)
+        let result
+        let noNeedRemoveUid = false
+        try {
+          if (opts.attachGroup && typeof uid === 'string' && uid.indexOf(`@${group}`) === -1) {
+            // 仅处理uid中带有相同group的
+            result = true
+            noNeedRemoveUid = true
+          } else if (typeof method === 'function') {
+            result = await method(msg.data)
+          } else if (typeof method === 'string') {
+            result = await jadepool.invokeMethod(method, opts.namespace, msg.data)
           }
-        } // end uid exists
-        await new Promise(resolve => multi.exec(resolve))
-        // hook
-        if (typeof opts.onSucceed === 'function') {
+        } catch (err) {
+          result = false
+        }
+        // 设置完成
+        if (result) {
+          const multi = redisMgr.ackMessagesMulti([ msg.id ], group)
+          if (typeof uid === 'string' && !noNeedRemoveUid) {
+            // 若存在uid，则移出unique队列
+            multi.srem(setKey, uid)
+            // 若存在sameInterval，则设置一个sameid标记位
+            if (typeof opts.sameInterval === 'number') {
+              multi.set(cacheKeyPrefix + uid, 'HOLDING', 'EX', opts.sameInterval)
+              logger.tag(uid, 'Next').log(`interval=${opts.sameInterval}s`)
+            }
+          } // end uid exists
+          await new Promise(resolve => multi.exec(resolve))
+          // hook
+          if (typeof opts.onSucceed === 'function') {
+            try {
+              await opts.onSucceed(result, msg.data)
+            } catch (err) {
+              logger.warn(err.message)
+            }
+          } // 完成onSuccess
+        } else if (typeof opts.onFailure === 'function') {
+          // 失败回调
           try {
-            await opts.onSucceed(result, msg.data)
+            await opts.onFailure(msg.data)
           } catch (err) {
             logger.warn(err.message)
           }
-        } // 完成onSuccess
-      } else if (typeof opts.onFailure === 'function') {
-        // 失败回调
-        try {
-          await opts.onFailure(msg.data)
-        } catch (err) {
-          logger.warn(err.message)
-        }
-      } // end if
-      return result
-    }))
+        } // end if
+        return result
+      }))
+    } // end if
+    // 归还 consumerId
+    ins.idPool.push(pickId)
   }
 }
 

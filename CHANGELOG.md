@@ -1,10 +1,16 @@
 # Change Logs
 
+## v0.18.2
+
+Fixes:
+
+* fix msg consumer id reused bug
+
 ## v0.18.1
 
 Fixes:
 
-- fix msgqueue.service ACK without group
+* fix msgqueue.service ACK without group
 
 ## v0.18.0
 
