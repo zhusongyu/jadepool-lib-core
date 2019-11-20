@@ -1,5 +1,11 @@
 # Change Logs
 
+## v0.18.4
+
+Fixes:
+
+* fix msg consumer id bug finally.
+
 ## v0.18.3
 
 Feature:

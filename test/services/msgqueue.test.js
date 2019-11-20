@@ -2,7 +2,7 @@ const _ = require('lodash')
 const assert = require('chai').assert
 const { promisify } = require('util')
 // set log level to avoid jadepool log
-// process.env.LOGGER_LEVEL = 'WARN'
+process.env.LOGGER_LEVEL = 'WARN'
 const { jadepool, consts, utils } = require('../../')
 
 const config = {
