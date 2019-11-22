@@ -10,6 +10,7 @@ const logger = require('@jadepool/logger').of('Service', 'Message Queue')
 
 /** ID库 */
 const idPool = _.range(10)
+let idNonce = idPool.length
 
 class Service extends BaseService {
   /**
@@ -173,7 +174,7 @@ class Service extends BaseService {
     const ins = this.getMQInstance(streamKey, group)
     const redisMgr = ins.messager
     // 提取一个 consumerId
-    const pickId = idPool.length > 0 ? idPool.shift() : idPool.length
+    const pickId = idPool.length > 0 ? idPool.shift() : idNonce++
     const consumerName = pickId + '@' + jadepool.env.processKey
     // 消费 messages
     const msgs = await redisMgr.consumeMessages(consumerName, {
@@ -240,7 +241,9 @@ class Service extends BaseService {
       }))
     } // end if
     // 归还 consumerId
-    idPool.push(pickId)
+    if (idPool.indexOf(pickId) === -1) {
+      idPool.push(pickId)
+    }
   }
 }
 
