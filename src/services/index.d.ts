@@ -1,6 +1,6 @@
 import { Queue, Job, QueueOptions, JobOptions, AdvancedSettings } from 'bull';
 import BaseService = require('./core');
-import Task = require('./task');
+import Task = require('../support/task');
 import ProcessRunner from '../utils/processRunner';
 import RedisMessager, { AddMessageOptions, ConsumeMessageOptions } from '../utils/redisMessager';
 import {

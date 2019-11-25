@@ -1,5 +1,4 @@
-import { Job } from 'bull'
-import { JobQueueService } from './index'
+import { Job } from 'bull';
 
 declare interface TaskOptions {
 	/** 优先级，越小越高 */
