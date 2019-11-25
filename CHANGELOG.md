@@ -1,5 +1,12 @@
 # Change Logs
 
+## v0.18.5
+
+Improvement:
+
+* add new test cases for jobqueue/consul/rpc services
+* using registerMethod in async plan service
+
 ## v0.18.4
 
 Fixes:

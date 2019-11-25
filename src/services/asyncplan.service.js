@@ -22,8 +22,7 @@ class Service extends BaseService {
    */
   async initialize (opts) {
     const jobSrv = await jadepool.ensureService(consts.SERVICE_NAMES.JOB_QUEUE)
-    const queue = await jobSrv.fetchQueue(JOB_NAME) // 默认队列
-    queue.process('every', async (job) => {
+    await jobSrv.registerMethod(JOB_NAME, async (job) => {
       try {
         await this._everyHandler()
       } catch (err) {
@@ -34,12 +33,7 @@ class Service extends BaseService {
 
     const tickDelta = opts.processEvery || 30
     // 运行循环任务
-    this._job = await queue.add('every', {}, {
-      priority: 1,
-      repeat: {
-        every: tickDelta * 1000
-      }
-    })
+    this._job = await jobSrv.every(tickDelta, JOB_NAME, {}, { priority: 1 })
     logger.tag('Initialized').log(`interval=${tickDelta},jobId=${this._job.id}`)
   }
 
@@ -48,12 +42,7 @@ class Service extends BaseService {
    * @param signal 退出信号
    */
   async onDestroy (signal) {
-    if (this._job) {
-      this._job.remove()
-    }
-    const jobSrv = jadepool.getService(consts.SERVICE_NAMES.JOB_QUEUE)
-    const queue = await jobSrv.fetchQueue(JOB_NAME) // 默认队列
-    await queue.clean(0)
+    this._job = null
   }
 
   /**

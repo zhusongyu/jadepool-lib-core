@@ -170,7 +170,7 @@ class Service extends BaseService {
    * 注册任务函数
    */
   async registerMethod (name, method, taskOpts) {
-    if (taskOpts === undefined) {
+    if (taskOpts === undefined && typeof method === 'object') {
       taskOpts = method
       method = name
     }
