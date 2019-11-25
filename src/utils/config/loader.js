@@ -4,7 +4,7 @@ const path = require('path')
 const semver = require('semver')
 const jp = require('../../jadepool')
 const consts = require('../../consts')
-const NBError = require('../../NBError')
+const NBError = require('../../support/NBError')
 
 const logger = require('@jadepool/logger').of('Configure')
 

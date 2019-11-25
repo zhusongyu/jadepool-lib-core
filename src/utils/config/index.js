@@ -1,4 +1,4 @@
-const NBError = require('../../NBError')
+const NBError = require('../../support/NBError')
 const consts = require('../../consts')
 const jp = require('../../jadepool')
 

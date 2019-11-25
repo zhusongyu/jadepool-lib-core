@@ -5,7 +5,7 @@ const Logger = require('@jadepool/logger')
 const ServiceLib = require('./serviceLib')
 const Context = require('./context')
 const Module = require('./module')
-const NBError = require('../NBError')
+const NBError = require('../support/NBError')
 
 const logger = Logger.of('JadePool')
 

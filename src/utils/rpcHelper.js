@@ -3,7 +3,7 @@ const EventEmitter = require('events').EventEmitter
 
 const cryptoUtils = require('./crypto')
 const consts = require('../consts')
-const NBError = require('../NBError')
+const NBError = require('../support/NBError')
 const jadepool = require('../jadepool')
 
 const logger = require('@jadepool/logger').of('RPC', 'Helper')

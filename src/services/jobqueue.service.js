@@ -6,7 +6,7 @@ const Queue = require('bull')
 const BaseService = require('./core')
 const consts = require('../consts')
 const jadepool = require('../jadepool')
-const NBError = require('../NBError')
+const NBError = require('../support/NBError')
 const Task = require('../support/task')
 const redis = require('../utils/redis')
 
