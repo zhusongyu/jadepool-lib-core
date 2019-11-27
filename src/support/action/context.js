@@ -22,7 +22,8 @@ class ActionContext {
    * @param {string} name
    */
   get (name, defaultValue) {
-    return this.blackboard.get(name) || defaultValue
+    const value = this.blackboard.get(name)
+    return typeof value !== 'undefined' ? value : defaultValue
   }
   /**
    * set value in blockboard

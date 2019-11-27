@@ -32,11 +32,11 @@ class ActionSeries extends Action {
         break
       }
       isOk = isOk && (await action.exec())
-      logger.debug(`action.run=${i + 1}/${len}`)
+      logger.tag(this.ctx.logKey).debug(`action.run=${i + 1}/${len}`)
       if (!isOk) break
     } // end for
     if (len !== i) {
-      logger.log(`action.break=${i}/${len}`)
+      logger.tag(this.ctx.logKey).log(`action.break=${i}/${len}`)
     }
     return isOk
   }
