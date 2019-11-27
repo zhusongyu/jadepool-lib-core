@@ -396,7 +396,7 @@ class ClientConfigService extends RedisConfigService {
     }
     const isConnected = await rpcHelper.isRPCConnected(this._currentHost)
     if (!isConnected) {
-      await rpcHelper.joinRPCServer(this._currentHost)
+      await rpcHelper.joinRPCServer(this._currentHost, { authWithTimestamp: true })
     }
   }
   async _request (method, params, throwWithoutConnection = false) {
