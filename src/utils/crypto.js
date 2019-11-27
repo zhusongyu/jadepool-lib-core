@@ -5,7 +5,7 @@ const crypto = require('crypto')
 const { ecc } = require('@jadepool/crypto')
 const jp = require('../jadepool')
 const consts = require('../consts')
-const NBError = require('../NBError')
+const NBError = require('../support/NBError')
 const configLoader = require('./config/loader')
 
 /**

@@ -10,7 +10,7 @@ const bodyParser = require('body-parser')
 const BaseService = require('./core')
 const jp = require('../jadepool')
 const consts = require('../consts')
-const NBError = require('../NBError')
+const NBError = require('../support/NBError')
 const logger = require('@jadepool/logger').of('Service', 'Express')
 
 class AppService extends BaseService {

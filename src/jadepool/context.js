@@ -1,8 +1,8 @@
 const _ = require('lodash')
 const consts = require('../consts')
-const NBError = require('../NBError')
 const buildEnvObject = require('./env')
 const ServiceLib = require('./serviceLib')
+const NBError = require('../support/NBError')
 const Logger = require('@jadepool/logger')
 
 const logger = Logger.of('JadePool')

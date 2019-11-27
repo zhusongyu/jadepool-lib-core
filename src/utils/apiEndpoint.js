@@ -1,6 +1,6 @@
 const _ = require('lodash')
 const axios = require('axios').default
-const NBError = require('../NBError')
+const NBError = require('../support/NBError')
 const { loadChainCfg } = require('./config')
 
 const logger = require('@jadepool/logger').of('Ledger', 'Utils')

@@ -1,7 +1,7 @@
 const axios = require('axios').default
 const BaseService = require('./core')
 const consts = require('../consts')
-const NBError = require('../NBError')
+const NBError = require('../support/NBError')
 const jadepool = require('../jadepool')
 
 const logger = require('@jadepool/logger').of('Service', 'Consul Discovery')

@@ -2,7 +2,7 @@ const io = require('socket.io-client')
 const BaseService = require('./core')
 const jp = require('../jadepool')
 const consts = require('../consts')
-const NBError = require('../NBError')
+const NBError = require('../support/NBError')
 const cryptoUtils = require('../utils/crypto')
 
 const logger = require('@jadepool/logger').of('Service', 'Worker(SocketIO)')

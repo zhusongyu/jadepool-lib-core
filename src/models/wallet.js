@@ -3,7 +3,7 @@ const semver = require('semver')
 const mongoose = require('mongoose')
 const jp = require('../jadepool')
 const consts = require('../consts')
-const NBError = require('../NBError')
+const NBError = require('../support/NBError')
 
 const { fetchConnection, AutoIncrement } = require('../utils/db')
 const Schema = mongoose.Schema

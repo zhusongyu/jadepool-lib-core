@@ -1,4 +1,4 @@
-const NBError = require('../NBError')
+const NBError = require('../support/NBError')
 
 module.exports = function (value, message) {
   if (value === undefined || value === null || value === false) {

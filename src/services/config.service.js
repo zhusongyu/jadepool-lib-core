@@ -2,8 +2,8 @@ const _ = require('lodash')
 const { promisify } = require('util')
 const BaseService = require('./core')
 const consts = require('../consts')
-const NBError = require('../NBError')
 const jadepool = require('../jadepool')
+const NBError = require('../support/NBError')
 const redis = require('../utils/redis')
 const rpcHelper = require('../utils/rpcHelper')
 const configLoader = require('../utils/config/loader')
@@ -396,7 +396,7 @@ class ClientConfigService extends RedisConfigService {
     }
     const isConnected = await rpcHelper.isRPCConnected(this._currentHost)
     if (!isConnected) {
-      await rpcHelper.joinRPCServer(this._currentHost)
+      await rpcHelper.joinRPCServer(this._currentHost, { authWithTimestamp: true })
     }
   }
   async _request (method, params, throwWithoutConnection = false) {

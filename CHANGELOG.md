@@ -1,5 +1,17 @@
 # Change Logs
 
+## v0.19.0
+
+Feature:
+
+* add support folder
+  * move some class to support folder
+  * add Action class for executable action
+
+Improvement:
+
+* config.serivce client mode join rpc service with authWithTimestamp = true
+
 ## v0.18.5
 
 Improvement:

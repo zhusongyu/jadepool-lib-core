@@ -2,7 +2,7 @@ const _ = require('lodash')
 const pm2 = require('pm2')
 const { promisify } = require('util')
 const BaseService = require('./core')
-const NBError = require('../NBError')
+const NBError = require('../support/NBError')
 const consts = require('../consts')
 const jadepool = require('../jadepool')
 
