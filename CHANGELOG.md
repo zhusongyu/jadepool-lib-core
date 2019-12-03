@@ -12,6 +12,10 @@ Improvement:
 
 * config.serivce client mode join rpc service with authWithTimestamp = true
 
+Fixes:
+
+* Fix ConfigDat requires server field (no required now)
+
 ## v0.18.5
 
 Improvement:
