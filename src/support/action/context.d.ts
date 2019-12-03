@@ -5,11 +5,11 @@ declare class ActionContext {
   /**
    * get value in blockboard
    */
-  get<T>(name: string, defaultValue: T): Promise<T>;
+  get<T>(name: string, defaultValue: T): T;
   /**
    * set value in blockboard
    */
-  set<T>(name: string, value: T): Promise<void>
+  set<T>(name: string, value: T): void;
   /**
    * 该上下文log
    */  

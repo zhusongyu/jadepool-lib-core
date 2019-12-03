@@ -295,14 +295,10 @@ const deleteConfig = async (cfgPath, key = '', parent = null) => {
   if (!cfgDat) {
     throw new NBError(10001, `failed to find config data`)
   }
-  if (cfgDat.server !== jp.env.server) {
-    throw new NBError(10001, `server not match`)
-  }
   if (!cfgDat.customized) {
     throw new NBError(10001, `Only customized config can be deleted`)
   }
   // 查询并删除ConfigDat
-  query.server = jp.env.server
   query.customized = true
   await ConfigDat.deleteOne(query).exec()
   return true

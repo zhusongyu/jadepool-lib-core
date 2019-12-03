@@ -7,9 +7,7 @@ const Schema = mongoose.Schema
 const schema = new Schema({
   server: { // 服务端名称
     type: String,
-    enum: _.values(consts.SERVER_TYPES),
-    default: consts.SERVER_TYPES.MAIN,
-    required: true
+    default: consts.SERVER_TYPES.MAIN
   },
   version: { // 当前配置适用的版本，新版配置将根据该字段来刷新origin字段
     type: String,
@@ -51,7 +49,6 @@ const schema = new Schema({
 })
 
 schema.index({ path: 1, key: 1, parent: 1 }, { name: 'uniqueIndex', unique: true })
-schema.index({ path: 1, key: 1, parent: 1, server: 1 }, { name: 'findWithServer' })
 
 const ConfigDat = fetchConnection(consts.DB_KEYS.CONFIG).model(consts.MODEL_NAMES.CONFIG_DATA, schema)
 
