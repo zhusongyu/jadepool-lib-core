@@ -15,6 +15,7 @@ Improvement:
 Fixes:
 
 * Fix ConfigDat requires server field (no required now)
+* Fix jadepool.initModules missing root folder alias
 
 ## v0.18.5
 

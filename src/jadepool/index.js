@@ -109,11 +109,12 @@ class JadePool {
     if (!fs.existsSync(moduleFolder)) return
     const nameInFolders = fs.readdirSync(moduleFolder).filter(fileName => fileName.indexOf('.') === -1)
     if (nameInFolders.length === 0) return
+    const configLoader = require('../utils/config/loader')
+    configLoader.setAliasConfigPath(moduleScope, '', moduleFolder)
     // 设置配置的全局别名
     _.forEach(nameInFolders, name => {
       const modulePath = path.resolve(moduleFolder, name)
       // setup config part
-      const configLoader = require('../utils/config/loader')
       const cfgPath = path.resolve(modulePath, 'config')
       let withConfig = fs.existsSync(cfgPath)
       if (withConfig) {
