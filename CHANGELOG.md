@@ -11,6 +11,7 @@ Feature:
 Improvement:
 
 * config.serivce client mode join rpc service with authWithTimestamp = true
+* useUnifiedTopology then remove mongoOptions.reconnectTries/reconnectInterval/autoReconnect parameter
 
 Fixes:
 

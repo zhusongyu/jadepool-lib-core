@@ -1,6 +1,6 @@
 {
   "name": "@jadepool/lib-core",
-  "version": "0.19.0-alpha.3",
+  "version": "0.19.0-alpha.4",
   "description": "Jadepool core library",
   "main": "index.js",
   "files": [
@@ -31,7 +31,7 @@
   "dependencies": {
     "@jadepool/crypto": "^0.1.2",
     "@jadepool/logger": "^2.0.2",
-    "@types/mongoose": "^5.3.8",
+    "@types/mongoose": "^5.5.32",
     "@types/redis": "^2.8.13",
     "axios": "~0.19.0",
     "body-parser": "^1.19.0",
@@ -41,8 +41,8 @@
     "hdkey": "^1.1.0",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
-    "mongoose": "^5.7.1",
-    "mongoose-sequence": "^5.2.1",
+    "mongoose": "^5.7.14",
+    "mongoose-sequence": "^5.2.2",
     "morgan": "^1.9.1",
     "pm2": "^3.5.1",
     "redis": "^2.8.0",

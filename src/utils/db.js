@@ -12,9 +12,6 @@ mongoose.Promise = global.Promise
 
 // 通用Mongo连接配置
 const mongoOptions = {
-  reconnectTries: Number.MAX_VALUE,
-  reconnectInterval: 10 * 1000,
-  autoReconnect: true,
   useNewUrlParser: true,
   useUnifiedTopology: true
 }
