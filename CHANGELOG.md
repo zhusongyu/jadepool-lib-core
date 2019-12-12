@@ -17,6 +17,7 @@ Fixes:
 
 * Fix ConfigDat requires server field (no required now)
 * Fix jadepool.initModules missing root folder alias
+* Fix jobqueue.service.registerMethod parameter error
 
 ## v0.18.5
 

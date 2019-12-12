@@ -171,10 +171,15 @@ class Service extends BaseService {
    * 注册任务函数
    */
   async registerMethod (name, method, taskOpts) {
-    if (taskOpts === undefined && typeof method === 'object') {
-      taskOpts = method
-      method = name
-    }
+    if (taskOpts === undefined) {
+      if (typeof method === 'object') {
+        taskOpts = method
+        method = name
+      } else if (method === undefined) {
+        taskOpts = {}
+        method = name
+      }
+    } // end if
     if (typeof name !== 'string') {
       throw new NBError(10001, `invalid name`)
     }
