@@ -2,6 +2,11 @@ import Context from './context';
 import Action from './action';
 
 declare class ActionMapValue extends Action {
+  /**
+   * item 即为 fieldToCheck 对应的对象
+   * @param ctx 上下文
+   * @param fieldToCheck 检测的目标 key
+   */
   constructor (ctx: Context, fieldToCheck: string);
   item: any
   /**

@@ -2,7 +2,11 @@ import Context from './context';
 import Action from './action';
 
 declare class ActionRunJob extends Action {
-  constructor (ctx: Context, fieldToCheck: string);
+  /**
+   * 根据 blackboard 中的参数启动 job
+   * @param ctx 上下文
+   */
+  constructor (ctx: Context);
   /**
    * job name
    */
