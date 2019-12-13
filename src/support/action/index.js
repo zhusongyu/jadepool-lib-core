@@ -1,5 +1,9 @@
 module.exports = {
   Context: require('./context'),
   Action: require('./action'),
-  ActionSeries: require('./actionSeries')
+  SeriesAction: require('./actionSeries'),
+  LoopAction: require('./actionLoop'),
+  MapValueAction: require('./actionMapValue'),
+  SelectorAction: require('./actionSelector'),
+  RunJobAction: require('./actionRunJob')
 }

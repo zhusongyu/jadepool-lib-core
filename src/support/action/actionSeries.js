@@ -1,6 +1,6 @@
 const Action = require('./action')
 
-const logger = require('@jadepool/logger').of('Action Series')
+const logger = require('@jadepool/logger').of('Action', 'Series')
 
 class ActionSeries extends Action {
   /**
