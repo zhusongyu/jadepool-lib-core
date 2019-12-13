@@ -7,6 +7,7 @@ Feature:
 * add support folder
   * move some class to support folder
   * add Action class for executable action
+  * add some general Action classes
 
 Improvement:
 
