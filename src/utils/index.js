@@ -2,6 +2,7 @@ module.exports = {
   assert: require('./assert'),
   string: require('./string'),
   waitForSeconds: require('./waitForSeconds'),
+  validateParameter: require('./validateParameter'),
   config: require('./config/index'),
   configLoader: require('./config/loader'),
   configSetuper: require('./config/setuper'),

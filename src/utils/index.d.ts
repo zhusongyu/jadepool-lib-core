@@ -21,7 +21,14 @@ export function assert<T>(value: T, message?: string): T;
  * 等待数秒
  * @param [sec=1]
  */
-export function waitForSeconds(sec?: number1): Promise<void>
+export function waitForSeconds(sec?: number): Promise<void>
+
+/**
+ * 使用 parameter 库，检测 data 是否符合 rule 指定的规则
+ * @param data 
+ * @param rule 
+ */
+export function validateParameter(data: any, rule: object): boolean
 
 /**
  * string工具库
