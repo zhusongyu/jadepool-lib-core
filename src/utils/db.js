@@ -13,7 +13,9 @@ mongoose.Promise = global.Promise
 // 通用Mongo连接配置
 const mongoOptions = {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
+  useFindAndModify: false,
+  useCreateIndex: true
 }
 const connMap = new Map()
 
