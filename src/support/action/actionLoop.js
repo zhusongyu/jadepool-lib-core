@@ -38,29 +38,31 @@ class Action extends BaseAction {
    * - this._fieldToCheck + '_break' 当前运行时检测到break，则停止运行
    */
   async doExec () {
+    const logKey = this.ctx.logKey + `$${this._fieldToCheck}`
     const itemKey = this._fieldToCheck + '_item'
     const loopBreak = this._fieldToCheck + '_break'
     let isOk = true
     const startAt = Date.now()
     // 按顺序执行action
     let i
-    const len = this.items.len
+    const len = this.items.length
+    logger.tag(logKey).debug(`for.action=${this._actionToRun.name},times=${len}`)
     for (i = 0; i < len; i++) {
       while (this._actionToRun.isExecuting) {
         await utils.waitForSeconds(0.1)
       }
       this.ctx.set(itemKey, this.items[i])
       await this._actionToRun.exec()
-      logger.tag(this.ctx.logKey).debug(`action.run=${i + 1}/${len}`)
+      logger.tag(logKey).debug(`action.run=${i + 1}/${len}`)
       if (this.ctx.get(loopBreak)) {
         isOk = false
-        logger.tag(this.ctx.logKey).debug(`action.break!`)
+        logger.tag(logKey).debug(`action.break!`)
         break
       }
     } // end for
     const usedTime = Date.now() - startAt
     if (usedTime >= 10000) {
-      logger.tag(this.ctx.logKey).warn(`cost=${usedTime / 1000}s`)
+      logger.tag(logKey).warn(`cost=${usedTime / 1000}s`)
     }
     return isOk
   }
