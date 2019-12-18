@@ -42,7 +42,6 @@ class Action {
     }
     // failed to exec before but ok
     if (isOk) {
-      logger.diff('Exec:' + this.name).tag(this.ctx.logKey).debug('Start')
       // --- do ---
       try {
         isOk = await this.doExec()
@@ -60,7 +59,7 @@ class Action {
       } catch (err) {
         logger.tag('After-exec').error(err)
       }
-      logger.diff('Exec:' + this.name).tag(this.ctx.logKey).debug('End')
+      logger.diff('Exec:' + this.name).tag(this.ctx.logKey).debug(`isOk=${isOk}`)
     }
     this['_isExecuting'] = false
     return isOk
