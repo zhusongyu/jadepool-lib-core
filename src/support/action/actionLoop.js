@@ -43,6 +43,7 @@ class Action extends BaseAction {
     const loopBreak = this._fieldToCheck + '_break'
     let isOk = true
     const startAt = Date.now()
+    const logProgress = [20, 40, 60, 80]
     // 按顺序执行action
     let i
     const len = this.items.length
@@ -53,7 +54,13 @@ class Action extends BaseAction {
       }
       this.ctx.set(itemKey, this.items[i])
       await this._actionToRun.exec()
-      logger.tag(logKey).debug(`action.run=${i + 1}/${len}`)
+      // progress log
+      const progress = Math.floor((i + 1) / len * 100)
+      const progressLv = Math.floor(progress / 20)
+      if (logProgress[progressLv] || progress >= 95) {
+        logProgress[progressLv] = null
+        logger.tag(logKey).debug(`action.run=${i + 1}/${len},progress=${progress}%`)
+      }
       if (this.ctx.get(loopBreak)) {
         isOk = false
         logger.tag(logKey).debug(`action.break!`)

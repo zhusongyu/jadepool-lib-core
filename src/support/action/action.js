@@ -59,7 +59,6 @@ class Action {
       } catch (err) {
         logger.tag('After-exec').error(err)
       }
-      logger.diff('Exec:' + this.name).tag(this.ctx.logKey).debug(`isOk=${isOk}`)
     }
     this['_isExecuting'] = false
     return isOk
