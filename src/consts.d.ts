@@ -132,8 +132,6 @@ export declare const MODEL_NAMES: {
   ASYNC_PLAN: 'asyncplan',
   SCAN_TASK: 'scantask',
   TASK_CONFIG: 'admintaskcfg',
-  ETH_BATCH: 'ethbatch',
-  ETH_FAUCET: 'ethfaucet',
   AUDIT: 'audit',
   AUDIT_BALANCE: 'auditbalance',
   RULER: 'ruler',
@@ -141,11 +139,21 @@ export declare const MODEL_NAMES: {
   ISSUE_RECORD: 'issuerecord',
   NOTIFICATION: 'notification',
   WARNING: 'warning',
+  ACTIVITY: 'activity',
   // Admin Models
   ACCOUNT: 'account',
   ROLE: 'role',
   ACTION: 'action',
   NOTI_EMAIL: 'notiemail'
+}
+export declare const ACTIVITY_CATEGORY: {
+  API_REQUEST: 'api_request',
+  SYSTEM: 'system',
+  BLOCKCHAIN: 'blockchain'
+}
+export declare const ACTIVITY_MODULES: {
+  GENERAL: 'general',
+  WALLET: 'wallet'
 }
 export declare const PRIVKEY_SOURCES: {
   /** 来源seed软件 */
