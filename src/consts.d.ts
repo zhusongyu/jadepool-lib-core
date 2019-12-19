@@ -147,13 +147,9 @@ export declare const MODEL_NAMES: {
   NOTI_EMAIL: 'notiemail'
 }
 export declare const ACTIVITY_CATEGORY: {
-  API_REQUEST: 'api_request',
-  SYSTEM: 'system',
-  BLOCKCHAIN: 'blockchain'
-}
-export declare const ACTIVITY_MODULES: {
-  GENERAL: 'general',
-  WALLET: 'wallet'
+  API_INVOKE: 'api_invoke',
+  USER: 'user',
+  SYSTEM: 'system'
 }
 export declare const PRIVKEY_SOURCES: {
   /** 来源seed软件 */

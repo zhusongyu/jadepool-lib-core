@@ -2,7 +2,14 @@ import mongoose from 'mongoose'
 
 export as namespace models
 
-declare interface ConfigDatDocument extends mongoose.Document  {
+/**
+ * Model for activity
+ */
+declare interface ActivityDocument extends mongoose.Document {
+  // TODO
+}
+
+declare interface ConfigDatDocument extends mongoose.Document {
   /** 服务端名称 */
   server: string
   /** 当前配置适用的版本，新版配置将根据该字段来刷新origin字段 */

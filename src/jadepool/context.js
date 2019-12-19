@@ -81,6 +81,7 @@ class JadePoolContext {
       [consts.MODEL_NAMES.ASYNC_PLAN]: require('../models/asyncPlan'),
       [consts.MODEL_NAMES.CONFIG_DATA]: require('../models/configdat'),
       [consts.MODEL_NAMES.TASK_CONFIG]: require('../models/taskConfig'),
+      [consts.MODEL_NAMES.ACTIVITY]: require('../models/activity'),
       [consts.MODEL_NAMES.WARNING]: require('../models/warning')
     }
     // 钱包

@@ -139,6 +139,7 @@ declare class JadepoolSingleton {
 	getModel(name: 'asyncplan'): mongoose.Model<models.AsyncPlanDocument>;
 	getModel(name: 'wallet'): mongoose.Model<models.WalletDocument>;
 	getModel(name: 'configdat'): mongoose.Model<models.ConfigDatDocument>;
+	getModel(name: 'activity'): mongoose.Model<models.ActivityDocument>;
 	getModel(name: string): mongoose.Model<mongoose.Document>;
 
 	/**

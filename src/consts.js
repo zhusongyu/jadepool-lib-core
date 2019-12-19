@@ -130,13 +130,9 @@ consts.MODEL_NAMES = {
   NOTI_EMAIL: 'notiemail'
 }
 consts.ACTIVITY_CATEGORY = {
-  API_REQUEST: 'api_request',
-  SYSTEM: 'system',
-  BLOCKCHAIN: 'blockchain'
-}
-consts.ACTIVITY_MODULES = {
-  GENERAL: 'general',
-  WALLET: 'wallet'
+  API_INVOKE: 'api_invoke',
+  USER: 'user',
+  SYSTEM: 'system'
 }
 consts.MODEL_LIST_CONFIG = [
   consts.MODEL_NAMES.CONFIG_DATA,
