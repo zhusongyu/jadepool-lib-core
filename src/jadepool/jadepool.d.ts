@@ -75,7 +75,8 @@ declare class JadepoolSingleton {
 	 * @param opts 
 	 */
 	registerService(name: 'express', opts: services.AppOptions): Promise<services.AppService>;
-	registerService(name: 'error.code', opts: services.ErrorCodeOptions): Promise<services.ErrorCodeService>;
+	registerService(name: 'activity', opts: services.LocaleCodeOptions): Promise<services.ActivityService>;
+	registerService(name: 'error.code', opts: services.LocaleCodeOptions): Promise<services.ErrorCodeService>;
 	registerService(name: 'script', opts: services.ScriptOptions): Promise<services.ScriptService>;
 	registerService(name: 'jsonrpc.server', opts: services.JSONRPCServerOptions): Promise<services.JSONRpcService>;
 	registerService(name: 'jsonrpc.client', opts: services.JSONRPCOptions): Promise<services.JSONRpcClientService>;
@@ -96,7 +97,8 @@ declare class JadepoolSingleton {
 	 * @param opts 
 	 */
 	ensureService(name: 'express', opts: services.AppOptions): Promise<services.AppService>;
-	ensureService(name: 'error.code', opts: services.ErrorCodeOptions): Promise<services.ErrorCodeService>;
+	ensureService(name: 'activity', opts: services.LocaleCodeOptions): Promise<services.ActivityService>;
+	ensureService(name: 'error.code', opts: services.LocaleCodeOptions): Promise<services.ErrorCodeService>;
 	ensureService(name: 'script', opts: services.ScriptOptions): Promise<services.ScriptService>;
 	ensureService(name: 'jsonrpc.server', opts: services.JSONRPCServerOptions): Promise<services.JSONRpcService>;
 	ensureService(name: 'jsonrpc.client', opts: services.JSONRPCOptions): Promise<services.JSONRpcClientService>;
@@ -116,6 +118,7 @@ declare class JadepoolSingleton {
 	 * @param name
 	 */
 	getService(name: 'express'): services.AppService;
+	getService(name: 'activity'): services.ActivityService;
 	getService(name: 'error.code'): services.ErrorCodeService;
 	getService(name: 'script'): services.ScriptService;
 	getService(name: 'jsonrpc.server'): services.JSONRpcService;

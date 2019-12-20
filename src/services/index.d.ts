@@ -158,14 +158,20 @@ declare class AppService extends BaseService {
   listen (): Promise<void>
 }
 
-declare interface ErrorCodeOptions {
+declare interface LocaleCodeOptions {
   isHost: Boolean
   localePath?: string
 }
 declare class ErrorCodeService extends BaseService {
   constructor (services: any)
-  initialize (opts: ErrorCodeOptions): Promise<void>
+  initialize (opts: LocaleCodeOptions): Promise<void>
   getErrorInfo (code: number, locale: string): Promise<{ code: number, category: string, message: string }>
+}
+
+declare class ActivityService extends BaseService {
+  constructor (services: any)
+  initialize (opts: LocaleCodeOptions): Promise<void>
+  // TODO
 }
 
 declare interface RPCMethodDefine {

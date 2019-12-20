@@ -25,6 +25,8 @@ consts.PROCESS = {
   }
 }
 consts.SERVICE_NAMES = {
+  /** 活动记录 */
+  ACTIVITY: 'activity',
   /** 默认错误信息 */
   ERROR_CODE: 'error.code',
   /** 后台任务服务 */

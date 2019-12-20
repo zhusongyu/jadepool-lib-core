@@ -145,6 +145,9 @@ class JadePoolContext {
         case consts.SERVICE_NAMES.APP:
           ClassToRegister = require('../services/app.service')
           break
+        case consts.SERVICE_NAMES.ACTIVITY:
+          ClassToRegister = require('../services/activity.service')
+          break
         case consts.SERVICE_NAMES.ERROR_CODE:
           ClassToRegister = require('../services/error.code.service')
           break
