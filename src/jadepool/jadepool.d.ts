@@ -79,7 +79,7 @@ declare class JadepoolSingleton {
 	 * @param opts 
 	 */
 	registerService(name: 'express', opts: services.AppOptions): Promise<services.AppService>;
-	registerService(name: 'activity', opts: services.LocaleCodeOptions): Promise<services.ActivityService>;
+	registerService(name: 'activity', opts: any): Promise<services.ActivityService>;
 	registerService(name: 'error.code', opts: services.LocaleCodeOptions): Promise<services.ErrorCodeService>;
 	registerService(name: 'script', opts: services.ScriptOptions): Promise<services.ScriptService>;
 	registerService(name: 'jsonrpc.server', opts: services.JSONRPCServerOptions): Promise<services.JSONRpcService>;
@@ -101,7 +101,7 @@ declare class JadepoolSingleton {
 	 * @param opts 
 	 */
 	ensureService(name: 'express', opts: services.AppOptions): Promise<services.AppService>;
-	ensureService(name: 'activity', opts: services.LocaleCodeOptions): Promise<services.ActivityService>;
+	ensureService(name: 'activity', opts: any): Promise<services.ActivityService>;
 	ensureService(name: 'error.code', opts: services.LocaleCodeOptions): Promise<services.ErrorCodeService>;
 	ensureService(name: 'script', opts: services.ScriptOptions): Promise<services.ScriptService>;
 	ensureService(name: 'jsonrpc.server', opts: services.JSONRPCServerOptions): Promise<services.JSONRpcService>;

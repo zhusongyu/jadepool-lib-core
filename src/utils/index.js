@@ -11,6 +11,7 @@ module.exports = {
   db: require('./db'),
   redis: require('./redis'),
   rpcHelper: require('./rpcHelper'),
+  csvLocales: require('./csvLocales'),
   RedisMessager: require('./redisMessager'),
   ProcessRunner: require('./processRunner')
 }

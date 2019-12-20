@@ -170,7 +170,7 @@ declare class ErrorCodeService extends BaseService {
 
 declare class ActivityService extends BaseService {
   constructor (services: any)
-  initialize (opts: LocaleCodeOptions): Promise<void>
+  initialize (opts: any): Promise<void>
   // TODO
 }
 

@@ -64,6 +64,28 @@ export declare namespace rpcHelper {
   function requestRPC(rpcUrl: string, method: string, params: any, opts?: RequestOptions): Promise<any>
 }
 
+interface LocaleData {
+  code: string | number
+  category: string
+  message: string
+}
+export declare namespace csvLocales {
+  /**
+   * 将 csv 配置加载到 redis
+   * @param localeFilePath csv 配置的路径
+   * @param redisKeyPrefix 可选，默认 JADEPOOL_SERVICE:LOCALES:
+   */
+  function loadCsvLocales(localeFilePath: string, redisKeyPrefix?: string): Promise<void>;
+  /**
+   * 获取本地化数据对象
+   * @param code
+   * @param params 输出参数
+   * @param locale 语言码
+   * @param redisKeyPrefix 可选，默认 JADEPOOL_SERVICE:LOCALES:
+   */
+  function getLocaleData (code: string | number, params?: string[], locale?: string, redisKeyPrefix?: string): Promise<LocaleData>;
+}
+
 export {
   config,
   configLoader,

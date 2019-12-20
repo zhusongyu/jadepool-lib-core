@@ -1,9 +1,7 @@
-const path = require('path')
-const { promisify } = require('util')
 const jp = require('../jadepool')
 const BaseService = require('./core')
 const consts = require('../consts')
-const redis = require('../utils/redis')
+const csvLocales = require('../utils/csvLocales')
 
 const logger = require('@jadepool/logger').of('Service', 'Activity')
 
@@ -20,8 +18,6 @@ class ActiviyService extends BaseService {
   /**
    * 初始化
    * @param {Object} opts
-   * @param {Boolean} [opts.isHost=false]
-   * @param {String} [opts.localePath=undefined]
    */
   async initialize (opts) {
 
@@ -32,10 +28,7 @@ class ActiviyService extends BaseService {
    * @param {string} localePath
    */
   async loadActivityLocales (localePath) {
-    // 确保redis配置正常, 若无法获取该方法将throw error
-    this.redisClient = redis.fetchClient('LocaleCodeRedisClient')
-    await new Promise(resolve => this.redisClient.once('state_change', resolve))
-
+    // TODO
   }
 }
 
