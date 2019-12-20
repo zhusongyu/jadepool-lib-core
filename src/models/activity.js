@@ -20,18 +20,18 @@ const schema = new mongoose.Schema({
     type: String,
     required: true
   },
-  // 记录 activity 日志编号
-  log_code: {
-    type: Number,
-    required: true,
-    default: -1,
-    min: -1
-  },
-  log_params: [ String ], // 记录 activity 的日志参数
   // 操作者，可以是某个 User 或者某个 AppId 或者某个授权用户 或者某个事件
   operator: { type: String, required: true },
   // 操作者操作时的 role name
-  operator_role: { type: String, required: true },
+  operator_role: {
+    type: String,
+    required: function () {
+      return this.category === consts.ACTIVITY_CATEGORY.API_INVOKE ||
+        this.category === consts.ACTIVITY_CATEGORY.USER
+    }
+  },
+  // 记录 activity 日志
+  log_params: [ String ], // 记录 activity 的日志参数
   // 操作行为记录
   input: {
     method: String, // 操作方法名

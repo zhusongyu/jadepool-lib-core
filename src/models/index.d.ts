@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import * as consts from '../consts'
 
 export as namespace models
 
@@ -6,7 +7,38 @@ export as namespace models
  * Model for activity
  */
 declare interface ActivityDocument extends mongoose.Document {
-  // TODO
+  /** 分类 */
+  category: 'api_invoke' | 'user' | 'system'
+  /** 模块 */
+  module: string
+  /** 活动名称 */
+  name: string
+  /** 操作者 */
+  operator: string
+  /** 操作者角色 */
+  operator_role?: string
+  /** 日志参数 */
+  log_params: string[]
+  /** 输入信息 */
+  input: {
+    /** 操作方法名 */
+    method: string
+    /** 操作参数 JSON记录 */
+    params: string
+    /** 操作对象（可选，需为数据库对象名） */
+    model: string
+    /** 请求发起的时间戳 */
+    record_at: number
+  },
+  /** 输出信息 */
+  output: {
+    /** 操作结果，JSON记录 */
+    result: string
+    /** 操作错误，JSON记录 */
+    error: string
+    /** 返回结果的时间戳 */
+    record_at: number
+  }
 }
 
 declare interface ConfigDatDocument extends mongoose.Document {
