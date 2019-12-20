@@ -9,11 +9,13 @@ Feature:
   * add Action class for executable action
   * add some general Action classes
 * add `utils.validateParameter` method
+* add new Model `Activity`
 
 Improvement:
 
 * config.serivce client mode join rpc service with authWithTimestamp = true
 * useUnifiedTopology then remove mongoOptions.reconnectTries/reconnectInterval/autoReconnect parameter
+* pm2.service support list non-self controlled process
 
 Fixes:
 
