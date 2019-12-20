@@ -369,7 +369,11 @@ declare class Pm2Service extends BaseService {
   /** 列出指定信息 */
   info (nameOrId: string): Promise<ProcessDesc[]>;
   /** 列出信息 */
-  list (): Promise<ProcessDesc[]>;
+  /**
+   * 列出进程信息
+   * @param excludeSelfControlled 是否反选
+   */
+  list (excludeSelfControlled?: boolean): Promise<ProcessDesc[]>;
 }
 
 declare class ProcessService extends BaseService {

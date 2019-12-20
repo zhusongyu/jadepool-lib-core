@@ -194,10 +194,14 @@ class Service extends BaseService {
   /**
    * 返回全部相关进程
    */
-  async list () {
+  async list (excludeSelfControlled = false) {
     // 由PM2管理进程
     const list = await pm2List()
-    return list.filter(o => o && o.name.startsWith(this.processPrefix)).map(t => this._parseProcessStatus(t))
+    return list.filter(o => {
+      if (!o) return false
+      const isSelfControlled = o.name.startsWith(this.processPrefix)
+      return isSelfControlled ^ excludeSelfControlled
+    }).map(t => this._parseProcessStatus(t))
   }
 
   /**
