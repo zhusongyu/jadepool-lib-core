@@ -24,9 +24,8 @@ class ErrorCodeService extends BaseService {
    * @param {String} [opts.localePath=undefined]
    */
   async initialize (opts) {
-    const redisClientKey = 'ErrorCodeRedisClient'
     // 确保redis配置正常, 若无法获取该方法将throw error
-    this.redisClient = redis.fetchClient(redisClientKey)
+    this.redisClient = redis.fetchClient('LocaleCodeRedisClient')
     await new Promise(resolve => this.redisClient.once('state_change', resolve))
 
     // 从文件中读取error code, 并写入redis

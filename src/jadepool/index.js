@@ -32,6 +32,8 @@ class JadePool {
   get config () { return this.ctx.config }
   get configSrv () { return this.ctx.configSrv }
   get consulSrv () { return this.ctx.consulSrv }
+  get activitySrv () { return this.ctx.activitySrv }
+
   /**
    * Context
    */

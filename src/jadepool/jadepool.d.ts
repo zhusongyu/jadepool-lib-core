@@ -65,6 +65,10 @@ declare class JadepoolSingleton {
 	 */
 	public consulSrv: services.ConsulService
 	/**
+	 * 活动服务
+	 */
+	public activitySrv: services.ActivityService
+	/**
 	 * 自动注册的服务
 	 */
 	public autoRegisterServices: string[]

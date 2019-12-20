@@ -17,8 +17,6 @@ declare interface ActivityDocument extends mongoose.Document {
   operator: string
   /** 操作者角色 */
   operator_role?: string
-  /** 日志参数 */
-  log_params: string[]
   /** 输入信息 */
   input: {
     /** 操作方法名 */
@@ -38,6 +36,14 @@ declare interface ActivityDocument extends mongoose.Document {
     error: string
     /** 返回结果的时间戳 */
     record_at: number
+  },
+  /** 日志参数 */
+  log_params: string[]
+  /** [Virtual]log数据 */
+  log_info: {
+    category: string,
+    code: string,
+    params: string[]
   }
 }
 

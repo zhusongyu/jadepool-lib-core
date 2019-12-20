@@ -53,6 +53,18 @@ const schema = new mongoose.Schema({
   timestamps: { createdAt: 'create_at', updatedAt: 'update_at' }
 })
 
+// Virtual
+/**
+ * 获取记录 log 需要的信息
+ */
+schema.virtual('log_info').get(function () {
+  return {
+    category: this.category,
+    code: `${this.module}.${this.name}`,
+    params: _.clone(this.log_params)
+  }
+})
+
 // 快速查询
 schema.index({ category: 1, module: 1, name: 1 }, { name: 'groupByName' })
 // Admin查询

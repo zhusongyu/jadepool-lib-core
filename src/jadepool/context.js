@@ -36,7 +36,9 @@ class JadePoolContext {
   get autoRegisterServices () {
     return [
       // 默认加载consul服务, 使用defaultConsul配置
-      consts.SERVICE_NAMES.CONSUL
+      consts.SERVICE_NAMES.CONSUL,
+      // 默认加载 activity 根据配置选择决定如何记录
+      consts.SERVICE_NAMES.ACTIVITY
     ]
   }
 
@@ -71,6 +73,11 @@ class JadePoolContext {
    * 服务发现
    */
   get consulSrv () { return this.getService(consts.SERVICE_NAMES.CONSUL) }
+
+  /**
+   * 活动记录服务
+   */
+  get activitySrv () { return this.getService(consts.SERVICE_NAMES.ACTIVITY) }
 
   /**
    * @param {string} name
