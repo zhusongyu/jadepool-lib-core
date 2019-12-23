@@ -21,7 +21,7 @@ class ActiviyService extends BaseService {
    * @param {Object} opts
    */
   async initialize (opts) {
-    // TODO initialize
+    // NOTHINIG
   }
 
   /**
@@ -138,8 +138,8 @@ class ActiviyService extends BaseService {
     const update = {}
     // 设置 record at
     update.$set = { 'output.record_at': Date.now() }
-    if (output.result) update.$set['output.result'] = output.result
-    if (output.error) update.$set['output.error'] = output.error
+    if (output.result) update.$set['output.result'] = _.isString(output.result) ? output.result : JSON.stringify(output.result)
+    if (output.error) update.$set['output.error'] = _.isString(output.error) ? output.error : JSON.stringify(output.error)
     // log
     if (logParams.length > 0) {
       update.$push = { log_params: { $each: logParams.filter(one => _.isString(one)) } }
@@ -147,7 +147,7 @@ class ActiviyService extends BaseService {
     return Activities.findByIdAndUpdate(activityId, update, { new: true }).exec()
   }
   // -------- USER Activity --------
-  async addUserActivity (moduleName, name, operator, operatorRole, logParams = [], extra = {}) {
+  async createUserActivity (moduleName, name, operator, operatorRole, logParams = [], extra = {}) {
     return this._createActivity(
       consts.ACTIVITY_CATEGORY.USER,
       moduleName,
@@ -156,13 +156,13 @@ class ActiviyService extends BaseService {
       operatorRole,
       {
         input: extra.input || {},
-        output: extra.output.result ? extra.output : { result: true },
+        output: !_.isEmpty(extra.output) ? extra.output : { result: true },
         logParams
       }
     )
   }
   // -------- SYSTEM Activity --------
-  async addSystemActivity (moduleName, name, operator, logParams = []) {
+  async createSystemActivity (moduleName, name, operator, logParams = []) {
     return this._createActivity(
       consts.ACTIVITY_CATEGORY.SYSTEM,
       moduleName,

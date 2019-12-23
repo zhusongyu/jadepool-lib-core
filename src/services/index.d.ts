@@ -158,6 +158,8 @@ declare class AppService extends BaseService {
   listen (): Promise<void>
 }
 
+declare type LocaleData = { code: number | string, category: string, message: string }
+
 declare interface LocaleCodeOptions {
   isHost: Boolean
   localePath?: string
@@ -165,13 +167,78 @@ declare interface LocaleCodeOptions {
 declare class ErrorCodeService extends BaseService {
   constructor (services: any)
   initialize (opts: LocaleCodeOptions): Promise<void>
-  getErrorInfo (code: number, locale: string): Promise<{ code: number, category: string, message: string }>
+  getErrorInfo (code: number, locale: string): Promise<LocaleData>
 }
 
+declare type ActivityDataInput = {
+  /** 操作对象（可选，需为数据库对象名） */
+  model?: string
+  /** 操作方法名 */
+  method?: string
+  /** 操作参数 JSON记录 */
+  params?: string | any[]
+}
+declare type ActivityDataOutput = {
+  /** 正确结果 */
+  result?: string | object
+  /** 错误结果 */
+  error?: string | object | Error
+}
 declare class ActivityService extends BaseService {
   constructor (services: any)
   initialize (opts: any): Promise<void>
-  // TODO
+  /**
+   * 加载并安装本地化文档
+   * @param localePath
+   */
+  setupActivityLocales (localePath: string): Promise<void>
+  /**
+   * 获取活动日志
+   * @param activity 日志实例
+   * @param locale 本地化码
+   */
+  getActivityLog(activity: string | models.ActivityDocument, locale?: string): Promise<LocaleData>
+  /**
+   * 添加日志参数
+   * @param activityId 活动实例 ID
+   * @param params 参数列表
+   */
+  pushActivityLogParams(activityId: string, params: string | string[]): Promise<models.ActivityDocument>
+  /**
+   * 添加 api 日志
+   * @param moduleName 模块名，global/wallet
+   * @param name 活动名称
+   * @param operator 操作者
+   * @param operatorRole 操作角色
+   * @param input 
+   * @param logParams 
+   */
+  startApiLog (moduleName: string, name: string, operator: string, operatorRole: string, input?: ActivityDataInput, logParams?: string[]): Promise<models.ActivityDocument>
+  /**
+   * 结束 api 日志
+   * @param activityId 活动实例 ID
+   * @param output
+   * @param params 参数列表
+   */
+  finishApiLog (activityId: string, output?: ActivityDataOutput, logParams?: string[]): Promise<models.ActivityDocument>
+  /**
+   * 添加用户活动日志
+   * @param moduleName 模块名，global/wallet
+   * @param name 活动名称
+   * @param operator 操作者
+   * @param operatorRole 操作角色
+   * @param logParams 
+   * @param extra 
+   */
+  createUserActivity (moduleName: string, name: string, operator: string, operatorRole: string, logParams?: string[], extra?: { input: ActivityDataInput, output: ActivityDataOutput }): Promise<models.ActivityDocument>
+  /**
+   * 添加系统活动日志
+   * @param moduleName 模块名，global/wallet
+   * @param name 活动名称
+   * @param operator 操作者
+   * @param logParams 
+   */
+  createSystemActivity(moduleName: string, name: string, operator: string, logParams?: string[]): Promise<models.ActivityDocument>
 }
 
 declare interface RPCMethodDefine {
