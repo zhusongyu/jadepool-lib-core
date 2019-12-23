@@ -95,7 +95,7 @@ const csvLocales = {
   async getLocaleData (code, params = [], locale = consts.SUPPORT_LOCALES.ZH_CN, redisKeyPrefix = DEFAULT_LOCALE_REDIS_KEY) {
     const redisClient = await getRedisClient()
 
-    const ret = { code, message: '' }
+    const ret = { code, message: '', category: '' }
     const hmgetAsync = promisify(redisClient.HMGET).bind(redisClient)
     const key = redisKeyPrefix + code
 
