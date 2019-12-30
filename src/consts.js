@@ -125,6 +125,7 @@ consts.MODEL_NAMES = {
   NOTIFICATION: 'notification',
   WARNING: 'warning',
   ACTIVITY: 'activity',
+  OPERATOR_ROLE: 'operatorrole',
   // Admin Models
   ACCOUNT: 'account',
   ROLE: 'role',
@@ -145,6 +146,8 @@ consts.MODEL_LIST_CONFIG = [
   consts.MODEL_NAMES.WALLET_TOKEN
 ]
 consts.MODEL_LIST_DEFAULT = [
+  consts.MODEL_NAMES.ACTIVITY,
+  consts.MODEL_NAMES.OPERATOR_ROLE,
   consts.MODEL_NAMES.ADDRESS,
   consts.MODEL_NAMES.ORDER,
   consts.MODEL_NAMES.ITEM,

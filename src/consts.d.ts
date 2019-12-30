@@ -142,6 +142,7 @@ export declare const MODEL_NAMES: {
   NOTIFICATION: 'notification',
   WARNING: 'warning',
   ACTIVITY: 'activity',
+  OPERATOR_ROLE: 'operatorrole',
   // Admin Models
   ACCOUNT: 'account',
   ROLE: 'role',
