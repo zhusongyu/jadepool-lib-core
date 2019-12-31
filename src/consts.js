@@ -125,6 +125,8 @@ consts.MODEL_NAMES = {
   NOTIFICATION: 'notification',
   WARNING: 'warning',
   ACTIVITY: 'activity',
+  OPERATOR: 'operator',
+  OPERATOR_GROUP: 'operatorgroup',
   OPERATOR_ROLE: 'operatorrole',
   // Admin Models
   ACCOUNT: 'account',
@@ -147,6 +149,8 @@ consts.MODEL_LIST_CONFIG = [
 ]
 consts.MODEL_LIST_DEFAULT = [
   consts.MODEL_NAMES.ACTIVITY,
+  consts.MODEL_NAMES.OPERATOR,
+  consts.MODEL_NAMES.OPERATOR_GROUP,
   consts.MODEL_NAMES.OPERATOR_ROLE,
   consts.MODEL_NAMES.ADDRESS,
   consts.MODEL_NAMES.ORDER,
