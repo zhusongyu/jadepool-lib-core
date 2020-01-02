@@ -35,7 +35,7 @@ class SocketService extends BaseService {
     // Step 1. 初始化io实例
     const ioOpts = { serveClient: false, cookie: false }
     // 检查app.service是否存在
-    const appService = jp.getService(consts.SERVICE_NAMES.APP)
+    const appService = jp.getService(consts.SERVICE_NAMES.APP) || jp.getService(consts.SERVICE_NAMES.KOA)
     let listenPort
     let ssl = false
     if (appService) {
