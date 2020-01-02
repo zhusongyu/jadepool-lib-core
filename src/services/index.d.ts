@@ -9,6 +9,7 @@ import {
 } from "../models";
 import * as http from 'http';
 import * as https from 'https';
+import * as Router from '@koa/router';
 
 export as namespace services
 
@@ -141,7 +142,13 @@ declare class MsgQueueService extends BaseService {
   consumeMessages (msgKey: string, group: string, method: string|Function, opts?: ConsumeMsgOptions): Promise<void>
 }
 
+declare type ServerCfg = {
+  host: string,
+  http: { port: number, disabled: boolean },
+  https: { port: number, disabled: boolean, key: string, cert: string, ca: string }
+}
 declare interface HttpOptions {
+  server?: ServerCfg
   listenManually: boolean
   /** @default 500 */
   defaultErrorStatus?: number
@@ -164,7 +171,7 @@ declare class ExpressService extends HttpService {
   initialize (opts: ExpressOptions): Promise<void>
 }
 declare interface KoaOptions extends HttpOptions {
-  // TODO
+  router: Router
 }
 declare class KoaService extends HttpService {
   initialize (opts: KoaOptions): Promise<void>
