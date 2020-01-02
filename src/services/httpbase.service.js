@@ -96,7 +96,7 @@ class ExpressService extends BaseService {
    * @param {Error} err
    */
   async onErrorHandling (err, locale = consts.SUPPORT_LOCALES.ZH_CN) {
-    let status = err.status || this._errorStatus
+    let status = err.statusCode || err.status || this._errorStatus
     let errCode
     let errResult
     if (err.response) {
