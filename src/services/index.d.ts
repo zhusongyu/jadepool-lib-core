@@ -141,21 +141,33 @@ declare class MsgQueueService extends BaseService {
   consumeMessages (msgKey: string, group: string, method: string|Function, opts?: ConsumeMsgOptions): Promise<void>
 }
 
-declare interface AppOptions {
+declare interface HttpOptions {
   listenManually: boolean
-  routes: (app: any) => void
   /** @default 500 */
   defaultErrorStatus?: number
 }
-declare class AppService extends BaseService {
+declare class HttpService extends BaseService {
   constructor (services: any)
+  initialize (opts: HttpOptions): Promise<void>
+  listen (): Promise<void>
+
   port?: number
   server?: http.Server
   portSSL?: number
   serverSSL?: https.Server
+}
 
-  initialize (opts: AppOptions): Promise<void>
-  listen (): Promise<void>
+declare interface ExpressOptions extends HttpOptions {
+  routes: (app: any) => void
+}
+declare class ExpressService extends HttpService {
+  initialize (opts: ExpressOptions): Promise<void>
+}
+declare interface KoaOptions extends HttpOptions {
+  // TODO
+}
+declare class KoaService extends HttpService {
+  initialize (opts: KoaOptions): Promise<void>
 }
 
 declare type LocaleData = { code: number | string, category: string, message: string }

@@ -78,7 +78,8 @@ declare class JadepoolSingleton {
 	 * @param serviceClass 
 	 * @param opts 
 	 */
-	registerService(name: 'express', opts: services.AppOptions): Promise<services.AppService>;
+	registerService(name: 'express', opts: services.ExpressOptions): Promise<services.ExpressService>;
+	registerService(name: 'koa', opts: services.KoaOptions): Promise<services.KoaService>;
 	registerService(name: 'activity', opts: any): Promise<services.ActivityService>;
 	registerService(name: 'error.code', opts: services.LocaleCodeOptions): Promise<services.ErrorCodeService>;
 	registerService(name: 'script', opts: services.ScriptOptions): Promise<services.ScriptService>;
@@ -100,7 +101,8 @@ declare class JadepoolSingleton {
 	 * @param serviceClass 
 	 * @param opts 
 	 */
-	ensureService(name: 'express', opts: services.AppOptions): Promise<services.AppService>;
+	ensureService(name: 'express', opts: services.ExpressOptions): Promise<services.ExpressService>;
+	ensureService(name: 'koa', opts: services.KoaOptions): Promise<services.KoaService>;
 	ensureService(name: 'activity', opts: any): Promise<services.ActivityService>;
 	ensureService(name: 'error.code', opts: services.LocaleCodeOptions): Promise<services.ErrorCodeService>;
 	ensureService(name: 'script', opts: services.ScriptOptions): Promise<services.ScriptService>;
@@ -121,7 +123,8 @@ declare class JadepoolSingleton {
 	 * 获取服务
 	 * @param name
 	 */
-	getService(name: 'express'): services.AppService;
+	getService(name: 'express'): services.ExpressService;
+	getService(name: 'koa'): services.KoaService;
 	getService(name: 'activity'): services.ActivityService;
 	getService(name: 'error.code'): services.ErrorCodeService;
 	getService(name: 'script'): services.ScriptService;

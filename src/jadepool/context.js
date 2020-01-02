@@ -150,7 +150,10 @@ class JadePoolContext {
     if (typeof serviceClass === 'string') {
       switch (serviceClass) {
         case consts.SERVICE_NAMES.APP:
-          ClassToRegister = require('../services/app.service')
+          ClassToRegister = require('../services/express.service')
+          break
+        case consts.SERVICE_NAMES.KOA:
+          ClassToRegister = require('../services/koa.service')
           break
         case consts.SERVICE_NAMES.ACTIVITY:
           ClassToRegister = require('../services/activity.service')

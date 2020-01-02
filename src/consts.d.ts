@@ -44,6 +44,8 @@ export declare const SERVICE_NAMES: {
   MSG_QUEUE: 'msg.queue',
   /** HTTP/HTTPS服务 */
   APP: 'express',
+  /** Koa HTTP服务 */
+  KOA: 'koa',
   /** 根据生命周期运行脚本的服务 */
   SCRIPT: 'script',
   /** 进程服务 */

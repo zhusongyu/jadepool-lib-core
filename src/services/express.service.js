@@ -13,7 +13,7 @@ const consts = require('../consts')
 const NBError = require('../support/NBError')
 const logger = require('@jadepool/logger').of('Service', 'Express')
 
-class AppService extends BaseService {
+class ExpressService extends BaseService {
   /**
    * @param {Object} services 服务列表
    */
@@ -173,4 +173,4 @@ class AppService extends BaseService {
   }
 }
 
-module.exports = AppService
+module.exports = ExpressService
