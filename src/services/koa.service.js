@@ -4,6 +4,7 @@ const Router = require('@koa/router')
 const cors = require('@koa/cors')
 const logger = require('koa-logger')
 const bodyParser = require('koa-bodyparser')
+const responseTime = require('koa-response-time')
 
 const HttpBaseService = require('./httpbase.service')
 
@@ -25,6 +26,7 @@ class KoaService extends HttpBaseService {
   async createApp (opts) {
     const app = new Koa()
     app.use(logger())
+    app.use(responseTime())
     app.use(bodyParser({
       enableTypes: ['json'],
       onerror: function (err, ctx) { ctx.throw(err, 422) }
