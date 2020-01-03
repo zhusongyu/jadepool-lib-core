@@ -153,16 +153,27 @@ class JadePool {
     let impl
     if (this.env.isProd) {
       // 生产环境仅读取dist
-      impl = distExists && requireFoolWebpack(filePathDist)
+      try {
+        impl = distExists && requireFoolWebpack(filePathDist)
+      } catch (err) {
+        logger.tag('Failed to load dist/index.bundle.js').warn(err && err.message)
+      }
     } else {
       // 非生产优先src/index.js
       try {
         impl = srcExists && requireFoolWebpack(filePathSrc)
       } catch (err) {
         logger.tag('Failed to load src/index.js').debug(err && err.message)
-        impl = distExists && requireFoolWebpack(filePathDist)
       }
-    }
+      // 生产 dist/index.bundle.js
+      if (!impl) {
+        try {
+          impl = distExists && requireFoolWebpack(filePathDist)
+        } catch (err) {
+          logger.tag('Failed to load dist/index.bundle.js').warn(err && err.message)
+        }
+      }
+    } // end if
 
     let cfg = {}
     if (mod.withConfig) {
