@@ -1,7 +1,7 @@
 const Parameter = require('parameter')
 const NBError = require('../support/NBError')
 
-const parameter = new Parameter()
+const parameter = new Parameter({ convert: true })
 
 module.exports = (data, rule) => {
   if (!rule) return true
