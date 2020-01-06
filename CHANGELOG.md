@@ -4,12 +4,13 @@
 
 Feature:
 
+* add new Model `Activity`
+* add Koa Service as a new HTTP service
 * add `support` folder
   * move some class to support folder
   * add Action class for executable action
   * add some general Action classes
 * add `utils.validateParameter` method
-* add new Model `Activity`
 
 Improvement:
 

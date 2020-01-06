@@ -1,6 +1,5 @@
 const _ = require('lodash')
 const Koa = require('koa')
-const Router = require('@koa/router')
 const cors = require('@koa/cors')
 const logger = require('koa-logger')
 const bodyParser = require('koa-bodyparser')
@@ -55,7 +54,9 @@ class KoaService extends HttpBaseService {
     })
 
     // apply router
-    if (opts.router instanceof Router) {
+    if (opts.router &&
+      typeof opts.router.routes === 'function' &&
+      typeof opts.router.allowedMethods === 'function') {
       app.use(opts.router.routes())
         .use(opts.router.allowedMethods({ throw: true }))
     }
