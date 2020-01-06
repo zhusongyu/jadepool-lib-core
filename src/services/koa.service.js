@@ -1,13 +1,16 @@
 const _ = require('lodash')
 const Koa = require('koa')
 const cors = require('@koa/cors')
-const logger = require('koa-logger')
+const koalogger = require('koa-logger')
 const bodyParser = require('koa-bodyparser')
 const responseTime = require('koa-response-time')
+
+const logger = require('@jadepool/logger').of('Service', 'Koa')
 
 const HttpBaseService = require('./httpbase.service')
 
 const consts = require('../consts')
+const jadepool = require('../jadepool')
 
 class KoaService extends HttpBaseService {
   /**
@@ -24,7 +27,7 @@ class KoaService extends HttpBaseService {
    */
   async createApp (opts) {
     const app = new Koa()
-    app.use(logger())
+    app.use(koalogger())
     app.use(responseTime())
     app.use(bodyParser({
       enableTypes: ['json'],
@@ -42,6 +45,11 @@ class KoaService extends HttpBaseService {
       try {
         await next()
       } catch (err) {
+        if (!jadepool.env.isProd) {
+          logger.tag(`Failed-to-invoke`).error(`path=${ctx.path}`, err)
+        } else {
+          logger.tag(`Failed-to-invoke`).info(`path=${ctx.path}`, err && err.message)
+        }
         let locale = ctx.acceptsLanguages('zh-cn', 'en', 'ja')
         if (!locale) {
           const reqData = Object.assign({}, ctx.query, ctx.request.body)
