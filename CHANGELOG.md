@@ -4,6 +4,7 @@
 
 Feature:
 
+* add bin/entry file
 * add new Model `Activity`
 * add Koa Service as a new HTTP service
 * add `support` folder

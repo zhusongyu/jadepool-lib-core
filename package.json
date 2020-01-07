@@ -4,6 +4,7 @@
   "description": "Jadepool core library",
   "main": "index.js",
   "files": [
+    "bin",
     "src",
     "index.d.ts",
     "index.js"
