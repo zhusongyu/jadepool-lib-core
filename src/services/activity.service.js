@@ -58,7 +58,7 @@ class ActiviyService extends BaseService {
    * @param {string} [operatorRole=undefined]
    * @param {object} [data={}]
    * @param {object} [data.input=undefined]
-   * @param {string} data.input.model
+   * @param {string} [data.input.permission=undefined]
    * @param {string} data.input.method
    * @param {string} data.input.params
    * @param {object} [data.output=undefined]
@@ -77,7 +77,7 @@ class ActiviyService extends BaseService {
     })
     // 设置入参
     if (!_.isEmpty(data.input)) {
-      if (data.input.model) activity.set('input.model', String(data.input.model))
+      if (data.input.permission) activity.set('input.permission', String(data.input.permission))
       if (data.input.method) activity.set('input.method', String(data.input.method))
       if (data.input.params) activity.set('input.params', JSON.stringify(data.input.params))
     }

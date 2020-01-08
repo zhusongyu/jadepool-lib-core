@@ -34,9 +34,9 @@ const schema = new mongoose.Schema({
   log_params: [ String ], // 记录 activity 的日志参数
   // 操作行为记录
   input: {
+    permission: String, // 权限名称
     method: String, // 操作方法名
     params: String, // 操作参数 JSON记录
-    model: String, // 操作对象（可选，需为数据库对象名）
     // 请求发起的时间戳
     record_at: {
       type: Number,

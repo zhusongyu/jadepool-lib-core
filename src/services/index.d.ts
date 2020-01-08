@@ -189,20 +189,6 @@ declare class ErrorCodeService extends BaseService {
   getErrorInfo (code: number, locale: string): Promise<LocaleData>
 }
 
-declare type ActivityDataInput = {
-  /** 操作对象（可选，需为数据库对象名） */
-  model?: string
-  /** 操作方法名 */
-  method?: string
-  /** 操作参数 JSON记录 */
-  params?: string | any[]
-}
-declare type ActivityDataOutput = {
-  /** 正确结果 */
-  result?: string | object
-  /** 错误结果 */
-  error?: string | object | Error
-}
 declare class ActivityService extends BaseService {
   constructor (services: any)
   initialize (opts: any): Promise<void>
@@ -232,14 +218,14 @@ declare class ActivityService extends BaseService {
    * @param input 
    * @param logParams 
    */
-  startApiLog (moduleName: string, name: string, operator: string, operatorRole: string, input?: ActivityDataInput, logParams?: string[]): Promise<models.ActivityDocument>
+  startApiLog (moduleName: string, name: string, operator: string, operatorRole: string, input?: models.ActivityDataInput, logParams?: string[]): Promise<models.ActivityDocument>
   /**
    * 结束 api 日志
    * @param activityId 活动实例 ID
    * @param output
    * @param params 参数列表
    */
-  finishApiLog (activityId: string, output?: ActivityDataOutput, logParams?: string[]): Promise<models.ActivityDocument>
+  finishApiLog (activityId: string, output?: models.ActivityDataOutput, logParams?: string[]): Promise<models.ActivityDocument>
   /**
    * 添加用户活动日志
    * @param moduleName 模块名，global/wallet
@@ -249,7 +235,7 @@ declare class ActivityService extends BaseService {
    * @param logParams 
    * @param extra 
    */
-  createUserActivity (moduleName: string, name: string, operator: string, operatorRole: string, logParams?: string[], extra?: { input: ActivityDataInput, output: ActivityDataOutput }): Promise<models.ActivityDocument>
+  createUserActivity (moduleName: string, name: string, operator: string, operatorRole: string, logParams?: string[], extra?: { input: models.ActivityDataInput, output: models.ActivityDataOutput }): Promise<models.ActivityDocument>
   /**
    * 添加系统活动日志
    * @param moduleName 模块名，global/wallet

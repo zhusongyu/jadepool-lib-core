@@ -3,6 +3,20 @@ import * as consts from '../consts'
 
 export as namespace models
 
+declare type ActivityDataInput = {
+  /** 权限 */
+  permission?: string
+  /** 操作方法名 */
+  method?: string
+  /** 操作参数 JSON记录 */
+  params?: string | any[]
+}
+declare type ActivityDataOutput = {
+  /** 正确结果 */
+  result?: string | object
+  /** 错误结果 */
+  error?: string | object | Error
+}
 /**
  * Model for activity
  */
@@ -18,22 +32,12 @@ declare interface ActivityDocument extends mongoose.Document {
   /** 操作者角色 */
   operator_role?: string
   /** 输入信息 */
-  input: {
-    /** 操作方法名 */
-    method: string
-    /** 操作参数 JSON记录 */
-    params: string
-    /** 操作对象（可选，需为数据库对象名） */
-    model: string
+  input: ActivityDataInput & {
     /** 请求发起的时间戳 */
     record_at: number
   },
   /** 输出信息 */
-  output: {
-    /** 操作结果，JSON记录 */
-    result: string
-    /** 操作错误，JSON记录 */
-    error: string
+  output: ActivityDataOutput & {
     /** 返回结果的时间戳 */
     record_at: number
   },
