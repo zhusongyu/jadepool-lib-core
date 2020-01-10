@@ -145,8 +145,8 @@ export declare const MODEL_NAMES: {
   WARNING: 'warning',
   ACTIVITY: 'activity',
   OPERATOR: 'operator',
-  OPERATOR_GROUP: 'operatorgroup',
-  OPERATOR_ROLE: 'operatorrole',
+  OPERATOR_GROUP: 'oprgroup',
+  OPERATOR_RESOURCE: 'oprresource',
   // Admin Models
   ACCOUNT: 'account',
   ROLE: 'role',
