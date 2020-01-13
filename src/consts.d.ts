@@ -83,7 +83,6 @@ export declare const NSP_TYPES: {
   NULL: 'null',
   COIN_TYPE: 'data.type',
   CHAIN_KEY: 'params.chain',
-  SOCKET_ID: 'socketio.id',
   AGENT: 'MASTER_AGENT'
 }
 
