@@ -10,7 +10,6 @@ const logger = require('@jadepool/logger').of('Service', 'Koa')
 const HttpBaseService = require('./httpbase.service')
 
 const consts = require('../consts')
-const jadepool = require('../jadepool')
 
 class KoaService extends HttpBaseService {
   /**
@@ -45,10 +44,8 @@ class KoaService extends HttpBaseService {
       try {
         await next()
       } catch (err) {
-        if (!jadepool.env.isProd) {
+        if (err.code === undefined) {
           logger.tag(`Failed-to-invoke`).error(`path=${ctx.path}`, err)
-        } else {
-          logger.tag(`Failed-to-invoke`).info(`path=${ctx.path}`, err && err.message)
         }
         let locale = ctx.acceptsLanguages('zh-cn', 'en', 'ja')
         if (!locale) {
