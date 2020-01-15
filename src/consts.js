@@ -112,6 +112,8 @@ consts.MODEL_NAMES = {
   ORDER: 'order',
   ITEM: 'item',
   DELEGATION: 'delegation',
+  STAKEPOOL: 'stakepool',
+  COMPOUND_INTEREST: 'compoundInterest',
   ASYNC_PLAN: 'asyncplan',
   SCAN_TASK: 'scantask',
   TASK_CONFIG: 'admintaskcfg',

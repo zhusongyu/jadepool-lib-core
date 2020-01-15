@@ -10,6 +10,7 @@ Feature:
   * add some general Action classes
 * add `utils.validateParameter` method
 * add new Model `Activity`
+* add new Model Name `STAKEPOOL` `COMPOUND_INTEREST`
 
 Improvement:
 
