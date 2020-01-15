@@ -136,7 +136,7 @@ export declare const MODEL_NAMES: {
   SCAN_TASK: 'scantask',
   TASK_CONFIG: 'admintaskcfg',
   AUDIT: 'audit',
-  AUDIT_BALANCE: 'auditbalance',
+  STATISTIC_BALANCE: 'statisticbalance',
   RULER: 'ruler',
   BLOCK: 'block',
   ISSUE_RECORD: 'issuerecord',
